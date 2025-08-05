@@ -10,16 +10,19 @@ import {
   ArrowLeft,
   Copy,
   Share,
-  CheckCircle
+  CheckCircle,
+  Calendar
 } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { Link, useNavigate } from 'react-router-dom';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export default function NovoVisitante() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    firstName: ''
+    firstName: '',
+    validDays: '1'
   });
   const [generatedLink, setGeneratedLink] = useState('');
   const [showLink, setShowLink] = useState(false);
@@ -37,14 +40,16 @@ export default function NovoVisitante() {
       return;
     }
 
-    // Generate unique link with visitor name
+    // Generate unique link with visitor name and valid days
     const firstName = formData.firstName.toLowerCase().replace(/\s+/g, '');
     const randomId = Math.random().toString(36).substring(2, 8);
     const link = `https://condominio.app/visitante/${firstName}-${randomId}`;
     
     setGeneratedLink(link);
     setShowLink(true);
-    toast.success(`Link criado para ${formData.firstName}! Compartilhe o link com seu visitante.`);
+    
+    const dayText = formData.validDays === '1' ? '1 dia' : `${formData.validDays} dias`;
+    toast.success(`Link criado para ${formData.firstName}! Autorização válida por ${dayText}.`);
   };
 
   const copyLink = async () => {
@@ -126,6 +131,29 @@ export default function NovoVisitante() {
                       💡 O visitante informará os dados completos ao usar o link gerado
                     </p>
                   </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="validDays" className="text-foreground font-medium flex items-center gap-2">
+                      <Calendar className="h-4 w-4" />
+                      Autorização Válida Por *
+                    </Label>
+                    <Select 
+                      value={formData.validDays} 
+                      onValueChange={(value) => handleInputChange('validDays', value)}
+                    >
+                      <SelectTrigger className="bg-white dark:bg-background border-border hover:border-primary/50 focus:border-primary transition-colors duration-200">
+                        <SelectValue placeholder="Selecione os dias" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1">1 dia</SelectItem>
+                        <SelectItem value="2">2 dias</SelectItem>
+                        <SelectItem value="3">3 dias</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                      ⏰ Período máximo que o visitante poderá permanecer autorizado
+                    </p>
+                  </div>
                 </div>
 
                 <div className="flex justify-center pt-4">
@@ -192,10 +220,11 @@ export default function NovoVisitante() {
             </CardHeader>
             <CardContent className="space-y-3 text-sm text-muted-foreground">
               <p>• Informe apenas o primeiro nome do visitante</p>
+              <p>• Escolha por quantos dias a autorização será válida (1 a 3 dias)</p>
               <p>• Clique em "Gerar Link de Convite" para criar um link personalizado</p>
               <p>• Compartilhe o link via WhatsApp, SMS ou e-mail</p>
               <p>• O visitante preencherá os dados completos ao usar o link</p>
-              <p className="text-primary font-medium">💡 Processo simplificado: só o nome é necessário</p>
+              <p className="text-primary font-medium">✅ Visitante será automaticamente autorizado quando cadastrado</p>
             </CardContent>
           </Card>
         </div>

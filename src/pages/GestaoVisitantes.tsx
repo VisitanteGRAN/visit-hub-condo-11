@@ -29,9 +29,11 @@ const mockMoradores = [
         fullName: 'Maria Santos',
         document: '123.456.789-00',
         phone: '(11) 99999-9999',
-        status: 'pendente',
+        status: 'autorizado',
         createdAt: '2024-08-05 14:30',
-        linkSent: '2024-08-05 13:00'
+        linkSent: '2024-08-05 13:00',
+        authorizedAt: '2024-08-05 14:30',
+        validUntil: '2024-08-06'
       },
       {
         id: 2,
@@ -41,7 +43,8 @@ const mockMoradores = [
         phone: '(11) 88888-8888',
         status: 'dentro',
         createdAt: '2024-08-05 15:00',
-        entryTime: '2024-08-05 15:30'
+        entryTime: '2024-08-05 15:30',
+        validUntil: '2024-08-07'
       }
     ]
   },
@@ -58,7 +61,8 @@ const mockMoradores = [
         phone: '(11) 77777-7777',
         status: 'autorizado',
         createdAt: '2024-08-05 16:00',
-        authorizedAt: '2024-08-05 16:15'
+        authorizedAt: '2024-08-05 16:15',
+        validUntil: '2024-08-08'
       }
     ]
   },
@@ -75,7 +79,8 @@ const mockMoradores = [
         phone: '(11) 66666-6666',
         status: 'finalizado',
         createdAt: '2024-08-04 18:00',
-        exitTime: '2024-08-04 19:30'
+        exitTime: '2024-08-04 19:30',
+        validUntil: '2024-08-04'
       }
     ]
   }
@@ -174,23 +179,19 @@ export default function GestaoVisitantes() {
                   </div>
                 )}
                 
-                <div className="flex items-center gap-1">
-                  <Calendar className="h-3 w-3" />
-                  <span>{new Date(visitor.createdAt).toLocaleString('pt-BR')}</span>
-                </div>
+                 <div className="flex items-center gap-1">
+                   <Calendar className="h-3 w-3" />
+                   <span>{new Date(visitor.createdAt).toLocaleString('pt-BR')}</span>
+                 </div>
+                 
+                 {visitor.validUntil && (
+                   <div className="flex items-center gap-1 text-warning">
+                     <Calendar className="h-3 w-3" />
+                     <span>Válido até: {new Date(visitor.validUntil).toLocaleDateString('pt-BR')}</span>
+                   </div>
+                 )}
               </div>
 
-              {status === 'pendente' && (
-                <div className="flex gap-1 pt-2">
-                  <Button 
-                    size="sm" 
-                    className="flex-1 h-7 text-xs"
-                    onClick={() => moveVisitor(visitor.id, 'autorizado')}
-                  >
-                    Autorizar
-                  </Button>
-                </div>
-              )}
               
               {status === 'autorizado' && (
                 <div className="flex gap-1 pt-2">
@@ -246,15 +247,7 @@ export default function GestaoVisitantes() {
         </div>
 
         {/* Cards de resumo */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium">Pendentes</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-warning">{pendentes.length}</div>
-            </CardContent>
-          </Card>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium">Autorizados</CardTitle>
@@ -282,14 +275,7 @@ export default function GestaoVisitantes() {
         </div>
 
         {/* Kanban Board */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-          <KanbanColumn
-            title="Pendentes"
-            visitors={pendentes}
-            status="pendente"
-            icon={Clock}
-            count={pendentes.length}
-          />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <KanbanColumn
             title="Autorizados"
             visitors={autorizados}
