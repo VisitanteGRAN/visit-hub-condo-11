@@ -64,12 +64,12 @@ export function AppSidebar() {
         <div className="flex items-center gap-3 p-4">
           <img 
             src={logoCondominio} 
-            alt="Logo" 
-            className="h-8 w-8 object-contain"
+            alt="Logo Gran Royalle" 
+            className="h-10 w-auto object-contain"
           />
           {!collapsed && (
             <div className="flex flex-col">
-              <span className="font-semibold text-sm text-foreground">Portal Condomínio</span>
+              <span className="font-semibold text-sm text-foreground">Gran Royalle</span>
               <span className="text-xs text-muted-foreground">
                 {user?.role === 'admin' ? 'Administrador' : 'Morador'}
               </span>

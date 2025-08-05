@@ -46,13 +46,13 @@ export default function Login() {
           <div className="mx-auto mb-4">
             <img 
               src={logoCondominio} 
-              alt="Logo Condomínio" 
-              className="h-16 w-auto mx-auto"
+              alt="Logo Gran Royalle" 
+              className="h-20 w-auto mx-auto"
             />
           </div>
           <div className="flex items-center justify-center gap-2 text-primary">
             <Building2 className="h-6 w-6" />
-            <CardTitle className="text-2xl font-bold">Portal do Condomínio</CardTitle>
+            <CardTitle className="text-2xl font-bold">Gran Royalle</CardTitle>
           </div>
           <CardDescription>
             Faça login para acessar o sistema de gestão de visitantes

@@ -19,10 +19,7 @@ import { Link, useNavigate } from 'react-router-dom';
 export default function NovoVisitante() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    name: '',
-    document: '',
-    phone: '',
-    email: ''
+    firstName: ''
   });
   const [generatedLink, setGeneratedLink] = useState('');
   const [showLink, setShowLink] = useState(false);
@@ -35,19 +32,19 @@ export default function NovoVisitante() {
   };
 
   const generateLink = () => {
-    if (!formData.name || !formData.document || !formData.phone) {
-      toast.error('Por favor, preencha todos os campos obrigatórios');
+    if (!formData.firstName.trim()) {
+      toast.error('Por favor, preencha o nome do visitante');
       return;
     }
 
     // Generate unique link with visitor name
-    const firstName = formData.name.split(' ')[0].toLowerCase();
+    const firstName = formData.firstName.toLowerCase().replace(/\s+/g, '');
     const randomId = Math.random().toString(36).substring(2, 8);
     const link = `https://condominio.app/visitante/${firstName}-${randomId}`;
     
     setGeneratedLink(link);
     setShowLink(true);
-    toast.success(`Link criado para ${formData.name}! Compartilhe o link com seu convidado.`);
+    toast.success(`Link criado para ${formData.firstName}! Compartilhe o link com seu visitante.`);
   };
 
   const copyLink = async () => {
@@ -114,54 +111,20 @@ export default function NovoVisitante() {
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="name" className="text-foreground font-medium">Nome Completo *</Label>
+                    <Label htmlFor="firstName" className="text-foreground font-medium">Primeiro Nome do Visitante *</Label>
                     <Input
-                      id="name"
-                      value={formData.name}
-                      onChange={(e) => handleInputChange('name', e.target.value)}
-                      placeholder="Ex: Maria Silva Santos"
+                      id="firstName"
+                      value={formData.firstName}
+                      onChange={(e) => handleInputChange('firstName', e.target.value)}
+                      placeholder="Ex: Maria"
                       required
                       className="bg-white dark:bg-background border-border hover:border-primary/50 focus:border-primary transition-colors duration-200"
                     />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="document" className="text-foreground font-medium">CPF/RG *</Label>
-                    <Input
-                      id="document"
-                      value={formData.document}
-                      onChange={(e) => handleInputChange('document', e.target.value)}
-                      placeholder="Ex: 123.456.789-00"
-                      required
-                      className="bg-white dark:bg-background border-border hover:border-primary/50 focus:border-primary transition-colors duration-200"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="phone" className="text-foreground font-medium">Telefone *</Label>
-                    <Input
-                      id="phone"
-                      type="tel"
-                      value={formData.phone}
-                      onChange={(e) => handleInputChange('phone', e.target.value)}
-                      placeholder="Ex: (11) 99999-9999"
-                      required
-                      className="bg-white dark:bg-background border-border hover:border-primary/50 focus:border-primary transition-colors duration-200"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="email" className="text-foreground font-medium">E-mail</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) => handleInputChange('email', e.target.value)}
-                      placeholder="Ex: visitante@email.com"
-                      className="bg-white dark:bg-background border-border hover:border-primary/50 focus:border-primary transition-colors duration-200"
-                    />
+                    <p className="text-xs text-muted-foreground">
+                      💡 O visitante informará os dados completos ao usar o link gerado
+                    </p>
                   </div>
                 </div>
 
@@ -228,11 +191,11 @@ export default function NovoVisitante() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-sm text-muted-foreground">
-              <p>• Preencha os dados básicos do visitante</p>
+              <p>• Informe apenas o primeiro nome do visitante</p>
               <p>• Clique em "Gerar Link de Convite" para criar um link personalizado</p>
               <p>• Compartilhe o link via WhatsApp, SMS ou e-mail</p>
-              <p>• O visitante usará o link para confirmar sua chegada</p>
-              <p className="text-primary font-medium">💡 Cada visitante precisa de um novo link exclusivo</p>
+              <p>• O visitante preencherá os dados completos ao usar o link</p>
+              <p className="text-primary font-medium">💡 Processo simplificado: só o nome é necessário</p>
             </CardContent>
           </Card>
         </div>

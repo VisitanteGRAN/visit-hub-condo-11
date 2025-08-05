@@ -11,6 +11,7 @@ import Welcome from "./pages/Welcome";
 import Dashboard from "./pages/Dashboard";
 import MeusVisitantes from "./pages/MeusVisitantes";
 import NovoVisitante from "./pages/NovoVisitante";
+import GestaoVisitantes from "./pages/GestaoVisitantes";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -70,7 +71,7 @@ const App = () => (
               path="/gestao-visitantes" 
               element={
                 <ProtectedRoute requiredRole="admin">
-                  <div>Gestão de Visitantes em desenvolvimento</div>
+                  <GestaoVisitantes />
                 </ProtectedRoute>
               } 
             />

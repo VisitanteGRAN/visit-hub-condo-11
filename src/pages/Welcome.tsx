@@ -17,12 +17,12 @@ export default function Welcome() {
         <div className="flex items-center gap-3">
           <img 
             src={logoCondominio} 
-            alt="Logo Condomínio" 
-            className="h-10 w-auto"
+            alt="Logo Gran Royalle" 
+            className="h-12 w-auto"
           />
           <div className="flex items-center gap-2 text-primary">
             <Building2 className="h-6 w-6" />
-            <h1 className="text-xl font-bold">Portal Residencial</h1>
+            <h1 className="text-xl font-bold">Gran Royalle</h1>
           </div>
         </div>
         <ThemeToggle />
