@@ -182,9 +182,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (testUser && password === testUser.senha) {
         console.log('🎯 BYPASS: Login simulado para:', email);
         
-        // Criar usuário simulado
+        // Criar usuário simulado com UUID válido
         const mockUser = {
-          id: email === 'admin@condominio.com.br' ? 'admin-123' : 'morador-123',
+          id: email === 'admin@condominio.com.br' ? 
+            '00000000-0000-0000-0000-000000000001' : 
+            '00000000-0000-0000-0000-000000000002',
           email,
           name: testUser.nome,
           role: testUser.perfil as UserRole,
