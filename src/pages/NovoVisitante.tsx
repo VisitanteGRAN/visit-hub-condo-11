@@ -17,15 +17,19 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { Link, useNavigate } from 'react-router-dom';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function NovoVisitante() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [formData, setFormData] = useState({
     firstName: '',
     validDays: '1'
   });
   const [generatedLink, setGeneratedLink] = useState('');
   const [showLink, setShowLink] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
@@ -34,22 +38,63 @@ export default function NovoVisitante() {
     }));
   };
 
-  const generateLink = () => {
+  const generateLink = async () => {
     if (!formData.firstName.trim()) {
       toast.error('Por favor, preencha o nome do visitante');
       return;
     }
 
-    // Generate unique link with visitor name and valid days
-    const firstName = formData.firstName.toLowerCase().replace(/\s+/g, '');
-    const randomId = Math.random().toString(36).substring(2, 8);
-    const link = `https://condominio.app/visitante/${firstName}-${randomId}`;
-    
-    setGeneratedLink(link);
-    setShowLink(true);
-    
-    const dayText = formData.validDays === '1' ? '1 dia' : `${formData.validDays} dias`;
-    toast.success(`Link criado para ${formData.firstName}! Autorização válida por ${dayText}.`);
+    if (!user) {
+      toast.error('Usuário não autenticado');
+      return;
+    }
+
+    setIsGenerating(true);
+
+    try {
+      // Gerar ID único para o link
+      const linkId = `${formData.firstName.toLowerCase().replace(/\s+/g, '')}-${Math.random().toString(36).substring(2, 8)}`;
+      
+      // Calcular data de expiração
+      const expiresAt = new Date();
+      expiresAt.setHours(expiresAt.getHours() + 24); // 24 horas
+
+      // Salvar link no banco de dados
+      const { data: linkData, error } = await supabase
+        .from('links_convite')
+        .insert({
+          token: linkId, // Usar 'token' em vez de 'link_id'
+          morador_id: user.id,
+          nome_visitante: formData.firstName,
+          validade_dias: parseInt(formData.validDays), // Usar 'validade_dias' em vez de 'valid_days'
+          expires_at: expiresAt.toISOString(),
+          usado: false,
+          expirado: false
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('❌ Erro ao criar link:', error);
+        toast.error('Erro ao gerar link. Tente novamente.');
+        return;
+      }
+
+      // Gerar URL completa
+      const fullLink = `${window.location.origin}/visitante/${linkId}`;
+      
+      setGeneratedLink(fullLink);
+      setShowLink(true);
+      
+      const dayText = formData.validDays === '1' ? '1 dia' : `${formData.validDays} dias`;
+      toast.success(`Link criado para ${formData.firstName}! Autorização válida por ${dayText}.`);
+      
+    } catch (error) {
+      console.error('❌ Erro ao gerar link:', error);
+      toast.error('Erro ao gerar link. Tente novamente.');
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const copyLink = async () => {
@@ -160,19 +205,27 @@ export default function NovoVisitante() {
                   <Button 
                     onClick={generateLink}
                     className="w-full md:w-auto px-8 py-3 bg-primary hover:bg-primary/90 text-white font-medium hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl"
-                    disabled={showLink}
+                    disabled={showLink || isGenerating}
                   >
-                    {showLink ? (
-                      <>
-                        <CheckCircle className="h-4 w-4 mr-2" />
-                        Link Gerado
-                      </>
-                    ) : (
-                      <>
-                        <Share className="h-4 w-4 mr-2" />
-                        Gerar Link de Convite
-                      </>
-                    )}
+                                         {isGenerating ? (
+                       <>
+                         <svg className="animate-spin h-4 w-4 mr-2 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                         </svg>
+                         Gerando Link...
+                       </>
+                     ) : showLink ? (
+                       <>
+                         <CheckCircle className="h-4 w-4 mr-2" />
+                         Link Gerado
+                       </>
+                     ) : (
+                       <>
+                         <Share className="h-4 w-4 mr-2" />
+                         Gerar Link de Convite
+                       </>
+                     )}
                   </Button>
                 </div>
 

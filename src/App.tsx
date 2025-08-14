@@ -11,8 +11,12 @@ import Welcome from "./pages/Welcome";
 import Dashboard from "./pages/Dashboard";
 import MeusVisitantes from "./pages/MeusVisitantes";
 import NovoVisitante from "./pages/NovoVisitante";
+import CadastroVisitante from "./pages/CadastroVisitante";
+import CadastroMorador from "./pages/CadastroMorador";
 import GestaoVisitantes from "./pages/GestaoVisitantes";
 import NotFound from "./pages/NotFound";
+import ConfiguracaoHikvision from "./pages/ConfiguracaoHikvision";
+import TesteHikvision from "./pages/TesteHikvision";
 
 const queryClient = new QueryClient();
 
@@ -27,6 +31,8 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Welcome />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/cadastro-morador" element={<CadastroMorador />} />
+            <Route path="/visitante/:linkId" element={<CadastroVisitante />} />
             <Route 
               path="/dashboard" 
               element={
@@ -51,6 +57,7 @@ const App = () => (
                 </ProtectedRoute>
               } 
             />
+
             <Route 
               path="/notificacoes" 
               element={
@@ -88,6 +95,22 @@ const App = () => (
               element={
                 <ProtectedRoute requiredRole="admin">
                   <div>Gestão de Usuários em desenvolvimento</div>
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/configuracao-hikvision" 
+              element={
+                <ProtectedRoute requiredRole="admin">
+                  <ConfiguracaoHikvision />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/teste-hikvision" 
+              element={
+                <ProtectedRoute requiredRole="admin">
+                  <TesteHikvision />
                 </ProtectedRoute>
               } 
             />
