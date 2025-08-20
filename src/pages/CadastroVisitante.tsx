@@ -21,6 +21,7 @@ import { toast } from 'sonner';
 import hikVisionWebSDK from '@/services/webSDKService';
 import logoCondominio from '@/assets/logo-condominio.png';
 import { supabase } from '@/integrations/supabase/client';
+import { CameraCapture } from '@/components/ui/camera-capture';
 
 interface VisitanteData {
   nome: string;
@@ -50,6 +51,8 @@ export default function CadastroVisitante() {
   const [isLoading, setIsLoading] = useState(true);
   const [linkValid, setLinkValid] = useState(false);
   const [linkData, setLinkData] = useState<any>(null);
+  const [showCamera, setShowCamera] = useState(false);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
   useEffect(() => {
     validateLink();
@@ -106,9 +109,21 @@ export default function CadastroVisitante() {
     }));
   };
 
-  const handlePhotoCapture = () => {
-    // Implementar captura de foto
-    toast.info('Funcionalidade de foto em desenvolvimento');
+  const handlePhotoCapture = (imageData: string) => {
+    setPhotoPreview(imageData);
+    setFormData(prev => ({
+      ...prev,
+      foto: imageData
+    }));
+    toast.success('Foto capturada com sucesso!');
+  };
+
+  const removePhoto = () => {
+    setPhotoPreview(null);
+    setFormData(prev => ({
+      ...prev,
+      foto: null
+    }));
   };
 
   const validateCPF = (cpf: string) => {
@@ -419,15 +434,47 @@ export default function CadastroVisitante() {
 
               <div className="space-y-2">
                 <Label>Foto para Reconhecimento Facial</Label>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handlePhotoCapture}
-                  className="w-full"
-                >
-                  <Camera className="h-4 w-4 mr-2" />
-                  Tirar Foto
-                </Button>
+                
+                {photoPreview ? (
+                  <div className="space-y-2">
+                    <div className="relative">
+                      <img 
+                        src={photoPreview} 
+                        alt="Foto capturada" 
+                        className="w-full h-48 object-cover rounded-lg border"
+                      />
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        onClick={removePhoto}
+                        className="absolute top-2 right-2"
+                      >
+                        <XCircle className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setShowCamera(true)}
+                      className="w-full"
+                    >
+                      <Camera className="h-4 w-4 mr-2" />
+                      Tirar Nova Foto
+                    </Button>
+                  </div>
+                ) : (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setShowCamera(true)}
+                    className="w-full"
+                  >
+                    <Camera className="h-4 w-4 mr-2" />
+                    Tirar Foto
+                  </Button>
+                )}
+                
                 <p className="text-xs text-muted-foreground">
                   A foto será usada para reconhecimento facial na entrada do condomínio
                 </p>
@@ -461,6 +508,15 @@ export default function CadastroVisitante() {
           </CardContent>
         </Card>
       </div>
+      
+      {/* Camera Capture Modal */}
+      {showCamera && (
+        <CameraCapture
+          onCapture={handlePhotoCapture}
+          onClose={() => setShowCamera(false)}
+          title="Foto para Reconhecimento Facial"
+        />
+      )}
     </div>
   );
 } 

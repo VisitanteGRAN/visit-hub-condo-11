@@ -20,6 +20,7 @@ import authRoutes from '@/routes/auth';
 import visitanteRoutes from '@/routes/visitante';
 import adminRoutes from '@/routes/admin';
 import publicRoutes from '@/routes/public';
+import hikcentralAutomationRoutes from '@/routes/hikcentralAutomation';
 
 // Serviços para inicialização
 import { StorageService } from '@/services/storageService';
@@ -101,6 +102,7 @@ class Server {
     this.app.use('/api/visitantes', visitanteRoutes);
     this.app.use('/api/admin', adminRoutes);
     this.app.use('/api/public', publicRoutes);
+    this.app.use('/api/hikcentral', hikcentralAutomationRoutes);
 
     // Rota 404
     this.app.use('*', (req, res) => {

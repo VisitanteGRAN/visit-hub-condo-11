@@ -1,25 +1,86 @@
-# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
 
-node_modules
-dist
-dist-ssr
-*.local
+# Virtual Environment
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
 
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
 .DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
-.vercel
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+*.log
+logs/
+debug/
+
+# Screenshots e arquivos temporários
+*.png
+*.jpg
+*.jpeg
+*.gif
+temp/
+screenshots/
+
+# Arquivos de configuração sensíveis
+.env
+.env.local
+.env.production
+config.py
+*.key
+*.pem
+
+# Chrome/ChromeDriver
+chromedriver
+chromedriver.exe
+chrome-user-data/
+
+# Arquivos de teste
+test_*.py
+*_test.py
+test_results/
+
+# Dependências
+node_modules/
+package-lock.json
+yarn.lock
+
+# Arquivos específicos do projeto
+hikcentral_automation_config.env
+*.bat
+*.sh

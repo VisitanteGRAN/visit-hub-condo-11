@@ -212,6 +212,76 @@ export class HikCentralService {
     }
   }
 
+  // Criar visitante no HikCentral (método específico para visitantes)
+  async createVisitor(visitorData: {
+    name: string;
+    certificateNo: string;
+    phoneNumber: string;
+    email: string;
+    groupId?: number;
+    beginTime: string;
+    endTime: string;
+    visitedPerson: string;
+    visitAddress: string;
+    visitPurpose: string;
+    status: number;
+    faceData?: string;
+  }): Promise<{ success: boolean; data?: any; message: string }> {
+    try {
+      console.log('👥 Criando visitante no HikCentral:', visitorData.name);
+      
+      if (!this.sessionId) {
+        await this.authenticate();
+      }
+
+      const visitorConfig = {
+        name: visitorData.name,
+        certificateNo: visitorData.certificateNo,
+        phoneNumber: visitorData.phoneNumber,
+        email: visitorData.email,
+        groupId: visitorData.groupId || 1, // Grupo padrão de visitantes
+        beginTime: visitorData.beginTime,
+        endTime: visitorData.endTime,
+        visitedPerson: visitorData.visitedPerson,
+        visitAddress: visitorData.visitAddress,
+        visitPurpose: visitorData.visitPurpose,
+        status: visitorData.status,
+        ...(visitorData.faceData && { faceData: visitorData.faceData })
+      };
+
+      const response = await axios.post(
+        `${this.config.baseUrl}/api/visitor/v2/create`,
+        visitorConfig,
+        {
+          timeout: this.config.timeout,
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Session-Id': this.sessionId
+          }
+        }
+      );
+
+      if (response.data.code === 0) {
+        console.log('✅ Visitante criado no HikCentral:', response.data);
+        return {
+          success: true,
+          data: response.data.data,
+          message: 'Visitante criado com sucesso'
+        };
+      }
+      return {
+        success: false,
+        message: response.data.msg || 'Erro ao criar visitante'
+      };
+    } catch (error) {
+      console.error('❌ Erro ao criar visitante:', error);
+      return {
+        success: false,
+        message: `Erro: ${error instanceof Error ? error.message : 'Desconhecido'}`
+      };
+    }
+  }
+
   // Controlar acesso (abrir/fechar portão)
   async controlAccess(deviceId: string, action: 'open' | 'close'): Promise<boolean> {
     try {
@@ -323,8 +393,15 @@ export class HikCentralService {
 }
 
 // Instância configurada com as credenciais reais do HikCentral
+// Tentar múltiplas configurações HTTPS
+const hikCentralConfigs = [
+  { baseUrl: 'https://45.4.132.189:8443', port: '8443' }, // HTTPS padrão HikCentral
+  { baseUrl: 'https://45.4.132.189:443', port: '443' },   // HTTPS padrão web
+  { baseUrl: 'https://45.4.132.189:8208', port: '8208' }, // Mesma porta com HTTPS
+];
+
 export const hikCentralService = new HikCentralService({
-  baseUrl: 'http://45.4.132.189:8208', // Porta correta da API
+  baseUrl: 'https://45.4.132.189:8443', // Tentar HTTPS primeiro
   username: 'luca', // Usuário parceiro selecionado
   password: 'Luca123#',
   timeout: 30000

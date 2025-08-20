@@ -1,0 +1,9 @@
+{
+  "name": "visit-hub-api",
+  "version": "1.0.0",
+  "dependencies": {
+    "@vercel/node": "^3.0.0",
+    "puppeteer": "^21.6.1",
+    "selenium-webdriver": "^4.15.0"
+  }
+} 

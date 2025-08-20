@@ -1,0 +1,67 @@
+📁 ARQUIVOS PARA COPIAR PARA WINDOWS
+=====================================
+
+🚀 ARQUIVOS PRINCIPAIS (OBRIGATÓRIOS):
+=====================================
+✅ hikcentral_automation_server_24x7.py
+✅ hikcentral_automation.py  
+✅ requirements.txt
+✅ hikcentral_automation_config.env
+✅ hikcentral_automation_config.env.example
+
+📋 SCRIPTS DE INSTALAÇÃO E TESTE:
+=====================================
+✅ install_windows.bat
+✅ start_test_windows.bat
+✅ GUIA_WINDOWS.md
+
+🧪 SCRIPTS DE TESTE:
+=====================================
+✅ test_quick_3_visitors.py
+✅ test_multiple_visitors.py
+✅ demo_queue_system.py
+
+📚 DOCUMENTAÇÃO:
+=====================================
+✅ README_TESTES.md
+✅ GUIA_PORTARIA.md
+
+📁 ESTRUTURA FINAL NO WINDOWS:
+=====================================
+visit-hub-condo-11/
+├── 📄 hikcentral_automation_server_24x7.py
+├── 📄 hikcentral_automation.py
+├── 📄 requirements.txt
+├── 📄 hikcentral_automation_config.env
+├── 📄 hikcentral_automation_config.env.example
+├── 📄 install_windows.bat
+├── 📄 start_test_windows.bat
+├── 📄 GUIA_WINDOWS.md
+├── 📄 test_quick_3_visitors.py
+├── 📄 test_multiple_visitors.py
+├── 📄 demo_queue_system.py
+├── 📄 README_TESTES.md
+└── 📄 GUIA_PORTARIA.md
+
+🎯 COMO COPIAR:
+=====================================
+1. Crie uma pasta no Windows: visit-hub-condo-11
+2. Copie todos os arquivos acima para essa pasta
+3. Execute install_windows.bat
+4. Configure hikcentral_automation_config.env
+5. Execute start_test_windows.bat
+
+⚠️ IMPORTANTE:
+=====================================
+- Mantenha a estrutura de pastas
+- Não altere nomes dos arquivos
+- Execute sempre como administrador se necessário
+- Verifique se Python e Chrome estão instalados
+
+🚀 RESULTADO:
+=====================================
+Após copiar e executar, você terá:
+✅ Servidor de automação rodando
+✅ Sistema de fila funcionando
+✅ Testes automatizados
+✅ Sistema 24/7 configurado 

@@ -5,6 +5,7 @@ import { validarCPF, formatarCPF } from '@/utils/validation';
 import { HikvisionService } from './hikvisionService';
 import { StorageService } from './storageService';
 import { NotificationService } from './notificationService';
+import { hikvisionAutomationService } from './hikvisionAutomationService';
 import crypto from 'crypto';
 
 export class VisitanteService {
@@ -206,6 +207,11 @@ export class VisitanteService {
         mensagem: `${dadosVisitante.nome} completou o cadastro e aguarda liberação.`,
         tipo: 'cadastro_concluido',
         dados_extras: { visitanteId: visitante.id }
+      });
+
+      // Iniciar automação do HikCentral em background
+      this.iniciarAutomacaoHikCentral(visitante).catch(error => {
+        logger.error(`❌ Erro ao iniciar automação HikCentral para visitante ${visitante.id}:`, error);
       });
 
       logger.info('Visitante criado com sucesso via token', {
@@ -514,6 +520,122 @@ export class VisitanteService {
     } catch (error) {
       logger.error('Erro na verificação de visitantes expirados:', error);
       throw error;
+    }
+  }
+
+  /**
+   * Inicia a automação do HikCentral para um visitante
+   */
+  private async iniciarAutomacaoHikCentral(visitante: Visitante): Promise<void> {
+    try {
+      logger.info(`🚀 Iniciando automação HikCentral para visitante ${visitante.id}`);
+
+      // Atualizar status para pending_hikcentral
+      const { error: updateError } = await supabase
+        .from('visitantes')
+        .update({
+          status: 'pending_hikcentral',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', visitante.id);
+
+      if (updateError) {
+        throw new Error(`Erro ao atualizar status: ${updateError.message}`);
+      }
+
+      // Buscar dados completos do visitante
+      const { data: visitanteCompleto, error: fetchError } = await supabase
+        .from('visitantes')
+        .select(`
+          id,
+          nome,
+          cpf,
+          telefone,
+          email,
+          foto_url,
+          morador_id,
+          usuarios!inner(nome as morador_nome, unidade)
+        `)
+        .eq('id', visitante.id)
+        .single();
+
+      if (fetchError || !visitanteCompleto) {
+        throw new Error(`Erro ao buscar dados do visitante: ${fetchError?.message}`);
+      }
+
+      // Preparar dados para a automação
+      const automationRequest = {
+        visitor_id: visitante.id,
+        visitor_data: {
+          name: visitanteCompleto.nome,
+          cpf: visitanteCompleto.cpf,
+          phone: visitanteCompleto.telefone || '31999999999',
+          email: visitanteCompleto.email,
+          photo_url: visitanteCompleto.foto_url
+        }
+      };
+
+      // Executar automação
+      const result = await hikvisionAutomationService.executeAutomation(automationRequest);
+
+      if (result.success) {
+        // Atualizar status para success
+        await supabase
+          .from('visitantes')
+          .update({
+            status: 'hikcentral_success',
+            hikcentral_id: result.hikcentral_id,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', visitante.id);
+
+        logger.info(`✅ Automação HikCentral concluída com sucesso para visitante ${visitante.id}`);
+        
+        // Notificar morador sobre sucesso
+        await this.notificationService.enviarNotificacao({
+          usuario_id: visitanteCompleto.morador_id,
+          titulo: 'Visitante Cadastrado no HikCentral',
+          mensagem: `${visitanteCompleto.nome} foi cadastrado automaticamente no sistema de portaria.`,
+          tipo: 'hikcentral_success',
+          dados_extras: { visitanteId: visitante.id, hikcentralId: result.hikcentral_id }
+        });
+      } else {
+        // Atualizar status para error
+        await supabase
+          .from('visitantes')
+          .update({
+            status: 'hikcentral_error',
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', visitante.id);
+
+        logger.error(`❌ Falha na automação HikCentral para visitante ${visitante.id}: ${result.error}`);
+        
+        // Notificar morador sobre erro
+        await this.notificationService.enviarNotificacao({
+          usuario_id: visitanteCompleto.morador_id,
+          titulo: 'Erro no Cadastro Automático',
+          mensagem: `Não foi possível cadastrar ${visitanteCompleto.nome} automaticamente no sistema de portaria. Entre em contato com a administração.`,
+          tipo: 'hikcentral_error',
+          dados_extras: { visitanteId: visitante.id, error: result.error }
+        });
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      logger.error(`❌ Erro na automação HikCentral para visitante ${visitante.id}: ${errorMessage}`);
+      
+      // Atualizar status para error
+      try {
+        await supabase
+          .from('visitantes')
+          .update({
+            status: 'hikcentral_error',
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', visitante.id);
+      } catch (updateError) {
+        logger.error(`❌ Erro ao atualizar status para error: ${updateError}`);
+      }
     }
   }
 }

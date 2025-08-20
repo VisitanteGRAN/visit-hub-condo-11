@@ -22,11 +22,11 @@ import {
   Settings, 
   BarChart3, 
   UserCog,
-  Building2,
   LogOut,
   Home
 } from 'lucide-react';
 import logoCondominio from '@/assets/logo-condominio.png';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const moradorItems = [
   { title: 'Dashboard', url: '/dashboard', icon: Home },
@@ -47,88 +47,111 @@ const adminItems = [
 
 export function AppSidebar() {
   const { user, logout } = useAuth();
-  const { state } = useSidebar();
+  const { open, setOpen } = useSidebar();
   const location = useLocation();
+  const isMobile = useIsMobile();
   const currentPath = location.pathname;
 
   const items = user?.role === 'admin' ? adminItems : moradorItems;
-  const collapsed = state === 'collapsed';
-  
-  const isActive = (path: string) => currentPath === path;
-  const getNavCls = ({ isActive }: { isActive: boolean }) =>
-    isActive 
-      ? 'bg-primary text-primary-foreground font-medium' 
-      : 'text-foreground hover:bg-accent hover:text-accent-foreground';
+
+  // Em mobile, sempre mostrar overlay quando aberto
+  const shouldShowOverlay = isMobile && open;
 
   return (
-    <Sidebar className={collapsed ? 'w-14' : 'w-64'} collapsible="icon">
-      <SidebarHeader className="border-b border-border">
-        <div className="flex items-center gap-3 p-4">
-          <img 
-            src={logoCondominio} 
-            alt="Logo Gran Royalle" 
-            className="h-10 w-auto object-contain"
-          />
-          {!collapsed && (
-            <div className="flex flex-col">
+    <>
+      {/* Overlay para mobile */}
+      {shouldShowOverlay && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          onClick={() => setOpen(false)}
+        />
+      )}
+      
+      <Sidebar 
+        className={`
+          ${isMobile ? 'fixed left-0 top-0 h-full z-50 w-72' : 'relative w-64'}
+          ${isMobile && !open ? '-translate-x-full' : 'translate-x-0'}
+          transition-transform duration-300 ease-in-out
+          bg-background border-r border-border
+        `}
+        collapsible="icon"
+      >
+        <SidebarHeader className="border-b border-border p-4">
+          <div className="flex items-center gap-3">
+            <img 
+              src={logoCondominio} 
+              alt="Logo Gran Royalle" 
+              className="h-8 w-8 object-contain flex-shrink-0"
+            />
+            <div className="flex flex-col min-w-0">
               <span className="font-semibold text-sm text-foreground">Gran Royalle</span>
               <span className="text-xs text-muted-foreground">
                 {user?.role === 'admin' ? 'Administrador' : 'Morador'}
               </span>
             </div>
-          )}
-        </div>
-      </SidebarHeader>
+          </div>
+        </SidebarHeader>
 
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>
-            {user?.role === 'admin' ? 'Administração' : 'Meu Espaço'}
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {items.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <NavLink 
-                      to={item.url} 
-                      end 
-                      className={getNavCls}
-                    >
-                      <item.icon className="h-4 w-4" />
-                      {!collapsed && <span>{item.title}</span>}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
+        <SidebarContent className="px-3 py-4">
+          <SidebarGroup>
+            <SidebarGroupLabel className="px-3 mb-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              {user?.role === 'admin' ? 'Administração' : 'Meu Espaço'}
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu className="space-y-1">
+                {items.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild>
+                      <NavLink 
+                        to={item.url} 
+                        end 
+                        onClick={() => isMobile && setOpen(false)}
+                        className={({ isActive }) => `
+                          flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-200 w-full
+                          ${isActive 
+                            ? 'bg-primary text-primary-foreground font-medium shadow-sm' 
+                            : 'text-foreground hover:bg-accent hover:text-accent-foreground'
+                          }
+                        `}
+                      >
+                        <item.icon className="h-5 w-5 flex-shrink-0" />
+                        <span className="font-medium text-sm">
+                          {item.title}
+                        </span>
+                      </NavLink>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarContent>
 
-      <SidebarFooter className="border-t border-border">
-        <div className="p-4 space-y-2">
-          {!collapsed && user && (
-            <div className="text-sm text-muted-foreground mb-2">
-              <p className="font-medium text-foreground">{user.name}</p>
-              <p className="text-xs">{user.email}</p>
-              {user.apartamento && (
-                <p className="text-xs">Apto {user.apartamento}</p>
-              )}
-            </div>
-          )}
-          
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={logout}
-            className="w-full"
-          >
-            <LogOut className="h-4 w-4" />
-            {!collapsed && <span className="ml-2">Sair</span>}
-          </Button>
-        </div>
-      </SidebarFooter>
-    </Sidebar>
+        <SidebarFooter className="border-t border-border p-4">
+          <div className="space-y-3">
+            {user && (
+              <div className="px-3 py-2 bg-muted/50 rounded-lg">
+                <p className="font-medium text-sm text-foreground truncate">{user.name}</p>
+                <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                {user.apartamento && (
+                  <p className="text-xs text-muted-foreground truncate">Apto {user.apartamento}</p>
+                )}
+              </div>
+            )}
+            
+            <Button 
+              onClick={() => {
+                logout();
+                isMobile && setOpen(false);
+              }}
+              className="w-full justify-start gap-3 h-11 bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground border border-destructive/20"
+            >
+              <LogOut className="h-4 w-4" />
+              <span className="font-medium">Sair</span>
+            </Button>
+          </div>
+        </SidebarFooter>
+      </Sidebar>
+    </>
   );
 }

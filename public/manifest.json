@@ -1,0 +1,67 @@
+{
+  "name": "Gran Royalle - Sistema de Visitantes",
+  "short_name": "Gran Royalle",
+  "description": "Sistema de gestão de visitantes do condomínio Gran Royalle",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "pt-BR",
+  "categories": ["productivity", "utilities"],
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/lovable-uploads/88120252-9c46-4bf9-a5c8-48a57400b8be.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/lovable-uploads/88120252-9c46-4bf9-a5c8-48a57400b8be.png",
+      "type": "image/png", 
+      "sizes": "512x512",
+      "purpose": "any"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/lovable-uploads/88120252-9c46-4bf9-a5c8-48a57400b8be.png",
+      "type": "image/png",
+      "sizes": "1280x720",
+      "form_factor": "wide"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Novo Visitante",
+      "short_name": "Novo",
+      "description": "Criar novo link de convite",
+      "url": "/novo-visitante",
+      "icons": [
+        {
+          "src": "/lovable-uploads/88120252-9c46-4bf9-a5c8-48a57400b8be.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Meus Visitantes",
+      "short_name": "Visitantes",
+      "description": "Ver visitantes cadastrados",
+      "url": "/meus-visitantes",
+      "icons": [
+        {
+          "src": "/lovable-uploads/88120252-9c46-4bf9-a5c8-48a57400b8be.png",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ],
+  "prefer_related_applications": false
+} 

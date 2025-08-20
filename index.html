@@ -1,24 +1,167 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>visit-hub-condo</title>
-    <meta name="description" content="Lovable Generated Project" />
-    <meta name="author" content="Lovable" />
+    <title>Gran Royalle - Sistema de Visitantes</title>
+    <meta name="description" content="Sistema de gestão de visitantes do condomínio Gran Royalle com integração HikCentral" />
+    <meta name="author" content="Gran Royalle" />
+    <meta name="keywords" content="condomínio, visitantes, segurança, acesso, hikvision" />
 
-    <meta property="og:title" content="visit-hub-condo" />
-    <meta property="og:description" content="Lovable Generated Project" />
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#2563eb" />
+    <meta name="background-color" content="#ffffff" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Gran Royalle" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="application-name" content="Gran Royalle" />
+    
+    <!-- Apple Touch Icons -->
+    <link rel="apple-touch-icon" href="/lovable-uploads/88120252-9c46-4bf9-a5c8-48a57400b8be.png" />
+    <link rel="apple-touch-icon" sizes="152x152" href="/lovable-uploads/88120252-9c46-4bf9-a5c8-48a57400b8be.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/lovable-uploads/88120252-9c46-4bf9-a5c8-48a57400b8be.png" />
+    <link rel="apple-touch-icon" sizes="167x167" href="/lovable-uploads/88120252-9c46-4bf9-a5c8-48a57400b8be.png" />
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/lovable-uploads/88120252-9c46-4bf9-a5c8-48a57400b8be.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/lovable-uploads/88120252-9c46-4bf9-a5c8-48a57400b8be.png" />
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+
+    <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
-    <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+    <meta property="og:url" content="https://visit-hub-condo-11.vercel.app/" />
+    <meta property="og:title" content="Gran Royalle - Sistema de Visitantes" />
+    <meta property="og:description" content="Sistema de gestão de visitantes do condomínio Gran Royalle" />
+    <meta property="og:image" content="https://visit-hub-condo-11.vercel.app/lovable-uploads/88120252-9c46-4bf9-a5c8-48a57400b8be.png" />
 
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@lovable_dev" />
-    <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://visit-hub-condo-11.vercel.app/" />
+    <meta property="twitter:title" content="Gran Royalle - Sistema de Visitantes" />
+    <meta property="twitter:description" content="Sistema de gestão de visitantes do condomínio Gran Royalle" />
+    <meta property="twitter:image" content="https://visit-hub-condo-11.vercel.app/lovable-uploads/88120252-9c46-4bf9-a5c8-48a57400b8be.png" />
+
+    <!-- Microsoft Tiles -->
+    <meta name="msapplication-TileColor" content="#2563eb" />
+    <meta name="msapplication-TileImage" content="/lovable-uploads/88120252-9c46-4bf9-a5c8-48a57400b8be.png" />
+    <meta name="msapplication-config" content="/browserconfig.xml" />
+
+    <!-- Preload key resources -->
+    <link rel="preload" href="/src/main.tsx" as="script" />
+    <link rel="preload" href="/assets/logo-condominio.png" as="image" />
   </head>
 
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+
+    <!-- PWA Installation Script -->
+    <script>
+      // Service Worker Registration
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then((registration) => {
+              console.log('✅ SW registered: ', registration);
+              
+              // Check for updates
+              registration.addEventListener('updatefound', () => {
+                const newWorker = registration.installing;
+                newWorker.addEventListener('statechange', () => {
+                  if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                    // Nova versão disponível
+                    console.log('🔄 Nova versão disponível');
+                    if (confirm('Nova versão do app disponível! Deseja atualizar?')) {
+                      newWorker.postMessage({ type: 'SKIP_WAITING' });
+                      window.location.reload();
+                    }
+                  }
+                });
+              });
+            })
+            .catch((registrationError) => {
+              console.log('❌ SW registration failed: ', registrationError);
+            });
+        });
+      }
+
+      // PWA Install Prompt
+      let deferredPrompt;
+      window.addEventListener('beforeinstallprompt', (e) => {
+        console.log('💡 PWA install prompt triggered');
+        e.preventDefault();
+        deferredPrompt = e;
+        
+        // Criar botão de instalação personalizado
+        const installButton = document.createElement('button');
+        installButton.innerText = '📱 Instalar App';
+        installButton.className = 'pwa-install-button';
+        installButton.style.cssText = `
+          position: fixed;
+          bottom: 20px;
+          right: 20px;
+          background: #2563eb;
+          color: white;
+          border: none;
+          padding: 12px 16px;
+          border-radius: 8px;
+          font-size: 14px;
+          cursor: pointer;
+          box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+          z-index: 1000;
+          transition: all 0.3s ease;
+        `;
+        
+        installButton.addEventListener('mouseenter', () => {
+          installButton.style.transform = 'scale(1.05)';
+          installButton.style.boxShadow = '0 6px 16px rgba(37, 99, 235, 0.4)';
+        });
+        
+        installButton.addEventListener('mouseleave', () => {
+          installButton.style.transform = 'scale(1)';
+          installButton.style.boxShadow = '0 4px 12px rgba(37, 99, 235, 0.3)';
+        });
+        
+        installButton.addEventListener('click', async () => {
+          if (deferredPrompt) {
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            console.log(`👤 User response to the install prompt: ${outcome}`);
+            deferredPrompt = null;
+            installButton.remove();
+          }
+        });
+        
+        document.body.appendChild(installButton);
+        
+        // Remover o botão após 10 segundos se não for clicado
+        setTimeout(() => {
+          if (installButton.parentNode) {
+            installButton.remove();
+          }
+        }, 10000);
+      });
+
+      // PWA Installed
+      window.addEventListener('appinstalled', (evt) => {
+        console.log('🎉 PWA foi instalado com sucesso!');
+        // Opcional: analytics ou feedback
+      });
+
+      // Online/Offline Status
+      window.addEventListener('online', () => {
+        console.log('🌐 Conectado à internet');
+        // Opcional: mostrar toast de conexão restaurada
+      });
+
+      window.addEventListener('offline', () => {
+        console.log('📴 Sem conexão à internet');
+        // Opcional: mostrar toast de modo offline
+      });
+    </script>
   </body>
 </html>

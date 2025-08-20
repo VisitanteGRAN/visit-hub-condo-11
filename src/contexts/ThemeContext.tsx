@@ -1,8 +1,7 @@
-import React, { createContext, useContext } from 'react';
-import { ThemeProvider as NextThemeProvider } from 'next-themes';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
 interface ThemeContextType {
-  theme: string | undefined;
+  theme: string;
   setTheme: (theme: string) => void;
 }
 
@@ -17,14 +16,40 @@ export const useTheme = () => {
 };
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [theme, setThemeState] = useState<string>('light');
+
+  useEffect(() => {
+    // Carregar tema do localStorage
+    const savedTheme = localStorage.getItem('condominio-theme');
+    if (savedTheme) {
+      setThemeState(savedTheme);
+    }
+  }, []);
+
+  const setTheme = (newTheme: string) => {
+    setThemeState(newTheme);
+    localStorage.setItem('condominio-theme', newTheme);
+    
+    // Aplicar tema ao documento
+    if (newTheme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  };
+
+  useEffect(() => {
+    // Aplicar tema inicial
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [theme]);
+
   return (
-    <NextThemeProvider
-      attribute="class"
-      defaultTheme="light"
-      enableSystem={false}
-      storageKey="condominio-theme"
-    >
+    <ThemeContext.Provider value={{ theme, setTheme }}>
       {children}
-    </NextThemeProvider>
+    </ThemeContext.Provider>
   );
 };

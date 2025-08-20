@@ -1,73 +1,208 @@
-# Welcome to your Lovable project
+# 🏢 HikCentral Automation - Sistema de Automação para Portaria
 
-## Project info
+Sistema automatizado para gerenciamento de visitantes no HikCentral Professional, desenvolvido para condomínios e empresas que utilizam o sistema de controle de acesso da Hikvision.
 
-**URL**: https://lovable.dev/projects/9a82a150-e461-48e1-b1a1-96c3fab314eb
+## 🚀 Funcionalidades
 
-## How can I edit this code?
+- **Automação Completa**: Preenchimento automático de formulários de visitantes
+- **Integração HikCentral**: Conecta diretamente com a interface web do HikCentral
+- **Modo Visível**: Execução com interface gráfica para debug e monitoramento
+- **Delays Humanos**: Simula comportamento humano para evitar detecção anti-bot
+- **Tratamento de Erros**: Sistema robusto com retry automático
+- **Logs Detalhados**: Monitoramento completo de todas as operações
 
-There are several ways of editing your application.
+## 🛠️ Tecnologias
 
-**Use Lovable**
+- **Python 3.8+**: Linguagem principal
+- **Selenium WebDriver**: Automação web
+- **Chrome/ChromeDriver**: Navegador para automação
+- **WebDriver Manager**: Gerenciamento automático de drivers
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/9a82a150-e461-48e1-b1a1-96c3fab314eb) and start prompting.
+## 📋 Pré-requisitos
 
-Changes made via Lovable will be committed automatically to this repo.
+- Python 3.8 ou superior
+- Google Chrome instalado
+- Acesso ao servidor HikCentral
+- Credenciais de administrador
 
-**Use your preferred IDE**
+## ⚙️ Instalação
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+### 1. Clone o repositório
+```bash
+git clone https://github.com/seu-usuario/hikcentral-automation.git
+cd hikcentral-automation
 ```
 
-**Edit a file directly in GitHub**
+### 2. Crie um ambiente virtual
+```bash
+python -m venv venv
+source venv/bin/activate  # Linux/Mac
+# ou
+venv\Scripts\activate     # Windows
+```
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### 3. Instale as dependências
+```bash
+pip install -r requirements.txt
+```
 
-**Use GitHub Codespaces**
+## 🔧 Configuração
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+### 1. Arquivo de configuração
+Crie um arquivo `.env` na raiz do projeto:
+```env
+HIKCENTRAL_URL=http://seu-servidor:porta
+HIKCENTRAL_USERNAME=admin
+HIKCENTRAL_PASSWORD=sua_senha
+DEBUG_MODE=true
+HEADLESS_MODE=false
+```
 
-## What technologies are used for this project?
+### 2. Configuração do HikCentral
+- Acesse o servidor HikCentral
+- Configure usuários e permissões
+- Teste o acesso via navegador
 
-This project is built with:
+## 🚀 Uso
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+### Execução Básica
+```bash
+python test_real_hikcentral_visible_debug.py
+```
 
-## How can I deploy this project?
+### Execução com Configurações Personalizadas
+```bash
+python -c "
+from hikcentral_automation import HikCentralAutomation
+automation = HikCentralAutomation(
+    headless=False,
+    simulation_mode=False,
+    debug_mode=True
+)
+automation.run_visitor_registration(visitor_data)
+"
+```
 
-Simply open [Lovable](https://lovable.dev/projects/9a82a150-e461-48e1-b1a1-96c3fab314eb) and click on Share -> Publish.
+## 📁 Estrutura do Projeto
 
-## Can I connect a custom domain to my Lovable project?
+```
+hikcentral-automation/
+├── 📄 README.md                           # Este arquivo
+├── 📄 requirements.txt                     # Dependências Python
+├── 📄 .gitignore                          # Arquivos ignorados pelo Git
+├── 🐍 hikcentral_automation.py            # Módulo principal de automação
+├── 🧪 test_real_hikcentral_visible_debug.py  # Script de teste principal
+├── 📁 config/                             # Configurações
+├── 📁 logs/                               # Logs de execução
+├── 📁 screenshots/                        # Capturas de tela para debug
+└── 📁 docs/                               # Documentação adicional
+```
 
-Yes, you can!
+## 🔍 Debug e Monitoramento
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+### Modo Debug
+```python
+# Ativar logs detalhados
+import logging
+logging.basicConfig(level=logging.DEBUG)
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+# Executar com interface visível
+automation = HikCentralAutomation(headless=False, debug_mode=True)
+```
+
+### Logs
+- **Console**: Logs em tempo real durante execução
+- **Arquivo**: Logs salvos em `logs/automation.log`
+- **Screenshots**: Capturas automáticas em caso de erro
+
+## 🚨 Tratamento de Erros
+
+O sistema inclui tratamento robusto para:
+- **Elementos não encontrados**: Retry automático com seletores alternativos
+- **Timeouts**: Aguarda carregamento de páginas
+- **Message boxes**: Fecha automaticamente popups
+- **Tooltips**: Remove overlays que impedem interação
+
+## 🔒 Segurança
+
+- **Credenciais**: Nunca commitadas no código
+- **HTTPS**: Suporte para conexões seguras
+- **Validação**: Verificação de dados de entrada
+- **Logs**: Sem informações sensíveis
+
+## 🧪 Testes
+
+### Executar Testes
+```bash
+# Testes unitários
+pytest tests/
+
+# Testes de integração
+pytest tests/integration/
+
+# Testes com relatório HTML
+pytest --html=report.html
+```
+
+### Cobertura de Testes
+```bash
+pytest --cov=hikcentral_automation --cov-report=html
+```
+
+## 📊 Monitoramento
+
+### Métricas Coletadas
+- **Taxa de Sucesso**: Visitas registradas com sucesso
+- **Tempo de Execução**: Duração de cada operação
+- **Erros**: Tipos e frequência de falhas
+- **Performance**: Tempo de resposta do sistema
+
+## 🤝 Contribuição
+
+### Como Contribuir
+1. Fork o projeto
+2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
+3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
+4. Push para a branch (`git push origin feature/AmazingFeature`)
+5. Abra um Pull Request
+
+### Padrões de Código
+- **Black**: Formatação automática
+- **Flake8**: Linting e qualidade
+- **Type Hints**: Tipagem estática
+- **Docstrings**: Documentação de funções
+
+## 📝 Licença
+
+Este projeto está licenciado sob a Licença MIT - veja o arquivo [LICENSE](LICENSE) para detalhes.
+
+## 🆘 Suporte
+
+### Problemas Comuns
+- **ChromeDriver não encontrado**: Execute `webdriver-manager update`
+- **Elementos não encontrados**: Verifique seletores CSS/XPath
+- **Timeouts**: Aumente valores de espera no código
+
+### Contato
+- **Issues**: [GitHub Issues](https://github.com/seu-usuario/hikcentral-automation/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/seu-usuario/hikcentral-automation/discussions)
+- **Email**: seu-email@exemplo.com
+
+## 🎯 Roadmap
+
+- [ ] **Interface Web**: Dashboard para gerenciamento
+- [ ] **API REST**: Endpoints para integração
+- [ ] **Banco de Dados**: Persistência de dados
+- [ ] **Relatórios**: Estatísticas e análises
+- [ ] **Multi-tenant**: Suporte a múltiplos clientes
+- [ ] **Mobile App**: Aplicativo móvel
+
+## 🙏 Agradecimentos
+
+- **Hikvision**: Pelo sistema HikCentral
+- **Selenium**: Pelo framework de automação
+- **Comunidade Python**: Pelo suporte e bibliotecas
+
+---
+
+⭐ **Se este projeto te ajudou, considere dar uma estrela!**
