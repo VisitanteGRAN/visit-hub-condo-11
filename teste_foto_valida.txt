@@ -1,0 +1,15 @@
+# TESTE COM FOTO VÁLIDA
+# Comando para testar no Mac:
+
+curl -X POST http://192.168.18.3:5001/api/hikcentral/automation \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer hik_automation_2024_secure_key" \
+  -d '{
+    "visitor_id": "test_lucca_foto_real_789",
+    "visitor_data": {
+      "name": "Lucca Foto Real",
+      "phone": "11999999999",
+      "rg": "123456789",
+      "photo_base64": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwA/8A"
+    }
+  }' 

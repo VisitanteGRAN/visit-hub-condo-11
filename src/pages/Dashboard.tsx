@@ -110,34 +110,6 @@ function MoradorDashboard() {
           </Button>
         </CardContent>
       </Card>
-
-      {/* Upcoming Visitors */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Próximos Visitantes</CardTitle>
-          <CardDescription>
-            Visitantes agendados para hoje
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {mockVisitorsToday.map((visitor) => (
-              <div key={visitor.id} className="flex items-center justify-between p-3 bg-accent rounded-lg">
-                <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-primary"></div>
-                  <div>
-                    <p className="font-medium">{visitor.name}</p>
-                    <p className="text-sm text-muted-foreground">{visitor.time}</p>
-                  </div>
-                </div>
-                <Badge variant={visitor.status === 'autorizado' ? 'default' : 'secondary'}>
-                  {visitor.status === 'autorizado' ? 'Autorizado' : 'Aguardando'}
-                </Badge>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
+import { SidebarProvider, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/AppSidebar';
 import { useAuth } from '@/contexts/AuthContext';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -14,36 +14,29 @@ export function DashboardLayout({ children, title }: DashboardLayoutProps) {
 
   return (
     <SidebarProvider defaultOpen={!isMobile}>
-      <div className="min-h-screen flex w-full bg-background">
-        <AppSidebar />
-        
-        <main className="flex-1 flex flex-col min-w-0">
-          <header className="h-14 md:h-16 flex items-center justify-between border-b border-border bg-card px-3 md:px-6 sticky top-0 z-30">
-            <div className="flex items-center gap-2 md:gap-3 min-w-0">
-              <SidebarTrigger className="flex-shrink-0 md:hidden" />
-              {title && (
-                <h1 className="font-semibold text-base md:text-lg text-foreground truncate">
-                  {title}
-                </h1>
-              )}
-            </div>
+      <AppSidebar />
+      <SidebarInset>
+        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+          <SidebarTrigger className="-ml-1" />
+          <div className="flex items-center justify-between w-full">
+            {title && (
+              <h1 className="font-semibold text-lg">{title}</h1>
+            )}
             
-            <div className="flex items-center gap-2 text-xs md:text-sm text-muted-foreground min-w-0">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
               {isMobile ? (
-                <span className="truncate max-w-[120px]">{user?.name}</span>
+                <span className="truncate max-w-[120px] font-medium">{user?.name}</span>
               ) : (
-                <span className="truncate">Bem-vindo, {user?.name}</span>
+                <span className="truncate font-medium">Bem-vindo, {user?.name}</span>
               )}
-            </div>
-          </header>
-          
-          <div className="flex-1 p-3 md:p-4 lg:p-6 overflow-auto">
-            <div className="max-w-7xl mx-auto w-full">
-              {children}
             </div>
           </div>
-        </main>
-      </div>
+        </header>
+        
+        <div className="flex flex-1 flex-col gap-4 p-4">
+          {children}
+        </div>
+      </SidebarInset>
     </SidebarProvider>
   );
 }

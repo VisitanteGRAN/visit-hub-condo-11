@@ -10,7 +10,7 @@ import Welcome from "./pages/Welcome";
 import Dashboard from "./pages/Dashboard";
 import MeusVisitantes from "./pages/MeusVisitantes";
 import NovoVisitante from "./pages/NovoVisitante";
-import CadastroVisitanteSimplificado from "./pages/CadastroVisitanteSimplificado";
+import CadastroVisitante from "./pages/CadastroVisitante";
 import CadastroMorador from "./pages/CadastroMorador";
 import CadastroSucesso from "./pages/CadastroSucesso";
 import GestaoVisitantes from "./pages/GestaoVisitantes";
@@ -31,7 +31,7 @@ const App = () => (
           <Route path="/login" element={<Login />} />
           <Route path="/cadastro-morador" element={<CadastroMorador />} />
           <Route path="/cadastro-sucesso" element={<CadastroSucesso />} />
-                        <Route path="/visitante/:linkId" element={<CadastroVisitanteSimplificado />} />
+          <Route path="/visitante/:linkId" element={<CadastroVisitante />} />
           <Route 
             path="/dashboard" 
             element={

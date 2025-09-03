@@ -1,0 +1,10 @@
+{
+  "nome": "João Silva Santos",
+  "sobrenome": "Silva Santos", 
+  "telefone": "11987654321",
+  "cpf": "12345678901",
+  "rg": "MG1234567",
+  "placa": "ABC1234",
+  "genero": "Masculino",
+  "foto_base64": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAAAAA"
+}

@@ -15,7 +15,8 @@ import {
   CheckCircle,
   XCircle,
   Loader2,
-  Building2
+  Building2,
+  Car
 } from 'lucide-react';
 import { toast } from 'sonner';
 import hikVisionWebSDK from '@/services/webSDKService';
@@ -31,11 +32,12 @@ interface VisitanteData {
   documento: string;
   tipoDocumento: string;
   placaVeiculo: string;
+  genero: string;
   observacoes: string;
   foto: string | null;
 }
 
-export default function CadastroVisitante() {
+export default function CadastroVisitanteSimplificado() {
   const { linkId } = useParams();
   const navigate = useNavigate();
   const [formData, setFormData] = useState<VisitanteData>({
@@ -46,6 +48,7 @@ export default function CadastroVisitante() {
     documento: '',
     tipoDocumento: 'RG',
     placaVeiculo: '',
+    genero: 'Masculino',
     observacoes: '',
     foto: null
   });
@@ -64,15 +67,14 @@ export default function CadastroVisitante() {
     try {
       setIsLoading(true);
       
-      // Validar link no banco de dados
       const { data: linkData, error } = await supabase
         .from('links_convite')
         .select(`
           *,
-          morador:usuarios(nome, unidade, email)
+          morador:usuarios(nome, unidade)
         `)
-        .eq('token', linkId) // Usar 'token' em vez de 'link_id'
-        .eq('usado', false) // Usar 'usado' em vez de 'ativo'
+        .eq('token', linkId)
+        .eq('usado', false)
         .eq('expirado', false)
         .gt('expires_at', new Date().toISOString())
         .single();
@@ -87,12 +89,12 @@ export default function CadastroVisitante() {
       console.log('✅ Link válido encontrado:', linkData);
       setLinkValid(true);
       setLinkData({
-        morador: linkData.morador.nome,
-        unidade: linkData.morador.unidade,
-        validDays: linkData.validade_dias, // Usar 'validade_dias' em vez de 'valid_days'
-        expiresAt: linkData.expires_at,
-        moradorId: linkData.morador_id,
-        linkId: linkData.id
+        morador: (linkData as any).morador.nome,
+        unidade: (linkData as any).morador.unidade,
+        validDays: (linkData as any).validade_dias,
+        expiresAt: (linkData as any).expires_at,
+        moradorId: (linkData as any).morador_id,
+        linkId: (linkData as any).id
       });
       
     } catch (error) {
@@ -111,164 +113,111 @@ export default function CadastroVisitante() {
     }));
   };
 
-  const handlePhotoCapture = (imageData: string) => {
-    setPhotoPreview(imageData);
-    setFormData(prev => ({
-      ...prev,
-      foto: imageData
-    }));
+  const handleCameraCapture = (photoData: string) => {
+    setFormData(prev => ({ ...prev, foto: photoData }));
+    setPhotoPreview(photoData);
+    setShowCamera(false);
     toast.success('Foto capturada com sucesso!');
   };
 
   const removePhoto = () => {
+    setFormData(prev => ({ ...prev, foto: null }));
     setPhotoPreview(null);
-    setFormData(prev => ({
-      ...prev,
-      foto: null
-    }));
   };
 
-  const validateCPF = (cpf: string) => {
-    cpf = cpf.replace(/[^\d]/g, '');
-    
-    if (cpf.length !== 11) return false;
-    
-    // Verificar se todos os dígitos são iguais
-    if (/^(\d)\1{10}$/.test(cpf)) return false;
-    
-    // Validar primeiro dígito verificador
-    let sum = 0;
-    for (let i = 0; i < 9; i++) {
-      sum += parseInt(cpf.charAt(i)) * (10 - i);
-    }
-    let remainder = (sum * 10) % 11;
-    if (remainder === 10 || remainder === 11) remainder = 0;
-    if (remainder !== parseInt(cpf.charAt(9))) return false;
-    
-    // Validar segundo dígito verificador
-    sum = 0;
-    for (let i = 0; i < 10; i++) {
-      sum += parseInt(cpf.charAt(i)) * (11 - i);
-    }
-    remainder = (sum * 10) % 11;
-    if (remainder === 10 || remainder === 11) remainder = 0;
-    if (remainder !== parseInt(cpf.charAt(10))) return false;
-    
-    return true;
+  const validateForm = () => {
+    const errors = [];
+
+    if (!formData.nome.trim()) errors.push('Nome é obrigatório');
+    if (!formData.cpf.trim()) errors.push('CPF é obrigatório');
+    if (!formData.telefone.trim()) errors.push('Telefone é obrigatório');
+    if (!formData.documento.trim()) errors.push('Documento é obrigatório');
+    if (!formData.foto) errors.push('Foto é obrigatória para reconhecimento facial');
+
+    return errors;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validações
-    if (!formData.nome.trim()) {
-      toast.error('Por favor, informe seu nome completo');
-      return;
-    }
-    
-    if (!validateCPF(formData.cpf)) {
-      toast.error('CPF inválido');
-      return;
-    }
-    
-    if (!formData.telefone.trim()) {
-      toast.error('Por favor, informe seu telefone');
-      return;
-    }
-    
-    if (!formData.email.trim()) {
-      toast.error('Por favor, informe seu e-mail');
-      return;
-    }
-    
-    if (!formData.documento.trim()) {
-      toast.error('Por favor, informe seu documento');
+    const errors = validateForm();
+    if (errors.length > 0) {
+      toast.error(`Corrija os seguintes erros:\n${errors.join('\n')}`);
       return;
     }
 
     setIsSubmitting(true);
-    
+
     try {
       console.log('🚀 Iniciando cadastro de visitante nos coletores...');
-      
-      // 1. Criar usuário no HikCentral via WebSDK
+
+      // Preparar dados do visitante
+      const nomeCompleto = `${formData.nome} ${formData.sobrenome}`.trim();
       const visitorData = {
-        nome: formData.nome,
-        cpf: formData.cpf.replace(/\D/g, ''),
+        nome: nomeCompleto,
+        cpf: formData.cpf,
         telefone: formData.telefone,
-        email: formData.email,
         documento: formData.documento,
-        foto: formData.foto || undefined,
-        // Dados do morador para vincular no HikCentral
-        moradorNome: linkData?.morador?.nome || 'Morador',
-        moradorUnidade: linkData?.unidade || 'Unidade não informada',
-        moradorId: linkData?.moradorId,
-        validadeDias: linkData?.validDays || 1
+        tipo_documento: formData.tipoDocumento,
+        placa_veiculo: formData.placaVeiculo,
+        genero: formData.genero,
+        observacoes: formData.observacoes,
+        morador_id: linkData.moradorId,
+        link_convite_id: linkData.linkId,
+        foto: formData.foto,
+        moradorNome: linkData.morador,
+        unidade: linkData.unidade,
+        validadeDias: linkData.validDays
       };
 
-      const hikCentralResult = await hikVisionWebSDK.createVisitorInAllDevices(visitorData);
+      // Salvar no banco de dados
+      const { data: visitanteData, error: visitanteError } = await supabase
+        .from('visitantes')
+        .insert({
+          nome: nomeCompleto,
+          cpf: formData.cpf,
+          telefone: formData.telefone,
+          documento: formData.documento,
+          tipo_documento: formData.tipoDocumento,
+          observacoes: formData.observacoes,
+          morador_id: linkData.moradorId,
+          link_convite_id: linkData.linkId,
+          hikvision_user_id: '',
+          validade_inicio: new Date().toISOString(),
+          validade_fim: new Date(Date.now() + linkData.validDays * 24 * 60 * 60 * 1000).toISOString(),
+          unidade: linkData.unidade
+          // Removido foto_url que não existe na tabela
+        } as any)
+        .select()
+        .single();
 
-      if (hikCentralResult.success) {
-        console.log('✅ Visitante criado no HikCentral:', hikCentralResult.data?.hikCentralId);
-        console.log('👥 Associado ao morador:', hikCentralResult.data?.visitado);
-        console.log('🕐 Validade até:', hikCentralResult.data?.validade);
-        
-        // 2. Salvar no banco de dados local
-        const { data: visitanteData, error: dbError } = await supabase
-          .from('visitantes')
-          .insert({
-            nome: formData.nome,
-            cpf: formData.cpf.replace(/\D/g, ''),
-            telefone: formData.telefone,
-            email: formData.email,
-            documento: formData.documento,
-            tipo_documento: formData.tipoDocumento,
-            observacoes: formData.observacoes,
-            morador_id: linkData.moradorId,
-            link_convite_id: linkData.linkId,
-            hikvision_user_id: formData.cpf.replace(/\D/g, ''), // Usar CPF como ID
-            status: 'ativo',
-            validade_inicio: new Date().toISOString(),
-            validade_fim: new Date(Date.now() + (linkData.validDays || 1) * 24 * 60 * 60 * 1000).toISOString(),
-            unidade: linkData.unidade
-          })
-          .select()
-          .single();
-
-        if (dbError) {
-          console.error('❌ Erro ao salvar no banco:', dbError);
-          toast.error('Erro ao salvar dados. Tente novamente.');
-          return;
-        }
-
-        console.log('✅ Visitante salvo no banco:', visitanteData);
-        
-        // 3. Foto já foi enviada durante a criação do usuário via WebSDK
-        if (formData.foto) {
-          console.log('✅ Foto incluída no cadastro dos coletores');
-        }
-        
-        // 4. Marcar link como usado
-        await supabase
-          .from('links_convite')
-          .update({ usado: true, usado_em: new Date().toISOString() })
-          .eq('id', linkData.linkId);
-        
-        toast.success('Cadastro realizado com sucesso! Você já pode acessar o condomínio.');
-        
-        // Redirecionar para página de sucesso
-        setTimeout(() => {
-          navigate('/cadastro-sucesso');
-        }, 2000);
-        
-      } else {
-        console.error('❌ Erro ao criar visitante no HikCentral:', hikCentralResult.message);
-        toast.error(`Erro ao cadastrar no HikCentral: ${hikCentralResult.message}`);
+      if (visitanteError) {
+        throw new Error(`Erro ao salvar visitante: ${visitanteError.message}`);
       }
+
+      // Criar visitante no HikCentral
+      const result = await hikVisionWebSDK.createVisitorInAllDevices(visitorData as any);
       
-    } catch (error) {
-      console.error('❌ Erro no cadastro:', error);
-      toast.error('Erro ao realizar cadastro. Tente novamente.');
+      if (!result.success) {
+        throw new Error(result.message || 'Falha ao criar visitante no HikCentral');
+      }
+
+      console.log('✅ Visitante criado com sucesso:', result);
+
+      // Marcar link como usado
+      await supabase
+        .from('links_convite')
+        .update({ usado: true } as any)
+        .eq('id', linkData.linkId);
+
+      toast.success('Cadastro realizado com sucesso!');
+      navigate(`/cadastro-sucesso?nome=${encodeURIComponent(nomeCompleto)}`);
+
+    } catch (error: any) {
+      console.error('❌ Erro ao criar visitante no HikCentral:', error);
+      
+      const errorMessage = error.message || 'Erro desconhecido ao processar cadastro';
+      toast.error(`Erro no cadastro: ${errorMessage}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -277,24 +226,29 @@ export default function CadastroVisitante() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-primary-light to-background flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-          <p>Validando link de convite...</p>
-        </div>
+        <Card className="w-96">
+          <CardContent className="p-6 text-center">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+            <p>Validando convite...</p>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   if (!linkValid) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-primary-light to-background flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
-          <CardContent className="text-center p-6">
-            <XCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
-            <h2 className="text-xl font-bold mb-2">Link Inválido</h2>
-            <p className="text-muted-foreground">
-              Este link de convite é inválido ou expirou. Entre em contato com o morador.
+      <div className="min-h-screen bg-gradient-to-br from-destructive/10 to-background flex items-center justify-center p-4">
+        <Card className="w-96">
+          <CardContent className="p-6 text-center">
+            <XCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
+            <h1 className="text-xl font-bold mb-2">Link Inválido</h1>
+            <p className="text-muted-foreground mb-4">
+              Este link de convite é inválido ou já foi utilizado.
             </p>
+            <Button onClick={() => navigate('/')} variant="outline">
+              Voltar ao Início
+            </Button>
           </CardContent>
         </Card>
       </div>
@@ -346,16 +300,28 @@ export default function CadastroVisitante() {
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="nome">Nome Completo *</Label>
+                  <Label htmlFor="nome">Nome *</Label>
                   <Input
                     id="nome"
                     value={formData.nome}
                     onChange={(e) => handleInputChange('nome', e.target.value)}
-                    placeholder="Seu nome completo"
+                    placeholder="Primeiro nome"
                     required
                   />
                 </div>
 
+                <div className="space-y-2">
+                  <Label htmlFor="sobrenome">Sobrenome</Label>
+                  <Input
+                    id="sobrenome"
+                    value={formData.sobrenome}
+                    onChange={(e) => handleInputChange('sobrenome', e.target.value)}
+                    placeholder="Sobrenome (opcional)"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="cpf">CPF *</Label>
                   <Input
@@ -366,9 +332,7 @@ export default function CadastroVisitante() {
                     required
                   />
                 </div>
-              </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="telefone">Telefone *</Label>
                   <Input
@@ -379,16 +343,33 @@ export default function CadastroVisitante() {
                     required
                   />
                 </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="genero">Gênero *</Label>
+                  <Select 
+                    value={formData.genero} 
+                    onValueChange={(value) => handleInputChange('genero', value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Masculino">Masculino</SelectItem>
+                      <SelectItem value="Feminino">Feminino</SelectItem>
+                      <SelectItem value="Desconhecido">Desconhecido</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="email">E-mail *</Label>
+                  <Label htmlFor="placaVeiculo">Placa do Veículo</Label>
                   <Input
-                    id="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => handleInputChange('email', e.target.value)}
-                    placeholder="seu@email.com"
-                    required
+                    id="placaVeiculo"
+                    value={formData.placaVeiculo}
+                    onChange={(e) => handleInputChange('placaVeiculo', e.target.value)}
+                    placeholder="ABC-1234 (opcional)"
                   />
                 </div>
               </div>
@@ -423,6 +404,8 @@ export default function CadastroVisitante() {
                 </div>
               </div>
 
+
+
               <div className="space-y-2">
                 <Label htmlFor="observacoes">Observações</Label>
                 <Textarea
@@ -435,7 +418,7 @@ export default function CadastroVisitante() {
               </div>
 
               <div className="space-y-2">
-                <Label>Foto para Reconhecimento Facial</Label>
+                <Label>Foto para Reconhecimento Facial *</Label>
                 
                 {photoPreview ? (
                   <div className="space-y-2">
@@ -470,34 +453,31 @@ export default function CadastroVisitante() {
                     type="button"
                     variant="outline"
                     onClick={() => setShowCamera(true)}
-                    className="w-full"
+                    className="w-full h-20 border-dashed"
                   >
-                    <Camera className="h-4 w-4 mr-2" />
+                    <Camera className="h-6 w-6 mr-2" />
                     Tirar Foto
                   </Button>
                 )}
-                
-                <p className="text-xs text-muted-foreground">
-                  A foto será usada para reconhecimento facial na entrada do condomínio
-                </p>
-              </div>
 
-              <Alert>
-                <AlertDescription>
-                  <strong>Importante:</strong> Ao cadastrar, você será automaticamente registrado no sistema de controle de acesso. 
-                  Sua foto (se fornecida) será usada para reconhecimento facial na entrada do condomínio.
-                </AlertDescription>
-              </Alert>
+                <Alert>
+                  <Camera className="h-4 w-4" />
+                  <AlertDescription>
+                    A foto é necessária para o sistema de reconhecimento facial na portaria.
+                  </AlertDescription>
+                </Alert>
+              </div>
 
               <Button 
                 type="submit" 
-                className="w-full"
+                className="w-full" 
+                size="lg"
                 disabled={isSubmitting}
               >
                 {isSubmitting ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Cadastrando...
+                    Processando Cadastro...
                   </>
                 ) : (
                   <>
@@ -509,16 +489,24 @@ export default function CadastroVisitante() {
             </form>
           </CardContent>
         </Card>
+
+        {/* Camera Modal */}
+        {showCamera && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <Card className="w-full max-w-md">
+              <CardHeader>
+                <CardTitle>Capturar Foto</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CameraCapture 
+                  onCapture={handleCameraCapture}
+                  onClose={() => setShowCamera(false)}
+                />
+              </CardContent>
+            </Card>
+          </div>
+        )}
       </div>
-      
-      {/* Camera Capture Modal */}
-      {showCamera && (
-        <CameraCapture
-          onCapture={handlePhotoCapture}
-          onClose={() => setShowCamera(false)}
-          title="Foto para Reconhecimento Facial"
-        />
-      )}
     </div>
   );
 } 

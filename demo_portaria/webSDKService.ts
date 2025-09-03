@@ -54,17 +54,15 @@ export class HikVisionWebSDKService {
       
       // Preparar dados para fila
       const queueData = {
-        nome: visitor.nome,
-        telefone: visitor.telefone || '',
-        cpf: visitor.cpf || '',
-        rg: visitor.documento || '',
-        placa: (visitor as any).placa_veiculo || '',
+        name: visitor.nome,
+        phone: visitor.telefone || '',
+        rg: visitor.cpf?.substring(0, 8) || '',
+        placa: (visitor as any).placa || '',
         genero: (visitor as any).genero || 'Masculino',
         photo_base64: visitor.foto // ⭐ FOTO EM BASE64
       };
       
       console.log('📸 Foto incluída:', visitor.foto ? 'SIM' : 'NÃO');
-      console.log('📋 Dados que serão enviados para fila:', queueData);
       
       const result = await queueService.sendToQueue(queueData);
       

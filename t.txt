@@ -1,0 +1,88 @@
+================================================================================
+[TESTE] PREENCHIMENTO DOS CAMPOS
+================================================================================
+
+[TEST] Tentando upload de foto PRIMEIRO...
+[OK] Canvas de foto está visível!
+[DEBUG] Procurando elemento de upload na aba básica...
+[DEBUG] Tentando seletor: input.btn-file[type='file'][accept*='image']
+[DEBUG] Encontrados 4 elementos
+[DEBUG] Elemento 1: displayed=False, enabled=True
+[DEBUG] Elemento 2: displayed=False, enabled=True
+[DEBUG] Elemento 3: displayed=False, enabled=True
+[DEBUG] Elemento 4: displayed=False, enabled=True
+[DEBUG] Tentando seletor: input[data-v-408cd0f7][type='file']
+[DEBUG] Encontrados 2 elementos
+[DEBUG] Elemento 1: displayed=False, enabled=True
+[DEBUG] Elemento 2: displayed=False, enabled=True
+[DEBUG] Tentando seletor: //canvas[@id='imgCanvas']/..//input[@type='file']
+[DEBUG] Encontrados 0 elementos
+[DEBUG] Tentando seletor: //canvas[contains(@class, 'bg-photo_canvas')]/..//input[@type='file']
+[DEBUG] Encontrados 0 elementos
+[DEBUG] Tentando seletor: input[type='file']
+[DEBUG] Encontrados 4 elementos
+[DEBUG] Elemento 1: displayed=False, enabled=True
+[DEBUG] Elemento 2: displayed=False, enabled=True
+[DEBUG] Elemento 3: displayed=False, enabled=True
+[DEBUG] Elemento 4: displayed=False, enabled=True
+[DEBUG] Tentando seletor: //span[contains(text(), 'Carregar')]/..//input[@type='file']
+[DEBUG] Encontrados 4 elementos
+[DEBUG] Elemento 1: displayed=False, enabled=True
+[DEBUG] Elemento 2: displayed=False, enabled=True
+[DEBUG] Elemento 3: displayed=False, enabled=True
+[DEBUG] Elemento 4: displayed=False, enabled=True
+[DEBUG] Tentando seletor: //button[contains(text(), 'Carregar')]/..//input[@type='file']
+[DEBUG] Encontrados 0 elementos
+[WARN] Elemento de upload não encontrado
+
+[TEST] Testando preenchimento do NOME...
+[DEBUG] Nome completo recebido: 'Lucca Lacerda tesstee'
+[DEBUG] Primeiro nome extraído: 'Lucca'
+[OK] Campo nome encontrado com: input[maxlength='255']:first-of-type
+[OK] Nome testado: Lucca
+
+[TEST] Testando preenchimento do APELIDO...
+[DEBUG] Nome completo para apelido: 'Lucca Lacerda tesstee'
+[DEBUG] Apelido extraído: 'Lacerda tesstee'
+[OK] Apelido testado: Lacerda tesstee
+
+[TEST] Selecionando objetivo da visita...
+[OK] Objetivo da visita selecionado: Fazer passeio e visita
+
+[TEST] Selecionando grupo de visitantes...
+[OK] Grupo de visitantes selecionado: VisitanteS
+
+[TEST] Navegando para 'Outras informações'...
+[OK] 'Outras informações' clicado!
+
+[TEST] Testando seleção de GÊNERO...
+[INFO] Selecionando gênero: Masculino
+[WARN] Erro ao selecionar gênero: Message:
+
+[FALLBACK] Tentando seleção alternativa de gênero...
+[OK] Gênero Masculino selecionado via label!
+
+[TEST] Testando preenchimento do TELEFONE...
+[DEBUG] Telefone a ser preenchido: '31989796921'
+[OK] Telefone testado: 31989796921
+
+[TEST] Navegando para 'Informação de ID' para CPF...
+[OK] 'Informação de ID' clicado!
+[DEBUG] CPF a ser preenchido: '168.064.186-78'
+[OK] CPF preenchido no 'Numero de ID': 168.064.186-78
+
+[TEST] Navegando para 'Informação de acesso'...
+[OK] 'Informação de acesso' clicado!
+
+[TEST] Clicando em 'Expandir'...
+[OK] 'Expandir' clicado!
+
+[TEST] Testando preenchimento do RG...
+[OK] RG testado: mg01834413
+
+[TEST] Testando preenchimento da PLACA DO VEÍCULO...
+[OK] Campo placa encontrado com: //span[text()='PLACA VEICULO']/../..//input[@maxlength='128']
+[OK] Placa testada: ABC123CA
+
+[OK] TESTE DE PREENCHIMENTO CONCLUIDO!
+Mantendo browser aberto por 30 segundos para inspeção...
