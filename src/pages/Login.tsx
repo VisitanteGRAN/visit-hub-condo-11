@@ -5,15 +5,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Building2, Lock, Mail, User } from 'lucide-react';
+import { Building2, Lock, Mail } from 'lucide-react';
 import { toast } from 'sonner';
 import logoCondominio from '@/assets/logo-condominio.png';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState<UserRole>('morador');
   const { login, isLoading } = useAuth();
   const navigate = useNavigate();
 
@@ -25,6 +23,10 @@ export default function Login() {
       return;
     }
 
+    // Verificar se é admin (baseado no email)
+    const isAdmin = email === 'admin@condominio.com.br';
+    const role: UserRole = isAdmin ? 'admin' : 'morador';
+
     const success = await login(email, password, role);
     
     if (success) {
@@ -32,35 +34,6 @@ export default function Login() {
       navigate('/dashboard');
     } else {
       toast.error('Credenciais inválidas. Tente novamente.');
-    }
-  };
-
-  const handleQuickLogin = async (userType: 'admin' | 'morador') => {
-    const credentials = {
-      admin: {
-        email: 'admin@condominio.com.br',
-        password: 'Admin@123456',
-        role: 'admin' as UserRole
-      },
-      morador: {
-        email: 'morador@condominio.com.br', 
-        password: 'Morador@123456',
-        role: 'morador' as UserRole
-      }
-    };
-
-    const cred = credentials[userType];
-    setEmail(cred.email);
-    setPassword(cred.password);
-    setRole(cred.role);
-
-    const success = await login(cred.email, cred.password, cred.role);
-    
-    if (success) {
-      toast.success(`Login como ${userType} realizado com sucesso!`);
-      navigate('/dashboard');
-    } else {
-      toast.error(`Erro ao fazer login como ${userType}. Verifique as configurações.`);
     }
   };
 
@@ -89,56 +62,8 @@ export default function Login() {
         </CardHeader>
 
         <CardContent className="space-y-6">
-          {/* Login Rápido */}
-          <div className="space-y-3">
-            <Label className="text-sm font-medium">Acesso Rápido:</Label>
-            <div className="grid grid-cols-2 gap-3">
-              <Button
-                onClick={() => handleQuickLogin('admin')}
-                variant="outline"
-                className="w-full"
-                disabled={isLoading}
-              >
-                <User className="h-4 w-4 mr-2" />
-                Administrador
-              </Button>
-              <Button
-                onClick={() => handleQuickLogin('morador')}
-                variant="outline"
-                className="w-full"
-                disabled={isLoading}
-              >
-                <User className="h-4 w-4 mr-2" />
-                Morador
-              </Button>
-            </div>
-          </div>
-
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">
-                ou faça login manual
-              </span>
-            </div>
-          </div>
-
-          {/* Login Manual */}
+          {/* Login Direto */}
           <form onSubmit={handleLogin} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="role">Tipo de Acesso</Label>
-              <Select value={role} onValueChange={(value: UserRole) => setRole(value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione seu perfil" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="morador">Morador</SelectItem>
-                  <SelectItem value="admin">Administrador</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
 
             <div className="space-y-2">
               <Label htmlFor="email">E-mail</Label>
@@ -181,15 +106,6 @@ export default function Login() {
             </Button>
           </form>
 
-          {/* Informações de Acesso */}
-          <div className="mt-6 p-4 bg-accent rounded-lg text-sm">
-            <p className="font-medium text-accent-foreground mb-2">💡 Para Demonstração:</p>
-            <div className="space-y-1 text-xs text-muted-foreground">
-              <p><strong>Administrador:</strong> admin@condominio.com.br</p>
-              <p><strong>Morador:</strong> morador@condominio.com.br</p>
-              <p><strong>Dica:</strong> Use os botões de acesso rápido acima</p>
-            </div>
-          </div>
 
           <div className="mt-4 text-center space-y-2">
             <p className="text-sm text-muted-foreground">

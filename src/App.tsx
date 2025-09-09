@@ -18,6 +18,7 @@ import NotFound from "./pages/NotFound";
 import ConfiguracaoHikvision from "./pages/ConfiguracaoHikvision";
 import TesteHikvision from "./pages/TesteHikvision";
 import TesteScraping from "./pages/TesteScraping";
+import AdminApprovals from "./pages/AdminApprovals";
 
 const App = () => (
   <ThemeProvider>
@@ -94,6 +95,14 @@ const App = () => (
             element={
               <ProtectedRoute requiredRole="admin">
                 <div>Gestão de Usuários em desenvolvimento</div>
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin/approvals" 
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <AdminApprovals />
               </ProtectedRoute>
             } 
           />

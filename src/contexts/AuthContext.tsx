@@ -130,6 +130,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (profile) {
         console.log('✅ Perfil encontrado:', profile);
+        
+        // ❌ VERIFICAR SE USUÁRIO ESTÁ ATIVO/APROVADO
+        if (!profile.ativo || profile.status === 'pendente') {
+          console.log('⏳ Usuário ainda não foi aprovado pelo administrador');
+          throw new Error('Sua conta ainda não foi aprovada pelo administrador. Aguarde a aprovação.');
+        }
+        
         const user: User = {
           id: profile.id,
           name: profile.nome,
@@ -274,7 +281,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (data.user) {
         console.log('✅ Registro Supabase bem-sucedido:', data.user.email);
         
-        // 2. Criar perfil na tabela usuarios
+        // 2. Criar perfil na tabela usuarios (status pendente)
         const { error: profileError } = await supabase
           .from('usuarios')
           .insert({
@@ -284,7 +291,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             nome: nome,
             perfil: role,
             unidade: unidade,
-            ativo: true
+            ativo: false, // ❌ INATIVO ATÉ APROVAÇÃO DO ADMIN
+            status: 'pendente' // ⏳ STATUS PENDENTE
           });
 
         if (profileError) {
@@ -292,8 +300,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           // Não vamos falhar aqui, pois o usuário já foi criado no Auth
         }
 
-        // 3. Fazer login automático
-        await loadUserProfile(data.user);
+        console.log('✅ Cadastro criado! Aguardando aprovação do administrador.');
+        
+        // ❌ NÃO fazer login automático - aguardar aprovação
+        // await loadUserProfile(data.user);
         return true;
       }
       return false;

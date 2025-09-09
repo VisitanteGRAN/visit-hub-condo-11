@@ -17,8 +17,8 @@ interface CadastroMoradorData {
   confirmarSenha: string;
   cpf: string;
   telefone: string;
-  endereco: string;
-  numeroCasa: string;
+  rua: string;
+  numeroRua: string;
 }
 
 export default function CadastroMorador() {
@@ -32,8 +32,8 @@ export default function CadastroMorador() {
     confirmarSenha: '',
     cpf: '',
     telefone: '',
-    endereco: '',
-    numeroCasa: ''
+    rua: '',
+    numeroRua: ''
   });
 
   const handleInputChange = (field: keyof CadastroMoradorData, value: string) => {
@@ -103,18 +103,18 @@ export default function CadastroMorador() {
       return;
     }
     
-    if (!formData.endereco.trim()) {
-      toast.error('Por favor, informe seu endereço/rua');
+    if (!formData.rua.trim()) {
+      toast.error('Por favor, informe o nome da rua');
+      return;
+    }
+    
+    if (!formData.numeroRua.trim()) {
+      toast.error('Por favor, informe o número da rua');
       return;
     }
     
     if (!validateCPF(formData.cpf)) {
       toast.error('CPF inválido');
-      return;
-    }
-    
-    if (!formData.numeroCasa.trim()) {
-      toast.error('Por favor, informe o número da casa');
       return;
     }
     
@@ -133,16 +133,18 @@ export default function CadastroMorador() {
     try {
       console.log('🏠 Registrando novo morador:', formData.email);
       
+      const enderecoCompleto = `${formData.rua}, ${formData.numeroRua}`;
+      
       const success = await register(
         formData.email,
         formData.senha,
         formData.nome,
         'morador',
-        formData.numeroCasa
+        enderecoCompleto
       );
       
       if (success) {
-        toast.success('Cadastro realizado com sucesso! Faça login para continuar.');
+        toast.success('Cadastro realizado com sucesso! Aguarde a aprovação do administrador para fazer login.');
         navigate('/login');
       } else {
         toast.error('Erro ao realizar cadastro. Tente novamente.');
@@ -248,39 +250,34 @@ export default function CadastroMorador() {
               </div>
 
               {/* Endereço */}
-              <div className="space-y-2">
-                <Label htmlFor="endereco" className="flex items-center gap-2">
-                  <Home className="h-4 w-4" />
-                  Endereço/Rua da Casa *
-                </Label>
-                <Input
-                  id="endereco"
-                  value={formData.endereco}
-                  onChange={(e) => handleInputChange('endereco', e.target.value)}
-                  placeholder="Ex: Rua das Flores, 123 - Jardim das Acácias"
-                  required
-                />
-                <p className="text-xs text-muted-foreground">
-                  💡 Informe o nome da rua e número da sua casa
-                </p>
-              </div>
-
-              {/* Número da Casa */}
-              <div className="space-y-2">
-                <Label htmlFor="numeroCasa" className="flex items-center gap-2">
-                  <Building2 className="h-4 w-4" />
-                  Número da Casa *
-                </Label>
-                <Input
-                  id="numeroCasa"
-                  value={formData.numeroCasa}
-                  onChange={(e) => handleInputChange('numeroCasa', e.target.value)}
-                  placeholder="Ex: 123, 45A, Lote 78"
-                  required
-                />
-                <p className="text-xs text-muted-foreground">
-                  💡 Informe o número ou identificação da sua casa
-                </p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="md:col-span-2 space-y-2">
+                  <Label htmlFor="rua" className="flex items-center gap-2">
+                    <Home className="h-4 w-4" />
+                    Nome da Rua *
+                  </Label>
+                  <Input
+                    id="rua"
+                    value={formData.rua}
+                    onChange={(e) => handleInputChange('rua', e.target.value)}
+                    placeholder="Ex: Rua das Flores"
+                    required
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="numeroRua" className="flex items-center gap-2">
+                    <Building2 className="h-4 w-4" />
+                    Número *
+                  </Label>
+                  <Input
+                    id="numeroRua"
+                    value={formData.numeroRua}
+                    onChange={(e) => handleInputChange('numeroRua', e.target.value)}
+                    placeholder="123"
+                    required
+                  />
+                </div>
               </div>
 
               {/* Senha */}

@@ -15,19 +15,12 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-// Mock data
+// Mock data para moradores
 const mockVisitorsToday = [
   { id: 1, name: 'Maria Silva', time: '14:30', status: 'aguardando', apartment: '101' },
   { id: 2, name: 'João Santos', time: '16:00', status: 'autorizado', apartment: '205' },
   { id: 3, name: 'Ana Costa', time: '18:30', status: 'aguardando', apartment: '304' },
 ];
-
-const mockStats = {
-  totalVisitors: 156,
-  todayVisitors: 12,
-  pendingApprovals: 5,
-  activeVisitors: 3
-};
 
 function MoradorDashboard() {
   return (
@@ -55,33 +48,33 @@ function MoradorDashboard() {
           <CardContent>
             <div className="text-2xl font-bold">3</div>
             <p className="text-xs text-muted-foreground">
-              2 autorizados, 1 pendente
+              2 aguardando aprovação
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pendentes</CardTitle>
+            <CardTitle className="text-sm font-medium">Links Ativos</CardTitle>
+            <CheckCircle className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">2</div>
+            <p className="text-xs text-muted-foreground">
+              Convites disponíveis
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Próximas Visitas</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">1</div>
             <p className="text-xs text-muted-foreground">
-              Aguardando autorização
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Notificações</CardTitle>
-            <Bell className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">2</div>
-            <p className="text-xs text-muted-foreground">
-              Mensagens não lidas
+              Para amanhã
             </p>
           </CardContent>
         </Card>
@@ -92,22 +85,50 @@ function MoradorDashboard() {
         <CardHeader>
           <CardTitle>Ações Rápidas</CardTitle>
           <CardDescription>
-            Gerencie seus visitantes de forma rápida e fácil
+            Gerencie seus visitantes facilmente
           </CardDescription>
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Button asChild className="h-20 flex-col">
+          <Button asChild className="h-16 flex-col">
             <Link to="/novo-visitante">
               <UserPlus className="h-6 w-6 mb-2" />
-              Cadastrar Novo Visitante
+              Novo Visitante
             </Link>
           </Button>
-          <Button variant="outline" asChild className="h-20 flex-col">
+          <Button variant="outline" asChild className="h-16 flex-col">
             <Link to="/meus-visitantes">
               <Users className="h-6 w-6 mb-2" />
-              Ver Meus Visitantes
+              Meus Visitantes
             </Link>
           </Button>
+        </CardContent>
+      </Card>
+
+      {/* Today's Visitors */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Visitantes de Hoje</CardTitle>
+          <CardDescription>
+            Status atual dos seus visitantes
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {mockVisitorsToday.map((visitor) => (
+              <div key={visitor.id} className="flex items-center justify-between p-3 bg-accent rounded-lg">
+                <div className="flex items-center gap-3">
+                  <div className="w-2 h-2 rounded-full bg-primary"></div>
+                  <div>
+                    <p className="font-medium">{visitor.name}</p>
+                    <p className="text-sm text-muted-foreground">{visitor.time}</p>
+                  </div>
+                </div>
+                <Badge variant={visitor.status === 'autorizado' ? 'default' : 'secondary'}>
+                  {visitor.status === 'autorizado' ? 'Autorizado' : 'Aguardando'}
+                </Badge>
+              </div>
+            ))}
+          </div>
         </CardContent>
       </Card>
     </div>
@@ -117,148 +138,77 @@ function MoradorDashboard() {
 function AdminDashboard() {
   return (
     <div className="space-y-6">
-      {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total de Visitantes</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{mockStats.totalVisitors}</div>
-            <p className="text-xs text-muted-foreground">
-              +12% desde o mês passado
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Visitantes Hoje</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{mockStats.todayVisitors}</div>
-            <p className="text-xs text-muted-foreground">
-              Pico às 14:00 (8 visitantes)
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pendentes</CardTitle>
-            <AlertCircle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{mockStats.pendingApprovals}</div>
-            <p className="text-xs text-muted-foreground">
-              Aguardando aprovação
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Ativos Agora</CardTitle>
-            <CheckCircle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{mockStats.activeVisitors}</div>
-            <p className="text-xs text-muted-foreground">
-              Visitantes no condomínio
-            </p>
-          </CardContent>
-        </Card>
+      {/* Header */}
+      <div className="text-center">
+        <h2 className="text-3xl font-bold tracking-tight">Painel do Administrador</h2>
+        <p className="text-muted-foreground">
+          Gerencie cadastros de moradores pendentes
+        </p>
       </div>
-
-      {/* Quick Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Ações Administrativas</CardTitle>
-          <CardDescription>
-            Gerencie o sistema de visitantes do condomínio
+      
+      {/* Card Principal */}
+      <Card className="border-2 border-primary/20">
+        <CardHeader className="text-center pb-4">
+          <div className="mx-auto mb-4 p-3 bg-primary/10 rounded-full w-fit">
+            <Users className="h-8 w-8 text-primary" />
+          </div>
+          <CardTitle className="text-2xl">Aprovação de Cadastros</CardTitle>
+          <CardDescription className="text-base">
+            Clique no botão abaixo para gerenciar os cadastros de moradores que aguardam aprovação
           </CardDescription>
         </CardHeader>
-        <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Button asChild className="h-20 flex-col">
-            <Link to="/gestao-visitantes">
-              <Users className="h-6 w-6 mb-2" />
-              Gestão de Visitantes
-            </Link>
-          </Button>
-          <Button variant="outline" asChild className="h-20 flex-col">
-            <Link to="/relatorios">
-              <TrendingUp className="h-6 w-6 mb-2" />
-              Relatórios
-            </Link>
-          </Button>
-          <Button variant="outline" asChild className="h-20 flex-col">
-            <Link to="/gestao-usuarios">
-              <UserPlus className="h-6 w-6 mb-2" />
-              Gestão de Usuários
-            </Link>
-          </Button>
+        <CardContent className="text-center">
+          <Link to="/admin/approvals">
+            <Button size="lg" className="w-full md:w-auto px-8 py-3">
+              <UserPlus className="h-5 w-5 mr-2" />
+              Gerenciar Cadastros Pendentes
+            </Button>
+          </Link>
         </CardContent>
       </Card>
-
-      {/* Recent Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Atividade Recente</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex items-center gap-3 p-3 bg-accent rounded-lg">
-                <CheckCircle className="h-4 w-4 text-success" />
-                <div>
-                  <p className="text-sm font-medium">Visitante autorizado</p>
-                  <p className="text-xs text-muted-foreground">Maria Silva - Apto 101 - 14:30</p>
-                </div>
+      
+      {/* Informações */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Bell className="h-5 w-5" />
+            Como funciona
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3 text-sm">
+            <div className="flex items-start gap-3">
+              <div className="mt-1 p-1 bg-blue-100 rounded-full">
+                <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
               </div>
-              <div className="flex items-center gap-3 p-3 bg-accent rounded-lg">
-                <AlertCircle className="h-4 w-4 text-warning" />
-                <div>
-                  <p className="text-sm font-medium">Aguardando aprovação</p>
-                  <p className="text-xs text-muted-foreground">João Santos - Apto 205 - 15:45</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 p-3 bg-accent rounded-lg">
-                <Users className="h-4 w-4 text-primary" />
-                <div>
-                  <p className="text-sm font-medium">Novo morador cadastrado</p>
-                  <p className="text-xs text-muted-foreground">Ana Costa - Apto 304 - 13:20</p>
-                </div>
+              <div>
+                <p className="font-medium">1. Moradores se cadastram</p>
+                <p className="text-muted-foreground">Novos moradores preenchem o formulário de cadastro</p>
               </div>
             </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Visitantes por Horário</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {[
-                { time: '08:00 - 12:00', count: 3, color: 'bg-primary' },
-                { time: '12:00 - 16:00', count: 8, color: 'bg-success' },
-                { time: '16:00 - 20:00', count: 5, color: 'bg-warning' },
-                { time: '20:00 - 22:00', count: 1, color: 'bg-muted' },
-              ].map((slot) => (
-                <div key={slot.time} className="flex items-center justify-between">
-                  <span className="text-sm font-medium">{slot.time}</span>
-                  <div className="flex items-center gap-2">
-                    <div className={`h-2 w-16 rounded-full ${slot.color}`}></div>
-                    <span className="text-sm font-bold">{slot.count}</span>
-                  </div>
-                </div>
-              ))}
+            
+            <div className="flex items-start gap-3">
+              <div className="mt-1 p-1 bg-yellow-100 rounded-full">
+                <div className="w-2 h-2 bg-yellow-600 rounded-full"></div>
+              </div>
+              <div>
+                <p className="font-medium">2. Aguardam aprovação</p>
+                <p className="text-muted-foreground">Os cadastros ficam pendentes até você aprovar</p>
+              </div>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+            
+            <div className="flex items-start gap-3">
+              <div className="mt-1 p-1 bg-green-100 rounded-full">
+                <div className="w-2 h-2 bg-green-600 rounded-full"></div>
+              </div>
+              <div>
+                <p className="font-medium">3. Você aprova ou rejeita</p>
+                <p className="text-muted-foreground">Após a aprovação, o morador pode acessar o sistema</p>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
