@@ -187,13 +187,29 @@ class WindowsPollingService:
             return None
 
     def process_visitor(self, item):
-        """Processar cadastro de visitante"""
+        """Processar cadastro/reativação de visitante - VERSÃO INTELIGENTE"""
         try:
             visitor_id = item['id']
             visitor_data_temp = item.get('visitor_data', {})
             visitor_name = visitor_data_temp.get('nome', 'Desconhecido')
+            action_type = item.get('action_type', 'create')  # 'create' ou 'reactivate'
+            cpf = visitor_data_temp.get('cpf', '')
             
-            logging.info(f"[PROCESS] Processando: {visitor_name}")
+            # ESCOLHER SCRIPT BASEADO NO TIPO DE AÇÃO
+            if action_type == 'reactivate':
+                script_name = 'test_reactivate_visitor.py'
+                logging.info(f"[REACTIVATE] Reativando visitante: {visitor_name} (CPF: {cpf})")
+            else:
+                script_name = 'test_form_direct.py'
+                logging.info(f"[CREATE] Criando novo visitante: {visitor_name}")
+            
+            script_path = os.path.join(SCRIPT_DIR, script_name)
+            
+            # Verificar se script existe
+            if not os.path.exists(script_path):
+                logging.error(f"[ERRO] Script não encontrado: {script_path}")
+                self.mark_failed(visitor_id, f"Script não encontrado: {script_name}")
+                return False
             
             # Marcar como processando
             if not self.mark_processing(visitor_id):
@@ -202,9 +218,9 @@ class WindowsPollingService:
             
             logging.info(f"[STATUS] Item {visitor_id} marcado como processando")
             
-            # Salvar foto se presente
+            # Salvar foto se presente (apenas para cadastro novo)
             photo_path = None
-            if item.get('photo_base64'):
+            if action_type == 'create' and item.get('photo_base64'):
                 photo_path = self.save_photo(item['photo_base64'], visitor_id)
             
             # Preparar dados para script
@@ -216,6 +232,7 @@ class WindowsPollingService:
                 'rg': visitor_data_from_queue.get('rg', ''),
                 'placa': visitor_data_from_queue.get('placa', ''),
                 'genero': visitor_data_from_queue.get('genero', 'Masculino'),
+                'morador_nome': visitor_data_from_queue.get('morador_nome', 'lucca lacerda'),  # Para reativação
                 'photo_path': photo_path
             }
             
@@ -230,10 +247,10 @@ class WindowsPollingService:
             if photo_path:
                 print(f"[DEBUG] Foto existe: {os.path.exists(photo_path)}")
             
-            # Executar script de automação FUNCIONAL
+            # Executar script apropriado (REATIVAÇÃO OU CADASTRO)
             cmd = [
                 'python', 
-                self.script_path,
+                script_path,
                 '--visitor-data', json_path,
                 '--visitor-id', visitor_id
             ]
@@ -293,14 +310,14 @@ class WindowsPollingService:
                     logging.info("[INFO] Aguardando novos itens...")
                 
                 # Aguardar antes da próxima verificação
-                time.sleep(30)
+                time.sleep(15)  # Otimizado - reduzido de 30s para 15s
                 
             except KeyboardInterrupt:
                 logging.info("[INFO] Servico interrompido pelo usuario")
                 break
             except Exception as e:
                 logging.error(f"[ERRO] Erro no loop principal: {e}")
-                time.sleep(10)
+                time.sleep(5)  # Otimizado - reduzido de 10s para 5s
 
 if __name__ == "__main__":
     service = WindowsPollingService()

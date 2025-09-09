@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { User, Home, CreditCard, Mail, Lock, Building2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -18,8 +17,8 @@ interface CadastroMoradorData {
   confirmarSenha: string;
   cpf: string;
   telefone: string;
-  unidade: string;
-  bloco: string;
+  endereco: string;
+  numeroCasa: string;
 }
 
 export default function CadastroMorador() {
@@ -33,8 +32,8 @@ export default function CadastroMorador() {
     confirmarSenha: '',
     cpf: '',
     telefone: '',
-    unidade: '',
-    bloco: ''
+    endereco: '',
+    numeroCasa: ''
   });
 
   const handleInputChange = (field: keyof CadastroMoradorData, value: string) => {
@@ -62,10 +61,26 @@ export default function CadastroMorador() {
     return true; // Validação simplificada
   };
 
+  const formatTelefone = (telefone: string) => {
+    const numbers = telefone.replace(/\D/g, '');
+    if (numbers.length <= 10) {
+      return numbers.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
+    } else {
+      return numbers.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+    }
+  };
+
   const handleCPFChange = (value: string) => {
     const formatted = formatCPF(value);
     if (formatted.length <= 14) { // CPF formatado tem 14 caracteres
       handleInputChange('cpf', formatted);
+    }
+  };
+
+  const handleTelefoneChange = (value: string) => {
+    const formatted = formatTelefone(value);
+    if (formatted.length <= 15) { // Telefone formatado tem até 15 caracteres
+      handleInputChange('telefone', formatted);
     }
   };
 
@@ -83,13 +98,23 @@ export default function CadastroMorador() {
       return;
     }
     
+    if (!formData.telefone.trim()) {
+      toast.error('Por favor, informe seu telefone');
+      return;
+    }
+    
+    if (!formData.endereco.trim()) {
+      toast.error('Por favor, informe seu endereço/rua');
+      return;
+    }
+    
     if (!validateCPF(formData.cpf)) {
       toast.error('CPF inválido');
       return;
     }
     
-    if (!formData.unidade.trim()) {
-      toast.error('Por favor, informe sua unidade');
+    if (!formData.numeroCasa.trim()) {
+      toast.error('Por favor, informe o número da casa');
       return;
     }
     
@@ -108,16 +133,12 @@ export default function CadastroMorador() {
     try {
       console.log('🏠 Registrando novo morador:', formData.email);
       
-      const unidadeCompleta = formData.bloco ? 
-        `${formData.bloco} - ${formData.unidade}` : 
-        formData.unidade;
-      
       const success = await register(
         formData.email,
         formData.senha,
         formData.nome,
         'morador',
-        unidadeCompleta
+        formData.numeroCasa
       );
       
       if (success) {
@@ -199,62 +220,67 @@ export default function CadastroMorador() {
                 <div className="space-y-2">
                   <Label htmlFor="email" className="flex items-center gap-2">
                     <Mail className="h-4 w-4" />
-                    E-mail *
+                    E-mail (Gmail recomendado) *
                   </Label>
                   <Input
                     id="email"
                     type="email"
                     value={formData.email}
                     onChange={(e) => handleInputChange('email', e.target.value)}
-                    placeholder="seu.email@exemplo.com"
+                    placeholder="seu.email@gmail.com"
                     required
                   />
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="telefone">Telefone</Label>
+                  <Label htmlFor="telefone" className="flex items-center gap-2">
+                    <CreditCard className="h-4 w-4" />
+                    Telefone *
+                  </Label>
                   <Input
                     id="telefone"
                     value={formData.telefone}
-                    onChange={(e) => handleInputChange('telefone', e.target.value)}
+                    onChange={(e) => handleTelefoneChange(e.target.value)}
                     placeholder="(11) 99999-9999"
+                    required
                   />
                 </div>
               </div>
 
-              {/* Unidade */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="bloco" className="flex items-center gap-2">
-                    <Building2 className="h-4 w-4" />
-                    Bloco (opcional)
-                  </Label>
-                  <Select value={formData.bloco} onValueChange={(value) => handleInputChange('bloco', value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione o bloco" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="A">Bloco A</SelectItem>
-                      <SelectItem value="B">Bloco B</SelectItem>
-                      <SelectItem value="C">Bloco C</SelectItem>
-                      <SelectItem value="D">Bloco D</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="unidade" className="flex items-center gap-2">
-                    <Home className="h-4 w-4" />
-                    Unidade/Apartamento *
-                  </Label>
-                  <Input
-                    id="unidade"
-                    value={formData.unidade}
-                    onChange={(e) => handleInputChange('unidade', e.target.value)}
-                    placeholder="Ex: Apto 101, Casa 10"
-                    required
-                  />
-                </div>
+              {/* Endereço */}
+              <div className="space-y-2">
+                <Label htmlFor="endereco" className="flex items-center gap-2">
+                  <Home className="h-4 w-4" />
+                  Endereço/Rua da Casa *
+                </Label>
+                <Input
+                  id="endereco"
+                  value={formData.endereco}
+                  onChange={(e) => handleInputChange('endereco', e.target.value)}
+                  placeholder="Ex: Rua das Flores, 123 - Jardim das Acácias"
+                  required
+                />
+                <p className="text-xs text-muted-foreground">
+                  💡 Informe o nome da rua e número da sua casa
+                </p>
+              </div>
+
+              {/* Número da Casa */}
+              <div className="space-y-2">
+                <Label htmlFor="numeroCasa" className="flex items-center gap-2">
+                  <Building2 className="h-4 w-4" />
+                  Número da Casa *
+                </Label>
+                <Input
+                  id="numeroCasa"
+                  value={formData.numeroCasa}
+                  onChange={(e) => handleInputChange('numeroCasa', e.target.value)}
+                  placeholder="Ex: 123, 45A, Lote 78"
+                  required
+                />
+                <p className="text-xs text-muted-foreground">
+                  💡 Informe o número ou identificação da sua casa
+                </p>
               </div>
 
               {/* Senha */}

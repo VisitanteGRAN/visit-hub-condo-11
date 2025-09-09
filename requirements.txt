@@ -1,39 +1,5 @@
-# Automação Web com Selenium
-selenium>=4.15.0
-webdriver-manager>=4.0.0
-
-# Processamento de Imagens
-Pillow>=10.0.0
-
-# Utilitários Python
-requests>=2.31.0
-beautifulsoup4>=4.12.0
-lxml>=4.9.0
-
-# Logging e debugging
-colorama>=0.4.6
-rich>=13.7.0
-
-# Manipulação de dados
-pandas>=2.1.0
-numpy>=1.24.0
-
-# Configuração e ambiente
-python-dotenv>=1.0.0
-configparser>=6.0.0
-
-# Sistema e Processos
-psutil>=5.9.0
-
-# Servidor Flask
-Flask>=2.3.0
-Flask-CORS>=4.0.0
-
-# Testes
-pytest>=7.4.0
-pytest-html>=4.1.0
-
-# Desenvolvimento
-black>=23.0.0
-flake8>=6.1.0
-isort>=5.12.0 
+selenium==4.15.0
+webdriver-manager==4.0.1
+requests==2.31.0
+python-dotenv==1.0.0
+supabase==2.0.0

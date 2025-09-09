@@ -81,10 +81,10 @@ export default function Login() {
           </div>
           <div className="flex items-center justify-center gap-2 text-primary">
             <Building2 className="h-6 w-6" />
-            <CardTitle className="text-2xl font-bold">Gran Royalle</CardTitle>
+            <CardTitle className="text-2xl font-bold">VisitHub</CardTitle>
           </div>
           <CardDescription>
-            Sistema de gestão de visitantes
+            Acesse sua conta para gerenciar visitantes
           </CardDescription>
         </CardHeader>
 
@@ -181,36 +181,36 @@ export default function Login() {
             </Button>
           </form>
 
-          <div className="text-center">
-            <button
-              onClick={handleForgotPassword}
-              className="text-sm text-primary hover:underline"
-            >
-              Esqueci minha senha
-            </button>
+          {/* Informações de Acesso */}
+          <div className="mt-6 p-4 bg-accent rounded-lg text-sm">
+            <p className="font-medium text-accent-foreground mb-2">💡 Para Demonstração:</p>
+            <div className="space-y-1 text-xs text-muted-foreground">
+              <p><strong>Administrador:</strong> admin@condominio.com.br</p>
+              <p><strong>Morador:</strong> morador@condominio.com.br</p>
+              <p><strong>Dica:</strong> Use os botões de acesso rápido acima</p>
+            </div>
           </div>
 
-          {/* Informações de Acesso */}
-                      <div className="mt-6 p-4 bg-accent rounded-lg text-sm">
-              <p className="font-medium text-accent-foreground mb-2">Informações de Acesso:</p>
-              <div className="space-y-1 text-xs text-muted-foreground">
-                <p><strong>Admin:</strong> admin@condominio.com.br | Admin@123456</p>
-                <p><strong>Morador:</strong> morador@condominio.com.br | Morador@123456</p>
-                <p><strong>Nota:</strong> Use os botões de acesso rápido acima</p>
-              </div>
+          <div className="mt-4 text-center space-y-2">
+            <p className="text-sm text-muted-foreground">
+              Primeiro acesso? 
+              <button 
+                onClick={() => navigate('/cadastro-morador')}
+                className="text-primary hover:underline ml-1 font-medium"
+              >
+                Cadastre-se como morador
+              </button>
+            </p>
+            
+            <div className="text-center">
+              <button
+                onClick={handleForgotPassword}
+                className="text-xs text-muted-foreground hover:text-primary"
+              >
+                Esqueci minha senha
+              </button>
             </div>
-
-            <div className="mt-4 text-center">
-              <p className="text-sm text-muted-foreground">
-                Morador novo? 
-                <button 
-                  onClick={() => navigate('/cadastro-morador')}
-                  className="text-primary hover:underline ml-1"
-                >
-                  Crie sua conta aqui
-                </button>
-              </p>
-            </div>
+          </div>
         </CardContent>
       </Card>
     </div>
