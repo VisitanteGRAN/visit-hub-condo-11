@@ -150,6 +150,10 @@ export class CPFVerificationService {
         .eq('id', visitanteId);
 
       console.log('🔍 Verificação de existência:', { visitanteExiste, checkError });
+      
+      if (visitanteExiste && visitanteExiste.length > 0) {
+        console.log('✅ Visitante encontrado para update:', visitanteExiste[0]);
+      }
 
       if (checkError) {
         throw new Error(`Erro ao verificar visitante: ${checkError.message}`);
@@ -159,8 +163,8 @@ export class CPFVerificationService {
         throw new Error(`Visitante com ID ${visitanteId} não encontrado para atualização`);
       }
 
-      // Atualizar visitante no banco - USANDO ADMIN PARA BYPASSAR RLS
-      const { data: visitantesAtualizados, error: updateError } = await supabaseAdmin
+      // Primeiro tentar UPDATE simples sem SELECT
+      const { error: simpleUpdateError } = await supabaseAdmin
         .from('visitantes')
         .update({
           morador_id: novoMoradorId,
@@ -169,15 +173,33 @@ export class CPFVerificationService {
           validade_fim: validadeFim.toISOString(),
           updated_at: new Date().toISOString()
         })
-        .eq('id', visitanteId)
-        .select('*');
+        .eq('id', visitanteId);
 
-      if (updateError) {
-        throw new Error(`Erro ao atualizar visitante: ${updateError.message}`);
+      console.log('🔧 Resultado UPDATE simples:', { error: simpleUpdateError });
+
+      if (simpleUpdateError) {
+        throw new Error(`Erro no UPDATE simples: ${simpleUpdateError.message}`);
+      }
+
+      // Agora buscar o registro atualizado
+      const { data: visitantesAtualizados, error: selectError } = await supabaseAdmin
+        .from('visitantes')
+        .select('*')
+        .eq('id', visitanteId);
+
+      console.log('🔧 Resultado do SELECT após UPDATE:', { 
+        data: visitantesAtualizados, 
+        error: selectError,
+        length: visitantesAtualizados?.length || 0
+      });
+
+      if (selectError) {
+        throw new Error(`Erro ao buscar visitante atualizado: ${selectError.message}`);
       }
 
       if (!visitantesAtualizados || visitantesAtualizados.length === 0) {
-        throw new Error('Nenhum visitante foi atualizado');
+        console.error('❌ UPDATE não retornou dados. Possível problema de RLS ou permissão.');
+        throw new Error('Nenhum visitante foi atualizado - verifique permissões RLS');
       }
 
       // Pegar o primeiro (e deveria ser único) resultado
