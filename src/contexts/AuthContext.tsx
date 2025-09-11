@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User as SupabaseUser } from '@supabase/supabase-js';
+import { AuditLogger } from '@/lib/audit-logger';
 
 export type UserRole = 'admin' | 'morador';
 
@@ -287,6 +288,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (data.user) {
         console.log('✅ Login Supabase bem-sucedido:', data.user.email);
+        await AuditLogger.logLogin(data.user.email || '', true);
         await loadUserProfile(data.user);
         return true;
       }

@@ -1,0 +1,31 @@
+# 🔐 CONFIGURAÇÃO SEGURA PARA PRODUÇÃO
+
+# ===== SUPABASE =====
+VITE_SUPABASE_URL=https://seu-projeto.supabase.co
+VITE_SUPABASE_ANON_KEY=sua_anon_key_aqui
+
+# 🚨 IMPORTANTE: Service Role Key para admin
+# Configure APENAS na Vercel, NUNCA no código
+VITE_SUPABASE_SERVICE_ROLE_KEY=sua_service_role_key_aqui
+
+# ===== HIKCENTRAL (WINDOWS) =====
+HIKCENTRAL_URL=http://192.168.1.100:8090
+HIKCENTRAL_USERNAME=admin
+HIKCENTRAL_PASSWORD=senha_segura
+
+# ===== CONFIGURAÇÕES DE SEGURANÇA =====
+# Habilitar logs de auditoria
+ENABLE_AUDIT_LOGS=true
+
+# Rate limiting (requests por minuto)
+RATE_LIMIT_PER_MINUTE=60
+
+# Timeout para sessões (em horas)
+SESSION_TIMEOUT_HOURS=8
+
+# ===== CONFIGURAÇÕES ESPECÍFICAS =====
+# Domínio permitido para CORS
+ALLOWED_ORIGIN=https://visit-hub-condo-11.vercel.app
+
+# Ambiente (development, staging, production)
+NODE_ENV=production
