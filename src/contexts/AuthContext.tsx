@@ -132,9 +132,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.log('✅ Perfil encontrado:', profile);
         
         // ❌ VERIFICAR SE USUÁRIO ESTÁ ATIVO/APROVADO
-        if (!profile.ativo || profile.status === 'pendente') {
-          console.log('⏳ Usuário ainda não foi aprovado pelo administrador');
-          throw new Error('Sua conta ainda não foi aprovada pelo administrador. Aguarde a aprovação.');
+        console.log('🔍 Verificando status:', { ativo: profile.ativo, status: profile.status, perfil: profile.perfil });
+        
+        // Se for morador, verificar aprovação rigorosamente
+        if (profile.perfil === 'morador') {
+          console.log('🏠 Verificando status do morador:', { email: profile.email, ativo: profile.ativo, status: profile.status });
+          
+          if (!profile.ativo || profile.status === 'pendente' || profile.status !== 'ativo') {
+            console.log('⏳ Morador ainda não foi aprovado pelo administrador');
+            console.log('📋 Status atual:', { ativo: profile.ativo, status: profile.status });
+            await supabase.auth.signOut(); // Força logout
+            throw new Error(`Sua conta ainda não foi aprovada pelo administrador. Status atual: ${profile.status}. Aguarde a aprovação.`);
+          }
+        }
+        
+        // Admin sempre pode logar (mas verificar se é realmente admin)
+        if (profile.perfil === 'admin' && !profile.ativo) {
+          console.log('❌ Conta de administrador inativa');
+          await supabase.auth.signOut();
+          throw new Error('Conta de administrador inativa. Contate o suporte.');
         }
         
         const user: User = {
@@ -178,35 +194,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       console.log('🔐 Tentando login com:', email, role);
       
-      // BYPASS TEMPORÁRIO: Simular login para testar sistema
-      const testCredentials = {
-        'admin@condominio.com.br': { senha: 'Admin@123456', nome: 'Administrador', perfil: 'admin', unidade: 'Administração' },
-        'morador@condominio.com.br': { senha: 'Morador@123456', nome: 'Morador Teste', perfil: 'morador', unidade: 'Apto 101' }
-      };
+      // ✅ APENAS LOGIN VIA SUPABASE COM VERIFICAÇÃO DE APROVAÇÃO
       
-      const testUser = testCredentials[email as keyof typeof testCredentials];
-      
-      if (testUser && password === testUser.senha) {
-        console.log('🎯 BYPASS: Login simulado para:', email);
-        
-        // Criar usuário com UUID real do banco de dados
-        const mockUser = {
-          id: email === 'admin@condominio.com.br' ? 
-            'd97fb874-f2bd-45c7-b57f-58f6acefa42d' : 
-            '8a601340-5a94-4279-9066-5ad573241775',
-          email,
-          name: testUser.nome,
-          role: testUser.perfil as UserRole,
-          unidade: testUser.unidade,
-          ativo: true
-        };
-        
-        setUser(mockUser);
-        console.log('✅ BYPASS: Usuário logado:', mockUser);
-        return true;
-      }
-      
-      // Tentar login real no Supabase se não for credencial de teste
+      // Login via Supabase Auth com verificação obrigatória de aprovação
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
