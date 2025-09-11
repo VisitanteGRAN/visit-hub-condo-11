@@ -135,7 +135,7 @@ export class CPFVerificationService {
       validadeFim.setDate(validadeFim.getDate() + validadeDias);
       validadeFim.setHours(23, 59, 59, 999);
 
-      // Atualizar visitante no banco
+      // Atualizar visitante no banco - SIMPLIFICADO
       const { data: visitanteAtualizado, error: updateError } = await supabase
         .from('visitantes')
         .update({
@@ -146,10 +146,7 @@ export class CPFVerificationService {
           updated_at: new Date().toISOString()
         })
         .eq('id', visitanteId)
-        .select(`
-          *,
-          morador:usuarios(nome)
-        `)
+        .select('*')
         .single();
 
       if (updateError) {
@@ -158,13 +155,22 @@ export class CPFVerificationService {
 
       console.log('✅ Visitante atualizado no banco:', visitanteAtualizado);
 
+      // Buscar nome do morador separadamente
+      const { data: moradorData } = await supabase
+        .from('usuarios')
+        .select('nome')
+        .eq('id', novoMoradorId)
+        .single();
+
+      const nomeDoMorador = moradorData?.nome || 'Morador';
+
       return {
         success: true,
         message: `Visitante reativado com sucesso até ${validadeFim.toLocaleDateString()}`,
         data: {
           visitante: visitanteAtualizado,
           validadeAte: validadeFim.toISOString(),
-          morador: visitanteAtualizado.morador?.nome
+          morador: nomeDoMorador
         }
       };
 
