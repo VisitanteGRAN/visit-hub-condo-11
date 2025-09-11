@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { User, CheckCircle, XCircle, Clock, Mail, Home, Phone } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { supabaseAdmin } from '@/lib/supabase-admin';
 
 interface PendingUser {
   id: string;
@@ -71,7 +72,8 @@ export default function AdminApprovals() {
         return;
       }
       
-      const { data, error } = await supabase
+      // Usar supabaseAdmin para bypassar RLS
+      const { data, error } = await supabaseAdmin
         .from('usuarios')
         .update({ 
           ativo: true, 
@@ -117,7 +119,7 @@ export default function AdminApprovals() {
     
     try {
       // Deletar usuário rejeitado
-      const { error } = await supabase
+      const { error } = await supabaseAdmin
         .from('usuarios')
         .delete()
         .eq('id', userId);
