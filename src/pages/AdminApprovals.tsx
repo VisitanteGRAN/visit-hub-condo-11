@@ -54,20 +54,32 @@ export default function AdminApprovals() {
     setProcessingIds(prev => new Set(prev).add(userId));
     
     try {
-      const { error } = await supabase
+      console.log('🔄 Aprovando usuário:', userId);
+      
+      const { data, error } = await supabase
         .from('usuarios')
         .update({ 
           ativo: true, 
           status: 'ativo' 
         })
-        .eq('id', userId);
+        .eq('id', userId)
+        .select(); // Adicionar select para ver o resultado
+
+      console.log('📋 Resultado da aprovação:', { data, error });
 
       if (error) {
         console.error('❌ Erro ao aprovar usuário:', error);
-        toast.error('Erro ao aprovar usuário');
+        toast.error(`Erro ao aprovar usuário: ${error.message}`);
         return;
       }
 
+      if (data && data.length === 0) {
+        console.error('⚠️ Nenhum usuário foi atualizado');
+        toast.error('Usuário não encontrado para aprovação');
+        return;
+      }
+
+      console.log('✅ Usuário aprovado:', data);
       toast.success('Usuário aprovado com sucesso!');
       
       // Remover da lista
