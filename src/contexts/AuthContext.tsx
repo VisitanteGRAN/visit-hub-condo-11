@@ -218,7 +218,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (profileError) {
         console.error('❌ Erro ao verificar perfil:', profileError);
-        throw new Error('Usuário não encontrado no sistema');
+        
+        // Se for erro de "not found", pode ser usuário não cadastrado ou com cadastro pendente
+        if (profileError.code === 'PGRST116') {
+          throw new Error('🚫 USUÁRIO NÃO ENCONTRADO: Este email não está cadastrado no sistema ou o cadastro ainda está pendente de aprovação.');
+        }
+        
+        throw new Error('Erro ao verificar dados do usuário. Tente novamente.');
       }
 
       // Se for morador, verificar aprovação ANTES do login

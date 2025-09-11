@@ -37,16 +37,24 @@ export default function Login() {
         toast.error('Credenciais inválidas. Tente novamente.');
       }
     } catch (error: any) {
+      console.log('🚨 Erro capturado no login:', error);
+      
       // Capturar mensagens específicas de erro
       if (error.message && error.message.includes('ACESSO NEGADO')) {
         // Erro de aprovação - mostrar mensagem específica
         toast.error(error.message, {
           duration: 6000, // Mostrar por mais tempo
         });
+      } else if (error.message && error.message.includes('USUÁRIO NÃO ENCONTRADO')) {
+        // Usuário não cadastrado ou pendente
+        toast.error(error.message, {
+          duration: 6000,
+        });
       } else if (error.message && error.message.includes('não encontrado')) {
         toast.error('Usuário não encontrado no sistema. Verifique suas credenciais.');
       } else {
-        toast.error('Erro no login. Verifique suas credenciais e tente novamente.');
+        // Para qualquer outro erro, mostrar mensagem genérica
+        toast.error('Credenciais inválidas ou erro no sistema. Tente novamente.');
       }
     }
   };
