@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, Clock, User, CheckCircle } from 'lucide-react';
 import { cpfVerificationService, type VisitanteExistente } from '@/services/cpfVerificationService';
-import { hikVisionWebSDK } from '@/services/webSDKService';
+import hikVisionWebSDK from '@/services/webSDKService';
 import { toast } from 'sonner';
 
 interface ReativarVisitanteProps {

@@ -192,7 +192,8 @@ class WindowsPollingService:
             visitor_id = item['id']
             visitor_data_temp = item.get('visitor_data', {})
             visitor_name = visitor_data_temp.get('nome', 'Desconhecido')
-            action_type = item.get('action_type', 'create')  # 'create' ou 'reactivate'
+            # Verificar ação no visitor_data ou fallback no item
+            action_type = visitor_data_temp.get('action', item.get('action_type', 'create'))  # 'create' ou 'reactivate'
             cpf = visitor_data_temp.get('cpf', '')
             
             # ESCOLHER SCRIPT BASEADO NO TIPO DE AÇÃO
@@ -232,7 +233,7 @@ class WindowsPollingService:
                 'rg': visitor_data_from_queue.get('rg', ''),
                 'placa': visitor_data_from_queue.get('placa', ''),
                 'genero': visitor_data_from_queue.get('genero', 'Masculino'),
-                'morador_nome': visitor_data_from_queue.get('morador_nome', 'lucca lacerda'),  # Para reativação
+                'morador_nome': visitor_data_from_queue.get('morador_nome', 'lucca lacerda'),  # ⭐ Nome do morador (CRÍTICO para reativação)
                 'photo_path': photo_path
             }
             

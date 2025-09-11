@@ -403,4 +403,6 @@ export class HikVisionWebSDKService {
 
 // Instância única do serviço
 const hikVisionWebSDK = new HikVisionWebSDKService();
+
+export { hikVisionWebSDK };
 export default hikVisionWebSDK; 
