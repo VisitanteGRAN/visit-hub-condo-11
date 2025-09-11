@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import { supabaseAdmin } from '@/lib/supabase-admin';
 
 export interface VisitanteExistente {
   id: string;
@@ -135,8 +136,31 @@ export class CPFVerificationService {
       validadeFim.setDate(validadeFim.getDate() + validadeDias);
       validadeFim.setHours(23, 59, 59, 999);
 
-      // Atualizar visitante no banco - SEM .single() PARA EVITAR ERRO
-      const { data: visitantesAtualizados, error: updateError } = await supabase
+      console.log('🔍 Dados para atualização:', {
+        visitanteId,
+        novoMoradorId,
+        validadeInicio: validadeInicio.toISOString(),
+        validadeFim: validadeFim.toISOString()
+      });
+
+      // Verificar se o visitante existe antes de tentar atualizar
+      const { data: visitanteExiste, error: checkError } = await supabase
+        .from('visitantes')
+        .select('id, nome, status, morador_id')
+        .eq('id', visitanteId);
+
+      console.log('🔍 Verificação de existência:', { visitanteExiste, checkError });
+
+      if (checkError) {
+        throw new Error(`Erro ao verificar visitante: ${checkError.message}`);
+      }
+
+      if (!visitanteExiste || visitanteExiste.length === 0) {
+        throw new Error(`Visitante com ID ${visitanteId} não encontrado para atualização`);
+      }
+
+      // Atualizar visitante no banco - USANDO ADMIN PARA BYPASSAR RLS
+      const { data: visitantesAtualizados, error: updateError } = await supabaseAdmin
         .from('visitantes')
         .update({
           morador_id: novoMoradorId,
@@ -162,8 +186,8 @@ export class CPFVerificationService {
       console.log('✅ Visitante atualizado no banco:', visitanteAtualizado);
       console.log(`📊 Total de registros atualizados: ${visitantesAtualizados.length}`);
 
-      // Buscar nome do morador separadamente
-      const { data: moradorData } = await supabase
+      // Buscar nome do morador separadamente - USANDO ADMIN
+      const { data: moradorData } = await supabaseAdmin
         .from('usuarios')
         .select('nome')
         .eq('id', novoMoradorId)
