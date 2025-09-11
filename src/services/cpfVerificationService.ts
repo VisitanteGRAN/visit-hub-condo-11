@@ -135,8 +135,8 @@ export class CPFVerificationService {
       validadeFim.setDate(validadeFim.getDate() + validadeDias);
       validadeFim.setHours(23, 59, 59, 999);
 
-      // Atualizar visitante no banco - SIMPLIFICADO
-      const { data: visitanteAtualizado, error: updateError } = await supabase
+      // Atualizar visitante no banco - SEM .single() PARA EVITAR ERRO
+      const { data: visitantesAtualizados, error: updateError } = await supabase
         .from('visitantes')
         .update({
           morador_id: novoMoradorId,
@@ -146,14 +146,21 @@ export class CPFVerificationService {
           updated_at: new Date().toISOString()
         })
         .eq('id', visitanteId)
-        .select('*')
-        .single();
+        .select('*');
 
       if (updateError) {
         throw new Error(`Erro ao atualizar visitante: ${updateError.message}`);
       }
 
+      if (!visitantesAtualizados || visitantesAtualizados.length === 0) {
+        throw new Error('Nenhum visitante foi atualizado');
+      }
+
+      // Pegar o primeiro (e deveria ser único) resultado
+      const visitanteAtualizado = visitantesAtualizados[0];
+
       console.log('✅ Visitante atualizado no banco:', visitanteAtualizado);
+      console.log(`📊 Total de registros atualizados: ${visitantesAtualizados.length}`);
 
       // Buscar nome do morador separadamente
       const { data: moradorData } = await supabase
