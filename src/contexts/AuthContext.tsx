@@ -229,8 +229,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           status: userProfile.status 
         });
 
+        // Debug detalhado
+        console.log('🔍 DEBUG DETALHADO:');
+        console.log('- userProfile.ativo:', userProfile.ativo, typeof userProfile.ativo);
+        console.log('- userProfile.status:', userProfile.status, typeof userProfile.status);
+        console.log('- Comparação ativo === true:', userProfile.ativo === true);
+        console.log('- Comparação status === "ativo":', userProfile.status === 'ativo');
+
         if (!userProfile.ativo || userProfile.status !== 'ativo') {
           console.log('🚫 ACESSO NEGADO: Morador não aprovado');
+          console.log('- Falhou em ativo:', !userProfile.ativo);
+          console.log('- Falhou em status:', userProfile.status !== 'ativo');
           throw new Error(`🚫 ACESSO NEGADO: Sua conta ainda não foi aprovada pelo administrador. Status: ${userProfile.status}. Entre em contato com a administração.`);
         }
       }
