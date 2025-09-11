@@ -56,6 +56,21 @@ export default function AdminApprovals() {
     try {
       console.log('🔄 Aprovando usuário:', userId);
       
+      // Primeiro, verificar se o usuário existe
+      const { data: existingUser } = await supabase
+        .from('usuarios')
+        .select('id, email, nome, ativo, status')
+        .eq('id', userId)
+        .single();
+      
+      console.log('👤 Usuário encontrado:', existingUser);
+      
+      if (!existingUser) {
+        console.error('❌ Usuário não encontrado com ID:', userId);
+        toast.error('Usuário não encontrado');
+        return;
+      }
+      
       const { data, error } = await supabase
         .from('usuarios')
         .update({ 
