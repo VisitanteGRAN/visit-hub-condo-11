@@ -7,6 +7,7 @@ export interface VisitorQueueData {
   rg: string;
   placa: string;
   genero: string;
+  morador_nome?: string; // ⭐ NOVO: Nome do morador para campo "Visitado"
   photo_base64?: string;
 }
 
@@ -27,7 +28,8 @@ export class QueueService {
           cpf: visitorData.cpf,
           rg: visitorData.rg,
           placa: visitorData.placa,
-          genero: visitorData.genero
+          genero: visitorData.genero,
+          morador_nome: visitorData.morador_nome // ⭐ INCLUIR nome do morador
         },
         photo_base64: visitorData.photo_base64 || null,
         status: 'pending',

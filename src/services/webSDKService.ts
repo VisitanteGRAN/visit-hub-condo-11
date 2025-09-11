@@ -60,6 +60,7 @@ export class HikVisionWebSDKService {
         rg: visitor.documento || '',
         placa: (visitor as any).placa_veiculo || '',
         genero: (visitor as any).genero || 'Masculino',
+        morador_nome: (visitor as any).moradorNome || '', // ⭐ NOME DO MORADOR
         photo_base64: visitor.foto // ⭐ FOTO EM BASE64
       };
       
