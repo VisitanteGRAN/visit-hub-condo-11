@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { User, CheckCircle, XCircle, Clock, Mail, Home, Phone } from 'lucide-react';
+import { User, CheckCircle, XCircle, Clock, Mail, Home, Phone, ArrowLeft } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { supabaseAdmin } from '@/lib/supabase-admin';
@@ -172,6 +173,16 @@ export default function AdminApprovals() {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
+      {/* Botão Voltar */}
+      <div className="flex items-center gap-4">
+        <Button variant="outline" asChild>
+          <Link to="/dashboard" className="flex items-center gap-2">
+            <ArrowLeft className="h-4 w-4" />
+            Voltar ao Dashboard
+          </Link>
+        </Button>
+      </div>
+
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <User className="h-8 w-8 text-primary" />
