@@ -18,6 +18,9 @@ import {
   Building2,
   Car
 } from 'lucide-react';
+import CPFVerificationStep from '@/components/CPFVerificationStep';
+import ReativarVisitante from '@/pages/ReativarVisitante';
+import { type VisitanteExistente } from '@/services/cpfVerificationService';
 import { toast } from 'sonner';
 import hikVisionWebSDK from '@/services/webSDKService';
 import logoCondominio from '@/assets/logo-condominio.png';
@@ -58,6 +61,10 @@ export default function CadastroVisitanteSimplificado() {
   const [linkData, setLinkData] = useState<any>(null);
   const [showCamera, setShowCamera] = useState(false);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  
+  // ⭐ NOVOS ESTADOS PARA VERIFICAÇÃO CPF
+  const [currentStep, setCurrentStep] = useState<'verification' | 'form' | 'reactivation'>('verification');
+  const [visitanteToReactivate, setVisitanteToReactivate] = useState<VisitanteExistente | null>(null);
 
   useEffect(() => {
     validateLink();
@@ -123,6 +130,16 @@ export default function CadastroVisitanteSimplificado() {
   const removePhoto = () => {
     setFormData(prev => ({ ...prev, foto: null }));
     setPhotoPreview(null);
+  };
+
+  // ⭐ CALLBACKS PARA VERIFICAÇÃO CPF
+  const handleContinueAsNew = () => {
+    setCurrentStep('form');
+  };
+
+  const handleContinueWithReactivation = (visitante: VisitanteExistente) => {
+    setVisitanteToReactivate(visitante);
+    setCurrentStep('reactivation');
   };
 
   const validateForm = () => {
@@ -252,6 +269,26 @@ export default function CadastroVisitanteSimplificado() {
           </CardContent>
         </Card>
       </div>
+    );
+  }
+
+  // ⭐ RENDERIZAÇÃO CONDICIONAL BASEADA NO STEP
+  if (currentStep === 'verification') {
+    return (
+      <CPFVerificationStep
+        onContinueAsNew={handleContinueAsNew}
+        onContinueWithReactivation={handleContinueWithReactivation}
+        linkData={linkData}
+      />
+    );
+  }
+
+  if (currentStep === 'reactivation' && visitanteToReactivate) {
+    return (
+      <ReativarVisitante
+        visitante={visitanteToReactivate}
+        linkData={linkData}
+      />
     );
   }
 

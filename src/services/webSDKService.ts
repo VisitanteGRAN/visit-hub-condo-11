@@ -61,6 +61,7 @@ export class HikVisionWebSDKService {
         placa: (visitor as any).placa_veiculo || '',
         genero: (visitor as any).genero || 'Masculino',
         morador_nome: (visitor as any).moradorNome || '', // ⭐ NOME DO MORADOR
+        action: (visitor as any).action || 'create', // ⭐ NOVO: 'create' ou 'reactivate'
         photo_base64: visitor.foto // ⭐ FOTO EM BASE64
       };
       
