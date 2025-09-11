@@ -60,8 +60,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (isLoading) return;
         
         if (event === 'SIGNED_IN' && session?.user && !user) {
+          console.log('🔑 SIGNED_IN detectado, verificando perfil...');
           await loadUserProfile(session.user);
         } else if (event === 'SIGNED_OUT') {
+          console.log('🚪 SIGNED_OUT detectado, limpando estado...');
           setUser(null);
         }
       }
@@ -134,16 +136,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // ❌ VERIFICAR SE USUÁRIO ESTÁ ATIVO/APROVADO
         console.log('🔍 Verificando status:', { ativo: profile.ativo, status: profile.status, perfil: profile.perfil });
         
-        // Se for morador, verificar aprovação rigorosamente
+        // Se for morador, verificar aprovação RIGOROSAMENTE
         if (profile.perfil === 'morador') {
           console.log('🏠 Verificando status do morador:', { email: profile.email, ativo: profile.ativo, status: profile.status });
+          console.log('🔍 VERIFICAÇÃO RIGOROSA: Morador deve ter ativo=true E status=ativo');
           
-          if (!profile.ativo || profile.status === 'pendente' || profile.status !== 'ativo') {
-            console.log('⏳ Morador ainda não foi aprovado pelo administrador');
-            console.log('📋 Status atual:', { ativo: profile.ativo, status: profile.status });
-            await supabase.auth.signOut(); // Força logout
-            throw new Error(`Sua conta ainda não foi aprovada pelo administrador. Status atual: ${profile.status}. Aguarde a aprovação.`);
+          // VERIFICAÇÃO TRIPLA: ativo deve ser true E status deve ser 'ativo'
+          const isApproved = profile.ativo === true && profile.status === 'ativo';
+          
+          if (!isApproved) {
+            console.log('❌ ACESSO NEGADO: Morador não aprovado');
+            console.log('📋 Status atual:', { ativo: profile.ativo, status: profile.status, aprovado: isApproved });
+            
+            // FORÇA LOGOUT IMEDIATO
+            await supabase.auth.signOut();
+            setUser(null); // Limpa estado local
+            
+            throw new Error(`🚫 ACESSO NEGADO: Sua conta ainda não foi aprovada pelo administrador. Status: ${profile.status}. Contate o administrador.`);
           }
+          
+          console.log('✅ ACESSO LIBERADO: Morador aprovado com sucesso');
         }
         
         // Admin sempre pode logar (mas verificar se é realmente admin)
