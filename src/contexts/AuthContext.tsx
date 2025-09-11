@@ -206,9 +206,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       console.log('🔐 Tentando login com:', email, role);
       
-      // ✅ APENAS LOGIN VIA SUPABASE COM VERIFICAÇÃO DE APROVAÇÃO
+      // 🚫 VERIFICAÇÃO DE APROVAÇÃO ANTES DO LOGIN SUPABASE
+      console.log('🔍 Verificando aprovação antes do login...');
       
-      // Login via Supabase Auth com verificação obrigatória de aprovação
+      // Buscar perfil do usuário na tabela usuarios ANTES do login
+      const { data: userProfile, error: profileError } = await supabase
+        .from('usuarios')
+        .select('*')
+        .eq('email', email)
+        .single();
+
+      if (profileError) {
+        console.error('❌ Erro ao verificar perfil:', profileError);
+        throw new Error('Usuário não encontrado no sistema');
+      }
+
+      // Se for morador, verificar aprovação ANTES do login
+      if (userProfile.perfil === 'morador') {
+        console.log('🏠 Verificando aprovação do morador...');
+        console.log('📋 Status do morador:', { 
+          ativo: userProfile.ativo, 
+          status: userProfile.status 
+        });
+
+        if (!userProfile.ativo || userProfile.status !== 'ativo') {
+          console.log('🚫 ACESSO NEGADO: Morador não aprovado');
+          throw new Error(`🚫 ACESSO NEGADO: Sua conta ainda não foi aprovada pelo administrador. Status: ${userProfile.status}. Entre em contato com a administração.`);
+        }
+      }
+
+      console.log('✅ Verificação de aprovação passou. Prosseguindo com login...');
+      
+      // ✅ APENAS APÓS VERIFICAR APROVAÇÃO, FAZER LOGIN VIA SUPABASE
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password

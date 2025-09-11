@@ -27,13 +27,27 @@ export default function Login() {
     const isAdmin = email === 'admin@condominio.com.br';
     const role: UserRole = isAdmin ? 'admin' : 'morador';
 
-    const success = await login(email, password, role);
-    
-    if (success) {
-      toast.success('Login realizado com sucesso!');
-      navigate('/dashboard');
-    } else {
-      toast.error('Credenciais inválidas. Tente novamente.');
+    try {
+      const success = await login(email, password, role);
+      
+      if (success) {
+        toast.success('Login realizado com sucesso!');
+        navigate('/dashboard');
+      } else {
+        toast.error('Credenciais inválidas. Tente novamente.');
+      }
+    } catch (error: any) {
+      // Capturar mensagens específicas de erro
+      if (error.message && error.message.includes('ACESSO NEGADO')) {
+        // Erro de aprovação - mostrar mensagem específica
+        toast.error(error.message, {
+          duration: 6000, // Mostrar por mais tempo
+        });
+      } else if (error.message && error.message.includes('não encontrado')) {
+        toast.error('Usuário não encontrado no sistema. Verifique suas credenciais.');
+      } else {
+        toast.error('Erro no login. Verifique suas credenciais e tente novamente.');
+      }
     }
   };
 
