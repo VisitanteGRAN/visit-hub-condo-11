@@ -599,8 +599,10 @@ class HikCentralReactivator:
         print("\n[REACTIVATE] Configurando duração da reativação...")
         
         try:
-            # Sempre configurar para 1 dia na reativação (padrão)
-            validade_dias = 1
+            # Obter duração dos dados do visitante (padrão 1 dia)
+            validade_dias = self.visitor_data.get('validade_dias', 1)
+            print(f"[DEBUG] visitor_data completo: {self.visitor_data}")
+            print(f"[DEBUG] validade_dias lido: '{validade_dias}' (tipo: {type(validade_dias)})")
             print(f"[INFO] Configurando reativação para {validade_dias} dia(s)")
             
             # Encontrar campos de data (procurar o da direita - input placeholder="$t('end_time')")
@@ -670,12 +672,20 @@ class HikCentralReactivator:
                     print("[DEBUG] Usando data atual como base")
                 
                 # Calcular nova data somando os dias
+                print(f"[DEBUG] ANTES - Data base: {data_base}")
+                print(f"[DEBUG] ANTES - Dias a somar: {validade_dias} (int: {int(validade_dias)})")
+                
                 data_fim = data_base + timedelta(days=int(validade_dias))
                 nova_data = data_fim.strftime("%Y/%m/%d 23:59:59")
                 
+                print(f"[DEBUG] DEPOIS - Data final: {data_fim}")
                 print(f"[INFO] Data base: {data_base.strftime('%Y/%m/%d')}")
                 print(f"[INFO] Adicionando {validade_dias} dia(s)")
                 print(f"[INFO] Nova data final: {nova_data}")
+                
+                # Calcular diferença em dias para confirmar
+                diferenca = (data_fim - data_base).days
+                print(f"[DEBUG] VERIFICAÇÃO - Diferença calculada: {diferenca} dias")
                 
             except Exception as e:
                 print(f"[WARN] Erro ao calcular data: {e}")

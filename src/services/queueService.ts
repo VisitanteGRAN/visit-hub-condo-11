@@ -9,6 +9,7 @@ export interface VisitorQueueData {
   genero: string;
   morador_nome?: string; // ⭐ NOVO: Nome do morador para campo "Visitado"
   action?: string; // ⭐ NOVO: 'create' ou 'reactivate'
+  validade_dias?: number; // ⭐ NOVO: Duração em dias especificada pelo morador
   photo_base64?: string;
 }
 
@@ -31,7 +32,8 @@ export class QueueService {
           placa: visitorData.placa,
           genero: visitorData.genero,
           morador_nome: visitorData.morador_nome, // ⭐ INCLUIR nome do morador
-          action: visitorData.action || 'create' // ⭐ INCLUIR ação (create/reactivate)
+          action: visitorData.action || 'create', // ⭐ INCLUIR ação (create/reactivate)
+          validade_dias: visitorData.validade_dias || 1 // ⭐ INCLUIR duração em dias
         },
         photo_base64: visitorData.photo_base64 || null,
         status: 'pending',

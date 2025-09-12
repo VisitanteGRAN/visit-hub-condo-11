@@ -62,6 +62,7 @@ export class HikVisionWebSDKService {
         genero: (visitor as any).genero || 'Masculino',
         morador_nome: (visitor as any).moradorNome || '', // ⭐ NOME DO MORADOR
         action: (visitor as any).action || 'create', // ⭐ NOVO: 'create' ou 'reactivate'
+        validade_dias: visitor.validadeDias || 1, // ⭐ DURAÇÃO EM DIAS
         photo_base64: visitor.foto // ⭐ FOTO EM BASE64
       };
       
