@@ -8,6 +8,8 @@ import requests
 import base64
 import logging
 import subprocess
+import threading
+import queue
 from datetime import datetime
 from dotenv import load_dotenv
 
@@ -41,8 +43,13 @@ print("[OK] Arquivo .env carregado com sucesso")
 print("WINDOWS POLLING SERVICE - VISIT HUB")
 print("==================================================")
 print("[OK] Arquitetura SEGURA - Windows NAO exposto!")
+print("[INFO] MODO DUAL WORKERS ATIVADO - 2 CADASTROS SIMULTÂNEOS!")
 print("[INFO] Verificando fila de cadastros...")
 print("==================================================")
+
+# Fila global para threading
+work_queue = queue.Queue()
+worker_lock = threading.Lock()
 
 class WindowsPollingService:
     def __init__(self):
@@ -65,29 +72,29 @@ class WindowsPollingService:
         logging.info(f"[OK] Processador HikCentral pronto: {self.script_path}")
         logging.info("[OK] Servico iniciado - Polling a cada 30s")
 
-    def check_queue(self):
-        """Verificar fila de cadastros pendentes"""
+    def check_queue(self, limit=2):
+        """Verificar fila de cadastros pendentes (até 2 por vez)"""
         try:
             url = f"{self.supabase_url}/rest/v1/visitor_registration_queue"
             params = {
                 'status': 'eq.pending',
                 'select': '*',
                 'order': 'created_at.asc',
-                'limit': '1'
+                'limit': str(limit)
             }
             
             response = requests.get(url, headers=self.headers, params=params)
             
             if response.status_code == 200:
                 data = response.json()
-                return data[0] if data else None
+                return data if data else []
             else:
                 logging.error(f"[ERRO] Falha ao consultar fila: {response.status_code}")
-                return None
+                return []
                 
         except Exception as e:
             logging.error(f"[ERRO] Erro ao verificar fila: {e}")
-            return None
+            return []
 
     def mark_processing(self, item_id):
         """Marcar item como processando"""
@@ -305,31 +312,77 @@ class WindowsPollingService:
                 self.mark_failed(visitor_id, str(e))
             return False
 
-    def run(self):
-        """Loop principal do serviço"""
-        logging.info("[INFO] Iniciando polling loop...")
+    def worker_thread(self, worker_id):
+        """Thread worker para processar itens da fila"""
+        logging.info(f"🚀 Worker {worker_id} iniciado")
         
         while True:
             try:
-                # Verificar fila
-                item = self.check_queue()
+                # Aguardar item na fila (timeout para evitar travamento)
+                try:
+                    item = work_queue.get(timeout=5)
+                except queue.Empty:
+                    continue
                 
-                if item:
-                    logging.info(f"[QUEUE] Item encontrado: {item['id']}")
-                    self.process_visitor(item)
+                with worker_lock:
+                    logging.info(f"📝 Worker {worker_id} processando: {item['id']}")
+                
+                # Processar visitante
+                success = self.process_visitor(item)
+                
+                with worker_lock:
+                    if success:
+                        logging.info(f"✅ Worker {worker_id} completou: {item['id']}")
+                    else:
+                        logging.error(f"❌ Worker {worker_id} falhou: {item['id']}")
+                
+                # Marcar tarefa como concluída
+                work_queue.task_done()
+                
+            except Exception as e:
+                logging.error(f"❌ Worker {worker_id} erro: {e}")
+                work_queue.task_done()
+
+    def run(self):
+        """Loop principal do serviço com 2 workers"""
+        logging.info("[INFO] Iniciando DUAL WORKERS polling...")
+        
+        # Iniciar 2 workers
+        for worker_id in range(1, 3):  # Workers 1 e 2
+            worker = threading.Thread(
+                target=self.worker_thread,
+                args=(worker_id,),
+                daemon=True
+            )
+            worker.start()
+            logging.info(f"✅ Worker {worker_id} thread iniciada")
+        
+        # Loop principal - alimenta a fila
+        while True:
+            try:
+                # Verificar fila de até 2 itens
+                items = self.check_queue(limit=2)
+                
+                if items:
+                    logging.info(f"[QUEUE] {len(items)} item(s) encontrado(s)")
+                    
+                    # Adicionar itens à fila de workers
+                    for item in items:
+                        work_queue.put(item)
+                        logging.info(f"📥 Item {item['id']} adicionado à fila de workers")
                 else:
                     logging.info("[QUEUE] Fila vazia")
                     logging.info("[INFO] Aguardando novos itens...")
                 
                 # Aguardar antes da próxima verificação
-                time.sleep(15)  # Otimizado - reduzido de 30s para 15s
+                time.sleep(15)  # Verificar a cada 15 segundos
                 
             except KeyboardInterrupt:
                 logging.info("[INFO] Servico interrompido pelo usuario")
                 break
             except Exception as e:
                 logging.error(f"[ERRO] Erro no loop principal: {e}")
-                time.sleep(5)  # Otimizado - reduzido de 10s para 5s
+                time.sleep(5)
 
 if __name__ == "__main__":
     service = WindowsPollingService()

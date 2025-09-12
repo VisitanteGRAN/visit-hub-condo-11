@@ -1,7 +1,7 @@
 {
   "name": "Gran Royalle - Sistema de Visitantes",
   "short_name": "Gran Royalle",
-  "description": "Sistema de gestão de visitantes do condomínio Gran Royalle",
+  "description": "Sistema completo de gestão de visitantes para condomínios. Crie links de convite, gerencie visitantes e integre com HikCentral.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
@@ -12,70 +12,79 @@
   "categories": ["productivity", "utilities"],
   "icons": [
     {
-      "src": "/apple-icon-57x57.png",
-      "type": "image/png",
-      "sizes": "57x57",
-      "purpose": "any"
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
     },
     {
-      "src": "/apple-icon-60x60.png",
-      "type": "image/png",
-      "sizes": "60x60",
-      "purpose": "any"
-    },
-    {
-      "src": "/apple-icon-72x72.png",
+      "src": "/temp-working-logo.png",
       "type": "image/png",
       "sizes": "72x72",
       "purpose": "any"
     },
     {
-      "src": "/apple-icon-76x76.png",
+      "src": "/temp-working-logo.png",
       "type": "image/png",
-      "sizes": "76x76",
+      "sizes": "96x96",
       "purpose": "any"
     },
     {
-      "src": "/apple-icon-114x114.png",
+      "src": "/temp-working-logo.png",
       "type": "image/png",
-      "sizes": "114x114",
+      "sizes": "128x128",
       "purpose": "any"
     },
     {
-      "src": "/apple-icon-120x120.png",
-      "type": "image/png",
-      "sizes": "120x120",
-      "purpose": "any"
-    },
-    {
-      "src": "/apple-icon-144x144.png",
+      "src": "/temp-working-logo.png",
       "type": "image/png",
       "sizes": "144x144",
       "purpose": "any"
     },
     {
-      "src": "/apple-icon-152x152.png",
+      "src": "/temp-working-logo.png",
       "type": "image/png",
       "sizes": "152x152",
-      "purpose": "any"
-    },
-    {
-      "src": "/apple-icon-180x180.png",
-      "type": "image/png",
-      "sizes": "180x180",
       "purpose": "any"
     },
     {
       "src": "/temp-working-logo.png",
       "type": "image/png",
       "sizes": "192x192",
-      "purpose": "any maskable"
+      "purpose": "maskable"
     },
     {
       "src": "/temp-working-logo.png",
       "type": "image/png",
+      "sizes": "384x384",
+      "purpose": "any"
+    },
+    {
+      "src": "/temp-working-logo.png",
+      "type": "image/png", 
       "sizes": "512x512",
-      "purpose": "any maskable"
+      "purpose": "any"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/temp-working-logo.png",
+      "type": "image/png",
+      "sizes": "1280x720",
+      "form_factor": "wide"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Novo Visitante",
+      "short_name": "Novo",
+      "description": "Criar novo link de convite",
+      "url": "/novo-visitante",
+      "icons": [
+        {
+          "src": "/temp-working-logo.png",
+          "sizes": "96x96"
+        }
+      ]
     }
   ],
   "prefer_related_applications": false
