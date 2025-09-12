@@ -16,9 +16,10 @@ interface ReativarVisitanteProps {
     validDays: number;
     linkId: string;
   };
+  onError?: () => void; // ⭐ NOVO: Callback para erro
 }
 
-export default function ReativarVisitante({ visitante, linkData }: ReativarVisitanteProps) {
+export default function ReativarVisitante({ visitante, linkData, onError }: ReativarVisitanteProps) {
   const navigate = useNavigate();
   const [isProcessing, setIsProcessing] = useState(false);
   const [processStep, setProcessStep] = useState<'waiting' | 'reactivating_db' | 'reactivating_hikvision' | 'completed'>('waiting');
@@ -77,6 +78,11 @@ export default function ReativarVisitante({ visitante, linkData }: ReativarVisit
       console.error('❌ Erro na reativação:', error);
       toast.error(`Erro na reativação: ${error}`);
       setProcessStep('waiting');
+      
+      // ⭐ CHAMAR CALLBACK DE ERRO PARA RESETAR PAI
+      if (onError) {
+        setTimeout(() => onError(), 2000);
+      }
     } finally {
       setIsProcessing(false);
     }

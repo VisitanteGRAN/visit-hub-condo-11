@@ -140,9 +140,23 @@ export default function CadastroVisitanteSimplificado() {
   const handleContinueWithReactivation = (visitante: VisitanteExistente) => {
     console.log('📋 Recebido visitante para reativação:', visitante);
     console.log('🔄 Mudando step para reactivation...');
+    
+    // Verificar se já não está em processo de reativação
+    if (currentStep === 'reactivation') {
+      console.log('⚠️ Reativação já em andamento - ignorando');
+      return;
+    }
+    
     setVisitanteToReactivate(visitante);
     setCurrentStep('reactivation');
     console.log('✅ Step alterado, renderizando ReativarVisitante');
+  };
+
+  // ⭐ NOVO: Reset em caso de erro na reativação
+  const handleReactivationError = () => {
+    console.log('🔄 Resetando fluxo devido a erro na reativação');
+    setCurrentStep('verification');
+    setVisitanteToReactivate(null);
   };
 
   const validateForm = () => {
@@ -291,6 +305,7 @@ export default function CadastroVisitanteSimplificado() {
       <ReativarVisitante
         visitante={visitanteToReactivate}
         linkData={linkData}
+        onError={handleReactivationError}
       />
     );
   }

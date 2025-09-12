@@ -24,6 +24,7 @@ export default function CPFVerificationStep({
 }: CPFVerificationStepProps) {
   const [cpf, setCpf] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
+  const [isProcessingReactivation, setIsProcessingReactivation] = useState(false);
   const [verificationResult, setVerificationResult] = useState<CPFVerificationResult | null>(null);
 
   const formatCPF = (value: string) => {
@@ -68,11 +69,26 @@ export default function CPFVerificationStep({
     }
   };
 
-  const handleContinueWithReactivation = () => {
+  const handleContinueWithReactivation = async () => {
+    // ⭐ PREVENIR MÚLTIPLOS CLIQUES
+    if (isProcessingReactivation) {
+      console.log('⚠️ Reativação já em andamento - ignorando clique');
+      return;
+    }
+
     console.log('🔄 Botão reativar clicado');
+    
     if (verificationResult?.visitante) {
-      console.log('✅ Chamando onContinueWithReactivation com:', verificationResult.visitante);
-      onContinueWithReactivation(verificationResult.visitante);
+      setIsProcessingReactivation(true);
+      console.log('✅ Iniciando reativação para:', verificationResult.visitante.nome);
+      
+      try {
+        await new Promise(resolve => setTimeout(resolve, 500)); // Pequena pausa visual
+        onContinueWithReactivation(verificationResult.visitante);
+      } catch (error) {
+        console.error('❌ Erro na reativação:', error);
+        setIsProcessingReactivation(false);
+      }
     } else {
       console.log('❌ Nenhum visitante encontrado para reativação');
     }
@@ -191,11 +207,21 @@ export default function CPFVerificationStep({
               ) : verificationResult.needsReactivation ? (
                 <Button 
                   onClick={handleContinueWithReactivation}
+                  disabled={isProcessingReactivation}
                   className="w-full"
                   size="lg"
                 >
-                  <Clock className="h-4 w-4 mr-2" />
-                  Reativar para {linkData.morador}
+                  {isProcessingReactivation ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Processando...
+                    </>
+                  ) : (
+                    <>
+                      <Clock className="h-4 w-4 mr-2" />
+                      Reativar para {linkData.morador}
+                    </>
+                  )}
                 </Button>
               ) : (
                 <Alert>
