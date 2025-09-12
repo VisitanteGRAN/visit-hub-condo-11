@@ -69,8 +69,12 @@ export default function CPFVerificationStep({
   };
 
   const handleContinueWithReactivation = () => {
+    console.log('🔄 Botão reativar clicado');
     if (verificationResult?.visitante) {
+      console.log('✅ Chamando onContinueWithReactivation com:', verificationResult.visitante);
       onContinueWithReactivation(verificationResult.visitante);
+    } else {
+      console.log('❌ Nenhum visitante encontrado para reativação');
     }
   };
 

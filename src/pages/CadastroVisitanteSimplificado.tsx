@@ -138,8 +138,11 @@ export default function CadastroVisitanteSimplificado() {
   };
 
   const handleContinueWithReactivation = (visitante: VisitanteExistente) => {
+    console.log('📋 Recebido visitante para reativação:', visitante);
+    console.log('🔄 Mudando step para reactivation...');
     setVisitanteToReactivate(visitante);
     setCurrentStep('reactivation');
+    console.log('✅ Step alterado, renderizando ReativarVisitante');
   };
 
   const validateForm = () => {

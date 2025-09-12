@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gran-royalle-v1.5.0';
+const CACHE_NAME = 'gran-royalle-v1.6.0';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -6,6 +6,7 @@ const urlsToCache = [
   '/favicon.ico',
   '/visitantelogo.png',
   '/temp-working-logo.png',
+  '/lovable-uploads/88120252-9c46-4bf9-a5c8-48a57400b8be.png',
   '/icon-192x192.png',
   '/icon-512x512.png',
   '/apple-icon-57x57.png',

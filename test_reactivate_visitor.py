@@ -601,9 +601,15 @@ class HikCentralReactivator:
         try:
             # Obter duração dos dados do visitante (padrão 1 dia)
             validade_dias = self.visitor_data.get('validade_dias', 1)
-            print(f"[DEBUG] visitor_data completo: {self.visitor_data}")
             print(f"[DEBUG] validade_dias lido: '{validade_dias}' (tipo: {type(validade_dias)})")
-            print(f"[INFO] Configurando reativação para {validade_dias} dia(s)")
+            print(f"[INFO] Duração solicitada: {validade_dias} dia(s)")
+            
+            # ⭐ NOVA LÓGICA: Só mexer se for MAIOR que 1 dia  
+            if int(validade_dias) <= 1:
+                print(f"[SKIP] Duração é {validade_dias} dia - mantendo padrão do sistema (1 dia)")
+                return
+                
+            print(f"[INFO] Configurando duração personalizada para {validade_dias} dia(s)")
             
             # Encontrar campos de data (procurar o da direita - input placeholder="$t('end_time')")
             data_selectors = [
