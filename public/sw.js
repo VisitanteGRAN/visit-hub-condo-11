@@ -1,11 +1,10 @@
-const CACHE_NAME = 'gran-royalle-v1.0.0';
+const CACHE_NAME = 'gran-royalle-v1.0.1';
 const urlsToCache = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/favicon.ico',
-  '/assets/logo-condominio.png',
-  '/lovable-uploads/88120252-9c46-4bf9-a5c8-48a57400b8be.png'
+  '/visitantelogo.png',
+  '/assets/logo-condominio.png'
 ];
 
 // Instalar Service Worker
