@@ -248,13 +248,22 @@ class WindowsPollingService:
             if photo_path:
                 print(f"[DEBUG] Foto existe: {os.path.exists(photo_path)}")
             
-            # Executar script apropriado (REATIVAÇÃO OU CADASTRO)
-            cmd = [
-                'python', 
-                script_path,
-                '--visitor-data', json_path,
-                '--visitor-id', visitor_id
-            ]
+            # Executar script apropriado - ARGUMENTOS CORRETOS PARA CADA TIPO
+            if action_type == 'reactivate':
+                # Script de reativação: apenas visitor-id (busca JSON automaticamente)
+                cmd = [
+                    'python', 
+                    script_path,
+                    '--visitor-id', visitor_id
+                ]
+            else:
+                # Script de cadastro: visitor-data + visitor-id
+                cmd = [
+                    'python', 
+                    script_path,
+                    '--visitor-data', json_path,
+                    '--visitor-id', visitor_id
+                ]
             
             logging.info(f"[PROCESS] Executando: {' '.join(cmd)}")
             
