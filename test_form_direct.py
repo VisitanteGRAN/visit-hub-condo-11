@@ -19,7 +19,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
 
 class HikCentralFormTest:
-    def __init__(self, visitor_data, visitor_id, headless=False):
+    def __init__(self, visitor_data, visitor_id, headless=True):
         self.driver = None
         self.visitor_data = visitor_data
         self.visitor_id = visitor_id
@@ -29,52 +29,27 @@ class HikCentralFormTest:
         """Configurar driver do Chrome"""
         print("[SETUP] Configurando Chrome...")
 
-        # LIMPEZA COMPLETA - PROCESSOS E DIRETÓRIOS
+        # LIMPEZA SUAVE - SEM MATAR PROCESSOS EXISTENTES
         try:
-            import subprocess
-            import tempfile
-            import shutil
-            
-            print("[CLEAN] Matando processos Chrome...")
-            # Matar todos os processos Chrome/Driver
-            subprocess.run("taskkill /f /im chrome.exe /t", shell=True, capture_output=True)
-            subprocess.run("taskkill /f /im chromedriver.exe /t", shell=True, capture_output=True)
-            subprocess.run("taskkill /f /im chromium.exe /t", shell=True, capture_output=True)
-            subprocess.run("taskkill /f /im msedge.exe /t", shell=True, capture_output=True)
-            print("[CLEAN] Processos finalizados")
-            
-            # Aguardar processos terminarem completamente
-            time.sleep(3)
-            
-            # Limpar diretórios temporários do Chrome
-            print("[CLEAN] Limpando diretórios temporários...")
-            temp_dir = tempfile.gettempdir()
-            for item in os.listdir(temp_dir):
-                if item.startswith('chrome_test_') or item.startswith('scoped_dir'):
-                    item_path = os.path.join(temp_dir, item)
-                    try:
-                        if os.path.isdir(item_path):
-                            shutil.rmtree(item_path, ignore_errors=True)
-                            print(f"[CLEAN] Removido: {item}")
-                    except:
-                        pass
-            
-            print("[INFO] Limpeza completa finalizada")
-            time.sleep(3)  # Otimizado - reduzido de 7s para 3s
+            print("[INFO] Configuração suave - preservando Chrome existente")
+            # Apenas aguardar um momento para estabilizar
+            time.sleep(1)
         except Exception as e:
-            print(f"[WARN] Erro na limpeza: {e}")
+            print(f"[WARN] Erro na preparação: {e}")
 
         options = Options()
-        # Configurações básicas de segurança
+        # Configurações CORPORATIVAS - Para ambientes com antivírus/políticas
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-dev-shm-usage")
+        options.add_argument("--disable-gpu")
         options.add_argument("--window-size=1920,1080")
         options.add_argument("--disable-extensions")
         options.add_argument("--disable-plugins")
         options.add_argument("--disable-web-security")
         options.add_argument("--disable-features=VizDisplayCompositor")
         
-        # Otimizações de velocidade para acelerar o processo
+        # CONFIGURAÇÕES ESPECÍFICAS PARA ANTIVÍRUS/CORPORATE
+        options.add_argument("--disable-blink-features=AutomationControlled")
         options.add_argument("--disable-background-timer-throttling")
         options.add_argument("--disable-backgrounding-occluded-windows")
         options.add_argument("--disable-renderer-backgrounding")
@@ -82,18 +57,46 @@ class HikCentralFormTest:
         options.add_argument("--aggressive-cache-discard")
         options.add_argument("--disable-default-apps")
         options.add_argument("--disable-sync")
+        options.add_argument("--disable-logging")
+        options.add_argument("--silent")
+        options.add_argument("--disable-component-update")
         
-        # NÃO USAR USER-DATA-DIR - DEIXAR CHROME GERENCIAR
-        print("[INFO] Configuração Chrome simples (sem user-data-dir)")
+        # Evitar detecção por antivírus
+        options.add_experimental_option("excludeSwitches", ["enable-automation"])
+        options.add_experimental_option('useAutomationExtension', False)
+        
+        # CONFIGURAR USER-DATA-DIR ÚNICO para evitar conflitos
+        import tempfile
+        import uuid
+        temp_profile = os.path.join(tempfile.gettempdir(), f"chrome_profile_{uuid.uuid4().hex[:8]}")
+        options.add_argument(f"--user-data-dir={temp_profile}")
+        print(f"[INFO] Configuração Chrome com diretório único: {temp_profile}")
+        
+        # Salvar caminho para limpeza posterior
+        self.temp_profile = temp_profile
 
         if self.headless:
             options.add_argument("--headless")
+            print("[INFO] Modo headless ativado - execução invisível para produção")
+        else:
+            print("[INFO] Modo visual ativado - Chrome será visível para demonstração")
+        
+        print(f"[DEBUG] Configuração headless: {self.headless}")
 
         try:
             # TENTAR CONFIGURAÇÃO BÁSICA PRIMEIRO
             print("[TRY] Tentando configuração básica do Chrome...")
+            
+            # Aguardar um pouco antes de iniciar (evitar conflitos)
+            time.sleep(2)
+            
             self.driver = webdriver.Chrome(options=options)
             self.driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
+            
+            # Configurar timeouts adequados
+            self.driver.implicitly_wait(10)
+            self.driver.set_page_load_timeout(30)
+            
             print("[OK] Chrome configurado com sucesso (básico)")
             return True
         except Exception as e:
@@ -137,11 +140,16 @@ class HikCentralFormTest:
         
         try:
             self.driver.get(url)
-            time.sleep(5)
+            print("[WAIT] Aguardando página carregar completamente...")
+            time.sleep(10)  # Aumentado para ambientes lentos
             
-            # Login usando IDs - EXATAMENTE COMO FUNCIONAVA
-            username_field = self.driver.find_element(By.ID, "username")
+            # Login usando IDs com wait explícito
+            print("[LOGIN] Procurando campo username...")
+            username_field = WebDriverWait(self.driver, 15).until(
+                EC.presence_of_element_located((By.ID, "username"))
+            )
             password_field = self.driver.find_element(By.ID, "password")
+            print("[OK] Campos de login encontrados!")
             
             # Preencher usuário
             username_field.clear()
@@ -164,7 +172,7 @@ class HikCentralFormTest:
             
             # Aguardar carregamento
             print("[WAIT] Aguardando carregamento da página principal...")
-            time.sleep(4)  # Reduzido de 8s para 4s
+            time.sleep(8)  # Aumentado para ambiente corporativo
             
             return True
             
@@ -177,16 +185,50 @@ class HikCentralFormTest:
         print("[NAV] Navegando para formulário...")
         
         try:
-            # Procurar elemento Visitante - CÓDIGO ORIGINAL QUE FUNCIONAVA
+            # Procurar elemento Visitante com wait explícito
             print("[NAV] Procurando menu 'Visitante'...")
-            visitante_elements = self.driver.find_elements(By.XPATH, "//*[contains(text(), 'Visitante')]")
-            if len(visitante_elements) >= 2:
-                print(f"[OK] Encontrados {len(visitante_elements)} elementos com 'Visitante'")
-                visitante_elements[1].click()  # SEGUNDA OCORRÊNCIA COMO NO ORIGINAL
-                print("[OK] Clicado em 'Visitante'")
-                time.sleep(5)
-            else:
-                print("[ERRO] Elemento 'Visitante' não encontrado")
+            
+            # Aguardar a página carregar completamente
+            print("[WAIT] Aguardando interface carregar...")
+            time.sleep(5)
+            
+            # Tentar múltiplas estratégias para encontrar Visitante
+            visitante_found = False
+            strategies = [
+                "//*[contains(text(), 'Visitante')]",
+                "//span[contains(text(), 'Visitante')]",
+                "//div[contains(text(), 'Visitante')]",
+                "//*[@title='Visitante']",
+                "//li[contains(text(), 'Visitante')]"
+            ]
+            
+            for strategy in strategies:
+                try:
+                    print(f"[DEBUG] Tentando estratégia: {strategy}")
+                    visitante_elements = WebDriverWait(self.driver, 10).until(
+                        lambda driver: driver.find_elements(By.XPATH, strategy)
+                    )
+                    
+                    if len(visitante_elements) >= 1:
+                        print(f"[OK] Encontrados {len(visitante_elements)} elementos com 'Visitante' usando {strategy}")
+                        # Tentar clicar no último elemento encontrado (geralmente o correto)
+                        target_element = visitante_elements[-1] if len(visitante_elements) > 1 else visitante_elements[0]
+                        
+                        # Scroll para o elemento
+                        self.driver.execute_script("arguments[0].scrollIntoView(true);", target_element)
+                        time.sleep(1)
+                        
+                        target_element.click()
+                        print("[OK] Clicado em 'Visitante'")
+                        time.sleep(5)
+                        visitante_found = True
+                        break
+                except Exception as e:
+                    print(f"[DEBUG] Estratégia {strategy} falhou: {e}")
+                    continue
+            
+            if not visitante_found:
+                print("[ERRO] Elemento 'Visitante' não encontrado com nenhuma estratégia")
                 return False
             
             # Aguardar submenu carregar
@@ -199,7 +241,7 @@ class HikCentralFormTest:
             if entrada_central:
                 entrada_central.click()
                 print("[OK] Clicado em 'Entrada de visitante' na lista central!")
-                time.sleep(3)  # Otimizado - reduzido de 8s para 3s
+                time.sleep(1)  # Otimizado para 1s
             else:
                 print("[ERRO] 'Entrada de visitante' não encontrado na lista central")
                 return False
@@ -210,7 +252,7 @@ class HikCentralFormTest:
                 entrada_sidebar = self.driver.find_element(By.XPATH, "//span[text()='Entrada de visitante']")
                 entrada_sidebar.click()
                 print("[OK] Tooltip removido!")
-                time.sleep(3)
+                time.sleep(1)  # Otimizado
             except Exception as e:
                 print(f"[WARN] Erro ao remover tooltip: {e}")
             
@@ -232,7 +274,7 @@ class HikCentralFormTest:
                 try:
                     span_nao_reservada.click()
                     print("[OK] Clicado em 'Entrada de visitante não reservada' (normal)!")
-                    time.sleep(5)
+                    time.sleep(2)  # Otimizado de 5s para 2s
                 except Exception as e:
                     print(f"[WARN] Clique normal falhou: {e}")
                     
@@ -240,7 +282,7 @@ class HikCentralFormTest:
                     try:
                         self.driver.execute_script("arguments[0].click();", span_nao_reservada)
                         print("[OK] Clicado em 'Entrada de visitante não reservada' (JavaScript)!")
-                        time.sleep(5)
+                        time.sleep(2)  # Otimizado de 5s para 2s
                     except Exception as e2:
                         print(f"[WARN] Clique JavaScript falhou: {e2}")
             
@@ -250,7 +292,7 @@ class HikCentralFormTest:
             
             # Aguardar formulário carregar
             print("[WAIT] Aguardando formulário de cadastro carregar...")
-            time.sleep(5)
+            time.sleep(2)  # Otimizado de 5s para 2s
             
             # FECHAR MESSAGE BOX SE EXISTIR
             print("[FIX] Verificando se há message box para fechar...")
@@ -463,7 +505,7 @@ class HikCentralFormTest:
         
         try:
             # Aguardar formulário carregar
-            time.sleep(3)
+            time.sleep(1)  # Otimizado
             
             # Fechar qualquer message box
             self.close_any_message_box()
@@ -701,7 +743,7 @@ class HikCentralFormTest:
                             time.sleep(0.1)
                         
                         print(f"[OK] Nome testado: {nome_value}")
-                        time.sleep(2)
+                        time.sleep(0.5)  # Otimizado
                     else:
                         print("[WARN] Campo nome não encontrado")
                 except Exception as e:
@@ -745,7 +787,7 @@ class HikCentralFormTest:
                             time.sleep(0.1)
                         
                         print(f"[OK] Apelido testado: {apelido_value}")
-                        time.sleep(2)
+                        time.sleep(0.5)  # Otimizado
                     else:
                         print("[WARN] Campo apelido não visível/habilitado")
                 except Exception as e:
@@ -789,7 +831,7 @@ class HikCentralFormTest:
                     )
                     objetivo_option.click()
                     print("[OK] Objetivo da visita selecionado: Fazer passeio e visita")
-                    time.sleep(2)
+                    time.sleep(0.5)  # Otimizado
                 except:
                     # Fallback: Business
                     try:
@@ -798,7 +840,7 @@ class HikCentralFormTest:
                         )
                         business_option.click()
                         print("[OK] Objetivo da visita selecionado: Business")
-                        time.sleep(2)
+                        time.sleep(0.5)  # Otimizado
                     except:
                         print("[WARN] Não foi possível selecionar objetivo da visita")
             except Exception as e:
@@ -842,7 +884,7 @@ class HikCentralFormTest:
                     )
                     grupo_option.click()
                     print("[OK] Grupo de visitantes selecionado: VisitanteS")
-                    time.sleep(2)
+                    time.sleep(0.5)  # Otimizado
                 except:
                     # Fallback: Corretores
                     try:
@@ -851,7 +893,7 @@ class HikCentralFormTest:
                         )
                         corretores_option.click()
                         print("[OK] Grupo de visitantes selecionado: Corretores")
-                        time.sleep(2)
+                        time.sleep(0.5)  # Otimizado
                     except:
                         print("[WARN] Não foi possível selecionar grupo de visitantes")
             except Exception as e:
@@ -1134,8 +1176,8 @@ class HikCentralFormTest:
 
 
             print("\n[OK] TESTE DE PREENCHIMENTO CONCLUIDO!")
-            print("Mantendo browser aberto por 30 segundos para inspeção...")
-            time.sleep(30)
+            print("Processo otimizado - finalizando rapidamente...")
+            time.sleep(1)  # Otimizado de 30s para 1s
             
         except Exception as e:
             print(f"[ERRO] Erro no teste de preenchimento: {e}")
@@ -1164,14 +1206,14 @@ class HikCentralFormTest:
             # Testar preenchimento
             self.test_field_filling()
             
-            # ============ FINALIZAR CADASTRO - BOTÃO ENTRADA ============
+            # ============ FINALIZAR CADASTRO - BOTÃO ENTRADA OTIMIZADO ============
             print("[FINAL] Clicando no botão Entrada para finalizar cadastro...")
             try:
                 # Rolar para baixo para ver o botão
                 self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-                time.sleep(1)
+                time.sleep(0.3)  # Reduzido de 1s para 0.3s
                 
-                # Encontrar e clicar no botão Entrada
+                # Encontrar e clicar no botão Entrada - TIMEOUT AGRESSIVO
                 entrada_selectors = [
                     "//button[@title='Entrada']//span[text()='Entrada']",
                     "//button[contains(@class, 'btn-primary')]//span[text()='Entrada']",
@@ -1183,17 +1225,17 @@ class HikCentralFormTest:
                 for selector in entrada_selectors:
                     try:
                         if selector.startswith("//"):
-                            entrada_btn = WebDriverWait(self.driver, 3).until(
+                            entrada_btn = WebDriverWait(self.driver, 1).until(  # Reduzido de 3s para 1s
                                 EC.element_to_be_clickable((By.XPATH, selector))
                             )
                         else:
-                            entrada_btn = WebDriverWait(self.driver, 3).until(
+                            entrada_btn = WebDriverWait(self.driver, 1).until(  # Reduzido de 3s para 1s
                                 EC.element_to_be_clickable((By.CSS_SELECTOR, selector))
                             )
                         
                         # Rolar até o botão
                         self.driver.execute_script("arguments[0].scrollIntoView(true);", entrada_btn)
-                        time.sleep(0.5)
+                        time.sleep(0.1)  # Reduzido de 0.5s para 0.1s
                         
                         # Tentar clicar
                         try:
@@ -1210,99 +1252,87 @@ class HikCentralFormTest:
                         continue
                 
                 if entrada_clicked:
-                    time.sleep(2)  # Aguardar processamento (reduzido)
+                    time.sleep(0.5)  # Otimizado para 0.5s
                     print("[SUCCESS] CADASTRO FINALIZADO COM ENTRADA!")
                     
-                    # ============ VISUALIZAR E APLICAR AGORA ============
-                    print("[FINAL] Clicando em Visualizar e Aplicar agora...")
-                    try:
-                        # 1. Clicar em VISUALIZAR no topo
-                        visualizar_selectors = [
-                            "//button[contains(@class, 'el-button--link')]//span[text()='Visualizar']",
-                            "//button[@title='']//span[text()='Visualizar']",
-                            "button[data-v-3f3e8cbf] span:contains('Visualizar')",
-                            "//span[text()='Visualizar']/parent::button"
-                        ]
-                        
-                        visualizar_clicked = False
-                        for selector in visualizar_selectors:
-                            try:
-                                if selector.startswith("//"):
-                                    visualizar_btn = WebDriverWait(self.driver, 2).until(
-                                        EC.element_to_be_clickable((By.XPATH, selector))
-                                    )
-                                else:
-                                    visualizar_btn = WebDriverWait(self.driver, 2).until(
-                                        EC.element_to_be_clickable((By.CSS_SELECTOR, selector))
-                                    )
-                                
-                                # Rolar para o topo da página
-                                self.driver.execute_script("window.scrollTo(0, 0);")
-                                time.sleep(0.3)
-                                
-                                # Clicar em Visualizar
-                                try:
-                                    visualizar_btn.click()
-                                except:
-                                    self.driver.execute_script("arguments[0].click();", visualizar_btn)
-                                
-                                print(f"[OK] Botão Visualizar clicado usando: {selector}")
-                                visualizar_clicked = True
-                                break
-                                
-                            except Exception as e:
-                                print(f"[WARN] Selector Visualizar {selector} falhou: {e}")
-                                continue
-                        
-                        if not visualizar_clicked:
-                            print("[WARN] Não foi possível clicar em Visualizar")
-                            return True  # Continuar mesmo sem visualizar
-                        
-                        time.sleep(1)  # Aguardar interface carregar
-                        
-                        # 2. Clicar em APLICAR AGORA
-                        aplicar_selectors = [
-                            "//button[contains(@class, 'el-button--primary')]//span[text()='Aplicar agora']",
-                            "//button[@data-v-3f3e8cbf]//span[text()='Aplicar agora']",
-                            "button[data-v-3f3e8cbf][class*='el-button--primary'] span:contains('Aplicar agora')",
-                            "//span[text()='Aplicar agora']/parent::button"
-                        ]
-                        
-                        aplicar_clicked = False
-                        for selector in aplicar_selectors:
-                            try:
-                                if selector.startswith("//"):
-                                    aplicar_btn = WebDriverWait(self.driver, 2).until(
-                                        EC.element_to_be_clickable((By.XPATH, selector))
-                                    )
-                                else:
-                                    aplicar_btn = WebDriverWait(self.driver, 2).until(
-                                        EC.element_to_be_clickable((By.CSS_SELECTOR, selector))
-                                    )
-                                
-                                # Clicar em Aplicar agora
-                                try:
-                                    aplicar_btn.click()
-                                except:
-                                    self.driver.execute_script("arguments[0].click();", aplicar_btn)
-                                
-                                print(f"[OK] Botão Aplicar agora clicado usando: {selector}")
-                                aplicar_clicked = True
-                                break
-                                
-                            except Exception as e:
-                                print(f"[WARN] Selector Aplicar {selector} falhou: {e}")
-                                continue
-                        
-                        if aplicar_clicked:
-                            print("[WAIT] Aguardando sincronização do cadastro (60s)...")
-                            time.sleep(60)  # Aguardar 1 minuto para sincronização
-                            print("[SUCCESS] CADASTRO TOTALMENTE FINALIZADO E SINCRONIZADO!")
-                        else:
-                            print("[WARN] Não foi possível clicar em Aplicar agora")
+                # ============ VISUALIZAR E APLICAR AGORA - OTIMIZADO ============
+                print("[FINAL] Clicando em Visualizar e Aplicar agora...")
+                try:
+                    # 1. Clicar em VISUALIZAR no topo - COM TIMEOUT REDUZIDO
+                    visualizar_selectors = [
+                        "//button[contains(@class, 'el-button--link')]//span[text()='Visualizar']",
+                        "//button[@title='']//span[text()='Visualizar']",
+                        "//span[text()='Visualizar']/parent::button"
+                    ]
+                    
+                    visualizar_clicked = False
+                    for selector in visualizar_selectors:
+                        try:
+                            visualizar_btn = WebDriverWait(self.driver, 1).until(  # Reduzido de 2s para 1s
+                                EC.element_to_be_clickable((By.XPATH, selector))
+                            )
                             
-                    except Exception as e:
-                        print(f"[ERRO] Erro na finalização com Visualizar/Aplicar: {e}")
+                            # Rolar para o topo da página
+                            self.driver.execute_script("window.scrollTo(0, 0);")
+                            time.sleep(0.1)  # Reduzido de 0.3s para 0.1s
+                            
+                            # Clicar em Visualizar
+                            try:
+                                visualizar_btn.click()
+                            except:
+                                self.driver.execute_script("arguments[0].click();", visualizar_btn)
+                            
+                            print(f"[OK] Botão Visualizar clicado usando: {selector}")
+                            visualizar_clicked = True
+                            break
+                            
+                        except Exception as e:
+                            print(f"[WARN] Selector Visualizar {selector} falhou: {e}")
+                            continue
+                    
+                    if not visualizar_clicked:
+                        print("[WARN] Não foi possível clicar em Visualizar")
+                        return True  # Continuar mesmo sem visualizar
+                    
+                    time.sleep(0.5)  # Reduzido de 1s para 0.5s
+                    
+                    # 2. Clicar em APLICAR AGORA - COM TIMEOUT REDUZIDO
+                    aplicar_selectors = [
+                        "//button[contains(@class, 'el-button--primary')]//span[text()='Aplicar agora']",
+                        "//button[@data-v-3f3e8cbf]//span[text()='Aplicar agora']",
+                        "//span[text()='Aplicar agora']/parent::button"
+                    ]
+                    
+                    aplicar_clicked = False
+                    for selector in aplicar_selectors:
+                        try:
+                            aplicar_btn = WebDriverWait(self.driver, 1).until(  # Reduzido de 2s para 1s
+                                EC.element_to_be_clickable((By.XPATH, selector))
+                            )
+                            
+                            # Clicar em Aplicar agora
+                            try:
+                                aplicar_btn.click()
+                            except:
+                                self.driver.execute_script("arguments[0].click();", aplicar_btn)
+                            
+                            print(f"[OK] Botão Aplicar agora clicado usando: {selector}")
+                            aplicar_clicked = True
+                            break
+                            
+                        except Exception as e:
+                            print(f"[WARN] Selector Aplicar {selector} falhou: {e}")
+                            continue
+                    
+                    if aplicar_clicked:
+                        print("[WAIT] Aguardando sincronização do cadastro (30s)...")
+                        time.sleep(30)  # Reduzido de 60s para 30s
+                        print("[SUCCESS] CADASTRO TOTALMENTE FINALIZADO E SINCRONIZADO!")
+                    else:
+                        print("[WARN] Não foi possível clicar em Aplicar agora")
+                        
+                except Exception as e:
+                    print(f"[ERRO] Erro na finalização com Visualizar/Aplicar: {e}")
                         
                 else:
                     print("[WARN] Não foi possível clicar no botão Entrada")
@@ -1318,6 +1348,16 @@ class HikCentralFormTest:
         finally:
             if self.driver:
                 self.driver.quit()
+            
+            # Limpar diretório temporário do Chrome
+            if hasattr(self, 'temp_profile'):
+                try:
+                    import shutil
+                    if os.path.exists(self.temp_profile):
+                        shutil.rmtree(self.temp_profile, ignore_errors=True)
+                        print(f"[CLEANUP] Diretório temporário removido: {self.temp_profile}")
+                except Exception as e:
+                    print(f"[WARN] Erro ao limpar diretório temporário: {e}")
 
     def preencher_campo_visitado(self):
         """Preencher campo 'Visitado' com nome do morador"""
@@ -1679,7 +1719,9 @@ def main():
         print(f"[ERRO] Erro ao carregar .env: {e}")
         return False
     
-    tester = HikCentralFormTest(visitor_data, visitor_id, args.headless)
+    # FORÇAR MODO HEADLESS PARA PRODUÇÃO
+    print("[FORCE] FORÇANDO MODO HEADLESS PARA PRODUÇÃO")
+    tester = HikCentralFormTest(visitor_data, visitor_id, True)
     
     try:
         return tester.run_test()

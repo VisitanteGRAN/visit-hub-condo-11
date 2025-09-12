@@ -26,7 +26,7 @@ class HikCentralReactivator:
     def __init__(self, visitor_data, visitor_id, headless=True):
         self.visitor_data = visitor_data
         self.visitor_id = visitor_id
-        self.headless = headless
+        self.headless = headless  # Sempre headless por padrão
         self.driver = None
         
         # URLs e credenciais do ambiente
@@ -41,32 +41,25 @@ class HikCentralReactivator:
         print("[SETUP] Configurando Chrome para reativação...")
         
         try:
-            # Limpeza agressiva de processos
-            import subprocess
-            processes = ['chrome.exe', 'chromedriver.exe', 'chromium.exe', 'msedge.exe']
-            for process in processes:
-                try:
-                    subprocess.run(['taskkill', '/f', '/im', process, '/t'], 
-                                 capture_output=True, check=False)
-                except:
-                    pass
-            
-            print("[INFO] Limpeza de processos concluída")
-            time.sleep(2)  # Reduzido para reativação
+            print("[INFO] Configuração suave - preservando processos existentes")
+            # Apenas aguardar um momento para estabilizar
+            time.sleep(1)
         except Exception as e:
-            print(f"[WARN] Erro na limpeza: {e}")
+            print(f"[WARN] Erro na preparação: {e}")
 
         options = Options()
-        # Configurações de segurança
+        # Configurações CORPORATIVAS - Para ambientes com antivírus/políticas
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-dev-shm-usage")
+        options.add_argument("--disable-gpu")
         options.add_argument("--window-size=1920,1080")
         options.add_argument("--disable-extensions")
         options.add_argument("--disable-plugins")
         options.add_argument("--disable-web-security")
         options.add_argument("--disable-features=VizDisplayCompositor")
         
-        # Otimizações extras para reativação
+        # CONFIGURAÇÕES ESPECÍFICAS PARA ANTIVÍRUS/CORPORATE
+        options.add_argument("--disable-blink-features=AutomationControlled")
         options.add_argument("--disable-background-timer-throttling")
         options.add_argument("--disable-backgrounding-occluded-windows")
         options.add_argument("--disable-renderer-backgrounding")
@@ -75,34 +68,74 @@ class HikCentralReactivator:
         options.add_argument("--disable-default-apps")
         options.add_argument("--disable-sync")
         options.add_argument("--disable-images")  # Não carregar imagens para acelerar
+        options.add_argument("--disable-logging")
+        options.add_argument("--silent")
+        options.add_argument("--disable-component-update")
+        
+        # Evitar detecção por antivírus
+        options.add_experimental_option("excludeSwitches", ["enable-automation"])
+        options.add_experimental_option('useAutomationExtension', False)
+        
+        # CONFIGURAR USER-DATA-DIR ÚNICO para evitar conflitos
+        import tempfile
+        import uuid
+        temp_profile = os.path.join(tempfile.gettempdir(), f"chrome_reactivate_{uuid.uuid4().hex[:8]}")
+        options.add_argument(f"--user-data-dir={temp_profile}")
+        print(f"[INFO] Chrome com diretório único: {temp_profile}")
+        
+        # Salvar caminho para limpeza posterior
+        self.temp_profile = temp_profile
         
         print("[INFO] Configuração Chrome otimizada para reativação")
 
         if self.headless:
             options.add_argument("--headless")
-            print("[INFO] Modo headless ativado")
+            print("[INFO] Modo headless ativado - execução sem interface visual")
 
-        # Estratégias de inicialização Chrome
-        strategies = [
-            # Estratégia 1: ChromeDriverManager
-            lambda: webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options),
-            # Estratégia 2: Chrome básico
-            lambda: webdriver.Chrome(options=options),
-            # Estratégia 3: Minimalista
-            lambda: webdriver.Chrome(options=Options())
-        ]
-
-        for i, strategy in enumerate(strategies, 1):
+        # Estratégias de inicialização Chrome - MELHORADAS
+        try:
+            # CONFIGURAÇÃO BÁSICA PRIMEIRO (como funciona no test_form_direct)
+            print("[TRY] Tentando configuração básica do Chrome...")
+            
+            # Aguardar um pouco antes de iniciar (evitar conflitos)
+            time.sleep(2)
+            
+            self.driver = webdriver.Chrome(options=options)
+            self.driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
+            
+            # Configurar timeouts adequados
+            self.driver.implicitly_wait(10)
+            self.driver.set_page_load_timeout(30)
+            
+            print("[OK] Chrome configurado com sucesso (básico)")
+            return True
+            
+        except Exception as e:
+            print(f"[WARN] Configuração básica falhou: {e}")
+            
+            # FALLBACK: TENTAR COM WEBDRIVER MANAGER
             try:
-                print(f"[CHROME] Tentativa {i}/3...")
-                self.driver = strategy()
-                print(f"[OK] Chrome inicializado com estratégia {i}")
+                print("[FALLBACK] Tentando com WebDriver Manager...")
+                self.driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+                self.driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
+                print("[OK] Chrome configurado com sucesso (WebDriver Manager)")
                 return True
-            except Exception as e:
-                print(f"[ERRO] Estratégia {i} falhou: {e}")
-                if i < len(strategies):
-                    time.sleep(2)
-                continue
+            except Exception as e2:
+                print(f"[ERRO] Ambas as configurações falharam: {e2}")
+                
+                # ÚLTIMO RECURSO: CHROME MINIMALISTA
+                try:
+                    print("[LAST] Tentando Chrome minimalista...")
+                    minimal_options = Options()
+                    minimal_options.add_argument("--no-sandbox")
+                    minimal_options.add_argument("--disable-dev-shm-usage")
+                    
+                    self.driver = webdriver.Chrome(options=minimal_options)
+                    print("[OK] Chrome configurado (minimalista)")
+                    return True
+                except Exception as e3:
+                    print(f"[ERRO] Chrome minimalista também falhou: {e3}")
+                    return False
         
         print("[ERRO] Todas as estratégias de Chrome falharam")
         return False
@@ -593,6 +626,16 @@ class HikCentralReactivator:
                     print("[CLEANUP] Chrome fechado")
                 except:
                     pass
+            
+            # Limpar diretório temporário do Chrome
+            if hasattr(self, 'temp_profile'):
+                try:
+                    import shutil
+                    if os.path.exists(self.temp_profile):
+                        shutil.rmtree(self.temp_profile, ignore_errors=True)
+                        print(f"[CLEANUP] Diretório temporário removido: {self.temp_profile}")
+                except Exception as e:
+                    print(f"[WARN] Erro ao limpar diretório temporário: {e}")
 
     def configurar_duracao_reativacao(self):
         """Configurar duração da reativação (sempre alterar data da direita)"""
@@ -773,7 +816,7 @@ class HikCentralReactivator:
 def main():
     parser = argparse.ArgumentParser(description='Reativar visitante no HikCentral')
     parser.add_argument('--visitor-id', required=True, help='ID do visitante')
-    parser.add_argument('--headless', action='store_true', help='Executar em modo headless')
+    parser.add_argument('--headless', action='store_true', default=True, help='Executar em modo headless (padrão: True para produção)')
     args = parser.parse_args()
     
     # Carregar dados do visitante

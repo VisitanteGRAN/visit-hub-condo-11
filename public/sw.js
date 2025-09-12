@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gran-royalle-v1.6.0';
+const CACHE_NAME = 'gran-royalle-v1.7.0';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -164,8 +164,8 @@ self.addEventListener('push', (event) => {
   
   const options = {
     body: event.data ? event.data.text() : 'Nova notificação do Gran Royalle',
-    icon: '/lovable-uploads/88120252-9c46-4bf9-a5c8-48a57400b8be.png',
-    badge: '/favicon.ico',
+    icon: '/visitantelogo.png',
+    badge: '/visitantelogo.png',
     vibrate: [100, 50, 100],
     data: {
       dateOfArrival: Date.now(),
@@ -175,12 +175,12 @@ self.addEventListener('push', (event) => {
       {
         action: 'explore',
         title: 'Ver detalhes',
-        icon: '/lovable-uploads/88120252-9c46-4bf9-a5c8-48a57400b8be.png'
+        icon: '/visitantelogo.png'
       },
       {
         action: 'close',
         title: 'Fechar',
-        icon: '/favicon.ico'
+        icon: '/visitantelogo.png'
       }
     ]
   };

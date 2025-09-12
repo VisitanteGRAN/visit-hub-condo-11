@@ -17,49 +17,49 @@
       "type": "image/x-icon"
     },
     {
-      "src": "/temp-working-logo.png",
+      "src": "/visitantelogo.png",
       "type": "image/png",
       "sizes": "72x72",
       "purpose": "any"
     },
     {
-      "src": "/temp-working-logo.png",
+      "src": "/visitantelogo.png",
       "type": "image/png",
       "sizes": "96x96",
       "purpose": "any"
     },
     {
-      "src": "/temp-working-logo.png",
+      "src": "/visitantelogo.png",
       "type": "image/png",
       "sizes": "128x128",
       "purpose": "any"
     },
     {
-      "src": "/temp-working-logo.png",
+      "src": "/visitantelogo.png",
       "type": "image/png",
       "sizes": "144x144",
       "purpose": "any"
     },
     {
-      "src": "/temp-working-logo.png",
+      "src": "/visitantelogo.png",
       "type": "image/png",
       "sizes": "152x152",
       "purpose": "any"
     },
     {
-      "src": "/lovable-uploads/88120252-9c46-4bf9-a5c8-48a57400b8be.png",
+      "src": "/visitantelogo.png",
       "type": "image/png",
       "sizes": "192x192",
       "purpose": "maskable"
     },
     {
-      "src": "/temp-working-logo.png",
+      "src": "/visitantelogo.png",
       "type": "image/png",
       "sizes": "384x384",
       "purpose": "any"
     },
     {
-      "src": "/lovable-uploads/88120252-9c46-4bf9-a5c8-48a57400b8be.png",
+      "src": "/visitantelogo.png",
       "type": "image/png", 
       "sizes": "512x512",
       "purpose": "any"
@@ -67,7 +67,7 @@
   ],
   "screenshots": [
     {
-      "src": "/temp-working-logo.png",
+      "src": "/visitantelogo.png",
       "type": "image/png",
       "sizes": "1280x720",
       "form_factor": "wide"
@@ -81,7 +81,7 @@
       "url": "/novo-visitante",
       "icons": [
         {
-          "src": "/temp-working-logo.png",
+          "src": "/visitantelogo.png",
           "sizes": "96x96"
         }
       ]

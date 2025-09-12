@@ -19,3 +19,5 @@ WHERE email = 'lacerdalucca7@gmail.com';
 SELECT id, email, nome, ativo, status 
 FROM usuarios 
 WHERE perfil = 'morador' AND (ativo = false OR status = 'pendente');
+
+
