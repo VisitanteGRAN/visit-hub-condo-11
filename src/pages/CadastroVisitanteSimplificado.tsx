@@ -139,7 +139,7 @@ export default function CadastroVisitanteSimplificado() {
 
   const handleContinueWithReactivation = (visitante: VisitanteExistente) => {
     console.log('📋 Recebido visitante para reativação:', visitante);
-    console.log('🔄 Mudando step para reactivation...');
+    console.log('🔄 Mudando step para reactivation IMEDIATAMENTE...');
     
     // Verificar se já não está em processo de reativação
     if (currentStep === 'reactivation') {
@@ -147,9 +147,10 @@ export default function CadastroVisitanteSimplificado() {
       return;
     }
     
+    // ⭐ MUDANÇA IMEDIATA SEM DELAYS
     setVisitanteToReactivate(visitante);
     setCurrentStep('reactivation');
-    console.log('✅ Step alterado, renderizando ReativarVisitante');
+    console.log('✅ Step alterado IMEDIATAMENTE, renderizando ReativarVisitante');
   };
 
   // ⭐ NOVO: Reset em caso de erro na reativação

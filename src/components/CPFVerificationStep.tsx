@@ -80,10 +80,10 @@ export default function CPFVerificationStep({
     
     if (verificationResult?.visitante) {
       setIsProcessingReactivation(true);
-      console.log('✅ Iniciando reativação para:', verificationResult.visitante.nome);
+      console.log('✅ Iniciando reativação IMEDIATA para:', verificationResult.visitante.nome);
       
       try {
-        await new Promise(resolve => setTimeout(resolve, 500)); // Pequena pausa visual
+        // ⭐ SEM DELAY - Transição imediata
         onContinueWithReactivation(verificationResult.visitante);
       } catch (error) {
         console.error('❌ Erro na reativação:', error);

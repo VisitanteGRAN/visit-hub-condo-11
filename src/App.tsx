@@ -8,7 +8,6 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Login from "./pages/Login";
 import Welcome from "./pages/Welcome";
 import Dashboard from "./pages/Dashboard";
-import MeusVisitantes from "./pages/MeusVisitantes";
 import NovoVisitante from "./pages/NovoVisitante";
 import CadastroVisitanteSimplificado from "./pages/CadastroVisitanteSimplificado";
 import CadastroMorador from "./pages/CadastroMorador";
@@ -38,14 +37,6 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <Dashboard />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/meus-visitantes" 
-            element={
-              <ProtectedRoute requiredRole="morador">
-                <MeusVisitantes />
               </ProtectedRoute>
             } 
           />

@@ -151,17 +151,17 @@ export default function NovoVisitante() {
       <DashboardLayout title="Novo Visitante">
         <div className="relative z-10 max-w-2xl mx-auto space-y-6">
           <div className="flex items-center gap-4">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              asChild
-              className="hover:scale-105 transition-transform duration-200 bg-white/80 dark:bg-background/80 backdrop-blur-sm border-primary/20 hover:border-primary/40"
-            >
-              <Link to="/meus-visitantes">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Voltar
-              </Link>
-            </Button>
+          <Button 
+            variant="outline" 
+            size="sm"
+            asChild
+            className="hover:scale-105 transition-transform duration-200 bg-white/80 dark:bg-background/80 backdrop-blur-sm border-primary/20 hover:border-primary/40"
+          >
+            <Link to="/dashboard">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Voltar
+            </Link>
+          </Button>
             <div>
               <h2 className="text-2xl font-bold text-foreground">Novo Visitante</h2>
               <p className="text-muted-foreground">Gere um link de convite personalizado</p>
