@@ -250,19 +250,21 @@ class WindowsPollingService:
             
             # Executar script apropriado - ARGUMENTOS CORRETOS PARA CADA TIPO
             if action_type == 'reactivate':
-                # Script de reativação: apenas visitor-id (busca JSON automaticamente)
+                # Script de reativação: apenas visitor-id (busca JSON automaticamente) + HEADLESS
                 cmd = [
                     'python', 
                     script_path,
-                    '--visitor-id', visitor_id
+                    '--visitor-id', visitor_id,
+                    '--headless'  # ⭐ MODO HEADLESS PARA PRODUÇÃO
                 ]
             else:
-                # Script de cadastro: visitor-data + visitor-id
+                # Script de cadastro: visitor-data + visitor-id (SEM HEADLESS para configurar duração)
                 cmd = [
                     'python', 
                     script_path,
                     '--visitor-data', json_path,
                     '--visitor-id', visitor_id
+                    # ⭐ REMOVIDO --headless para permitir configuração manual de data
                 ]
             
             logging.info(f"[PROCESS] Executando: {' '.join(cmd)}")
