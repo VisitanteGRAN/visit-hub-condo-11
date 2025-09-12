@@ -14,16 +14,9 @@ export default function Welcome() {
       
       {/* Header */}
       <header className="relative p-6 flex justify-between items-center">
-        <div className="flex items-center gap-3">
-          <img 
-            src={logoCondominio} 
-            alt="Logo Gran Royalle" 
-            className="h-12 w-auto"
-          />
-          <div className="flex items-center gap-2 text-primary">
-            <Building2 className="h-6 w-6" />
-            <h1 className="text-xl font-bold">Gran Royalle</h1>
-          </div>
+        <div className="flex items-center gap-2 text-primary">
+          <Building2 className="h-6 w-6" />
+          <h1 className="text-xl font-bold">Visit Hub</h1>
         </div>
         <ThemeToggle />
       </header>

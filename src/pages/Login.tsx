@@ -7,7 +7,6 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Building2, Lock, Mail } from 'lucide-react';
 import { toast } from 'sonner';
-import logoCondominio from '@/assets/logo-condominio.png';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -67,13 +66,6 @@ export default function Login() {
     <div className="min-h-screen bg-gradient-to-br from-primary-light to-background flex items-center justify-center p-4">
       <Card className="w-full max-w-md shadow-xl">
         <CardHeader className="text-center space-y-4">
-          <div className="mx-auto mb-4">
-            <img 
-              src={logoCondominio} 
-              alt="Logo Gran Royalle" 
-              className="h-20 w-auto mx-auto"
-            />
-          </div>
           <div className="flex items-center justify-center gap-2 text-primary">
             <Building2 className="h-6 w-6" />
             <CardTitle className="text-2xl font-bold">VisitHub</CardTitle>

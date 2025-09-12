@@ -27,8 +27,13 @@ export default function NovoVisitante() {
     firstName: '',
     validDays: '1'
   });
-  const [generatedLink, setGeneratedLink] = useState('');
-  const [showLink, setShowLink] = useState(false);
+  const [generatedLinks, setGeneratedLinks] = useState<Array<{
+    id: string;
+    name: string;
+    link: string;
+    validDays: string;
+    createdAt: string;
+  }>>([]);
   const [isGenerating, setIsGenerating] = useState(false);
 
   const handleInputChange = (field: string, value: string) => {
@@ -83,8 +88,19 @@ export default function NovoVisitante() {
       // Gerar URL completa
       const fullLink = `${window.location.origin}/visitante/${linkId}`;
       
-      setGeneratedLink(fullLink);
-      setShowLink(true);
+      // Adicionar novo link à lista
+      const newLink = {
+        id: linkId,
+        name: formData.firstName,
+        link: fullLink,
+        validDays: formData.validDays,
+        createdAt: new Date().toLocaleString('pt-BR')
+      };
+      
+      setGeneratedLinks(prev => [newLink, ...prev]);
+      
+      // Limpar formulário para próximo link
+      setFormData({ firstName: '', validDays: '1' });
       
       const dayText = formData.validDays === '1' ? '1 dia' : `${formData.validDays} dias`;
       toast.success(`Link criado para ${formData.firstName}! Autorização válida por ${dayText}.`);
@@ -97,24 +113,24 @@ export default function NovoVisitante() {
     }
   };
 
-  const copyLink = async () => {
+  const copyLink = async (link: string) => {
     try {
-      await navigator.clipboard.writeText(generatedLink);
+      await navigator.clipboard.writeText(link);
       toast.success('Link copiado para a área de transferência!');
     } catch (err) {
       toast.error('Erro ao copiar link');
     }
   };
 
-  const shareLink = () => {
+  const shareLink = (linkData: typeof generatedLinks[0]) => {
     if (navigator.share) {
       navigator.share({
-        title: 'Convite de Visitante',
-        text: `Você foi autorizado a visitar o condomínio. Use este link: ${generatedLink}`,
-        url: generatedLink,
+        title: 'Convite de Visitante - Visit Hub',
+        text: `Olá ${linkData.name}! Este é seu link para cadastro de visitante. Válido por ${linkData.validDays} dia(s).`,
+        url: linkData.link,
       });
     } else {
-      copyLink();
+      copyLink(linkData.link);
     }
   };
 
@@ -205,58 +221,70 @@ export default function NovoVisitante() {
                   <Button 
                     onClick={generateLink}
                     className="w-full md:w-auto px-8 py-3 bg-primary hover:bg-primary/90 text-white font-medium hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl"
-                    disabled={showLink || isGenerating}
+                    disabled={isGenerating}
                   >
-                                         {isGenerating ? (
-                       <>
-                         <svg className="animate-spin h-4 w-4 mr-2 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                         </svg>
-                         Gerando Link...
-                       </>
-                     ) : showLink ? (
-                       <>
-                         <CheckCircle className="h-4 w-4 mr-2" />
-                         Link Gerado
-                       </>
-                     ) : (
-                       <>
-                         <Share className="h-4 w-4 mr-2" />
-                         Gerar Link de Convite
-                       </>
-                     )}
+                    {isGenerating ? (
+                      <>
+                        <svg className="animate-spin h-4 w-4 mr-2 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Gerando Link...
+                      </>
+                    ) : (
+                      <>
+                        <Share className="h-4 w-4 mr-2" />
+                        Gerar Novo Link
+                      </>
+                    )}
                   </Button>
                 </div>
 
-                {showLink && (
-                  <div className="mt-6 p-4 bg-primary/5 dark:bg-primary/10 rounded-lg border border-primary/20 animate-fade-in">
+                {generatedLinks.length > 0 && (
+                  <div className="mt-6 space-y-4">
                     <h3 className="font-semibold text-primary mb-2 flex items-center gap-2">
                       <CheckCircle className="h-4 w-4" />
-                      Link Gerado com Sucesso!
+                      Links Gerados ({generatedLinks.length})
                     </h3>
-                    <div className="bg-white dark:bg-background p-3 rounded border border-border break-all text-sm font-mono">
-                      {generatedLink}
-                    </div>
-                    <div className="flex gap-2 mt-3">
-                      <Button 
-                        onClick={copyLink}
-                        variant="outline"
-                        size="sm"
-                        className="flex-1 hover:scale-105 transition-transform duration-200 border-primary/30 hover:border-primary"
-                      >
-                        <Copy className="h-4 w-4 mr-2" />
-                        Copiar Link
-                      </Button>
-                      <Button 
-                        onClick={shareLink}
-                        variant="outline"
-                        size="sm"
-                        className="flex-1 hover:scale-105 transition-transform duration-200 border-primary/30 hover:border-primary"
-                      >
-                        <Share className="h-4 w-4 mr-2" />
-                        Compartilhar
-                      </Button>
+                    <div className="space-y-3 max-h-64 overflow-y-auto">
+                      {generatedLinks.map((linkData, index) => (
+                        <div key={linkData.id} className="p-4 bg-primary/5 dark:bg-primary/10 rounded-lg border border-primary/20 animate-fade-in">
+                          <div className="flex justify-between items-start mb-2">
+                            <div>
+                              <p className="font-medium text-foreground">{linkData.name}</p>
+                              <p className="text-xs text-muted-foreground">
+                                Válido por {linkData.validDays} dia(s) • Criado em {linkData.createdAt}
+                              </p>
+                            </div>
+                            <span className="text-xs bg-primary/20 text-primary px-2 py-1 rounded">
+                              #{index + 1}
+                            </span>
+                          </div>
+                          <div className="bg-white dark:bg-background p-2 rounded border border-border break-all text-xs font-mono mb-3">
+                            {linkData.link}
+                          </div>
+                          <div className="flex gap-2">
+                            <Button 
+                              onClick={() => copyLink(linkData.link)}
+                              variant="outline"
+                              size="sm"
+                              className="flex-1 hover:scale-105 transition-transform duration-200 border-primary/30 hover:border-primary"
+                            >
+                              <Copy className="h-3 w-3 mr-1" />
+                              Copiar
+                            </Button>
+                            <Button 
+                              onClick={() => shareLink(linkData)}
+                              variant="outline"
+                              size="sm"
+                              className="flex-1 hover:scale-105 transition-transform duration-200 border-primary/30 hover:border-primary"
+                            >
+                              <Share className="h-3 w-3 mr-1" />
+                              Compartilhar
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 )}

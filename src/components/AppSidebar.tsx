@@ -25,24 +25,15 @@ import {
   LogOut,
   Home
 } from 'lucide-react';
-import logoCondominio from '@/assets/logo-condominio.png';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 const moradorItems = [
   { title: 'Dashboard', url: '/dashboard', icon: Home },
-  { title: 'Meus Visitantes', url: '/meus-visitantes', icon: Users },
   { title: 'Novo Visitante', url: '/novo-visitante', icon: UserPlus },
-  { title: 'Notificações', url: '/notificacoes', icon: Bell },
-  { title: 'Configurações', url: '/configuracoes', icon: Settings },
 ];
 
 const adminItems = [
   { title: 'Dashboard', url: '/dashboard', icon: Home },
-  { title: 'Gestão de Visitantes', url: '/gestao-visitantes', icon: Users },
-  { title: 'Relatórios', url: '/relatorios', icon: BarChart3 },
-  { title: 'Gestão de Usuários', url: '/gestao-usuarios', icon: UserCog },
-  { title: 'Notificações do Sistema', url: '/notificacoes-sistema', icon: Bell },
-  { title: 'Configurações', url: '/configuracoes', icon: Settings },
 ];
 
 export function AppSidebar() {
@@ -58,13 +49,11 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b border-border p-4">
         <div className="flex items-center gap-3">
-          <img 
-            src={logoCondominio} 
-            alt="Logo Gran Royalle" 
-            className="h-8 w-8 object-contain flex-shrink-0"
-          />
+          <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center flex-shrink-0">
+            <Home className="h-4 w-4 text-white" />
+          </div>
           <div className="flex flex-col min-w-0">
-            <span className="font-semibold text-sm">Gran Royalle</span>
+            <span className="font-semibold text-sm">Visit Hub</span>
             <span className="text-xs text-muted-foreground font-medium">
               {user?.role === 'admin' ? 'Administrador' : 'Morador'}
             </span>
