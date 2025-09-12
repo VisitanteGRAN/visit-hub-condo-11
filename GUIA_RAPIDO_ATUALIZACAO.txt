@@ -1,0 +1,67 @@
+🔄 GUIA RÁPIDO - ATUALIZAÇÃO DUAL WORKERS
+
+==================================================
+📋 ARQUIVOS PARA LEVAR PARA PORTARIA:
+==================================================
+
+✅ OBRIGATÓRIOS (substituir):
+   └── windows_polling_service_final.py
+   └── test_form_direct.py  
+   └── test_reactivate_visitor.py
+
+🆕 OPCIONAIS (novos):
+   └── windows_polling_dual_workers.py
+   └── backup_e_atualizar.bat
+   └── desabilitar_autostart.bat
+
+==================================================
+🧪 TESTAR NO SEU PC PRIMEIRO:
+==================================================
+
+1. Copiar arquivos para pasta de teste
+2. Executar: python windows_polling_service_final.py
+3. Verificar logs: "DUAL WORKERS ATIVADO"
+4. Cadastrar 2 visitantes simultaneamente
+5. Confirmar que Workers 1 e 2 processam
+
+==================================================
+🛑 DESABILITAR AUTO-START (Portaria):
+==================================================
+
+OPÇÃO 1 - Script automático:
+   └── desabilitar_autostart.bat
+
+OPÇÃO 2 - Manual:
+   └── regedit → HKCU\...\Run → deletar entradas
+   └── services.msc → parar serviços
+   └── tasklist | findstr python → verificar
+
+==================================================
+📂 ATUALIZAR PORTARIA:
+==================================================
+
+1. Parar serviço atual
+2. Executar: backup_e_atualizar.bat
+3. Copiar 3 arquivos novos
+4. Testar dual workers
+5. Reativar auto-start
+
+==================================================
+⚡ RESULTADO ESPERADO:
+==================================================
+
+LOGS:
+[INFO] MODO DUAL WORKERS ATIVADO - 2 CADASTROS SIMULTÂNEOS!
+✅ Worker 1 thread iniciada
+✅ Worker 2 thread iniciada
+📝 Worker 1 processando: abc123
+📝 Worker 2 processando: def456
+
+PERFORMANCE:
+📊 Antes: 1 cadastro (~3 min)
+📊 Agora: 2 simultâneos (~1.5 min cada)
+📊 Total: 2x mais rápido!
+
+==================================================
+✅ PRONTO PARA CONDOMÍNIO GRANDE!
+==================================================
