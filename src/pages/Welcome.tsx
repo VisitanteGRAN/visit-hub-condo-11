@@ -16,7 +16,7 @@ export default function Welcome() {
       <header className="relative p-6 flex justify-between items-center">
         <div className="flex items-center gap-2 text-primary">
           <Building2 className="h-6 w-6" />
-          <h1 className="text-xl font-bold">Visit Hub</h1>
+          <h1 className="text-xl font-bold">Gran Royalle</h1>
         </div>
         <ThemeToggle />
       </header>
@@ -55,12 +55,6 @@ export default function Welcome() {
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="relative p-6 text-center border-t border-border/50">
-        <p className="text-sm text-muted-foreground">
-          Portal Residencial © 2024
-        </p>
-      </footer>
     </div>
   );
 }

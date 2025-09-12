@@ -68,7 +68,7 @@ export default function Login() {
         <CardHeader className="text-center space-y-4">
           <div className="flex items-center justify-center gap-2 text-primary">
             <Building2 className="h-6 w-6" />
-            <CardTitle className="text-2xl font-bold">VisitHub</CardTitle>
+            <CardTitle className="text-2xl font-bold">Gran Royalle</CardTitle>
           </div>
           <CardDescription>
             Acesse sua conta para gerenciar visitantes

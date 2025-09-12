@@ -53,7 +53,7 @@ export function AppSidebar() {
             <Home className="h-4 w-4 text-white" />
           </div>
           <div className="flex flex-col min-w-0">
-            <span className="font-semibold text-sm">Visit Hub</span>
+            <span className="font-semibold text-sm">Gran Royalle</span>
             <span className="text-xs text-muted-foreground font-medium">
               {user?.role === 'admin' ? 'Administrador' : 'Morador'}
             </span>

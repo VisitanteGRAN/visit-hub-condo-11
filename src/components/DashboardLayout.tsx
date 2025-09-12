@@ -1,7 +1,7 @@
-import { SidebarProvider, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar';
-import { AppSidebar } from '@/components/AppSidebar';
 import { useAuth } from '@/contexts/AuthContext';
-import { useIsMobile } from '@/hooks/use-mobile';
+import { Button } from '@/components/ui/button';
+import { LogOut, Building2 } from 'lucide-react';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -9,34 +9,47 @@ interface DashboardLayoutProps {
 }
 
 export function DashboardLayout({ children, title }: DashboardLayoutProps) {
-  const { user } = useAuth();
-  const isMobile = useIsMobile();
+  const { user, logout } = useAuth();
 
   return (
-    <SidebarProvider defaultOpen={!isMobile}>
-      <AppSidebar />
-      <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-          <SidebarTrigger className="-ml-1" />
-          <div className="flex items-center justify-between w-full">
-            {title && (
-              <h1 className="font-semibold text-lg">{title}</h1>
-            )}
-            
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              {isMobile ? (
-                <span className="truncate max-w-[120px] font-medium">{user?.name}</span>
-              ) : (
-                <span className="truncate font-medium">Bem-vindo, {user?.name}</span>
-              )}
+    <div className="min-h-screen bg-background">
+      {/* Header simples sem sidebar */}
+      <header className="border-b bg-white dark:bg-card">
+        <div className="flex h-16 items-center justify-between px-4 max-w-7xl mx-auto">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 text-primary">
+              <Building2 className="h-6 w-6" />
+              <h1 className="text-xl font-bold">Gran Royalle</h1>
             </div>
+            {title && (
+              <div className="hidden md:block">
+                <span className="text-muted-foreground mx-2">•</span>
+                <span className="font-medium">{title}</span>
+              </div>
+            )}
           </div>
-        </header>
-        
-        <div className="flex flex-1 flex-col gap-4 p-4">
-          {children}
+          
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-muted-foreground font-medium">
+              Bem-vindo, {user?.name}
+            </span>
+            <ThemeToggle />
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={logout}
+              className="flex items-center gap-2"
+            >
+              <LogOut className="h-4 w-4" />
+              <span className="hidden md:inline">Sair</span>
+            </Button>
+          </div>
         </div>
-      </SidebarInset>
-    </SidebarProvider>
+      </header>
+        
+      <main className="max-w-7xl mx-auto p-4">
+        {children}
+      </main>
+    </div>
   );
 }

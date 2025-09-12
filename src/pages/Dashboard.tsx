@@ -18,32 +18,21 @@ function MoradorDashboard() {
       {/* Boas-vindas */}
       <Card>
         <CardHeader>
-          <CardTitle>Bem-vindo ao VisitHub, {user?.name}!</CardTitle>
+          <CardTitle>Bem-vindo ao Gran Royalle, {user?.name}!</CardTitle>
           <CardDescription>
             Gerencie seus visitantes de forma fácil e segura
           </CardDescription>
         </CardHeader>
       </Card>
 
-      {/* Ações Principais */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      {/* Ação Principal */}
+      <div className="max-w-md mx-auto">
         <Card className="hover:shadow-lg transition-shadow">
           <CardContent className="p-6">
             <Button asChild className="w-full h-24 flex-col text-lg">
               <Link to="/novo-visitante">
                 <UserPlus className="h-8 w-8 mb-2" />
                 Novo Visitante
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
-        
-        <Card className="hover:shadow-lg transition-shadow">
-          <CardContent className="p-6">
-            <Button variant="outline" asChild className="w-full h-24 flex-col text-lg">
-              <Link to="/meus-visitantes">
-                <Users className="h-8 w-8 mb-2" />
-                Meus Visitantes
               </Link>
             </Button>
           </CardContent>
