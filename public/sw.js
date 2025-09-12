@@ -1,8 +1,9 @@
-const CACHE_NAME = 'gran-royalle-v1.1.0';
+const CACHE_NAME = 'gran-royalle-v1.2.0';
 const urlsToCache = [
   '/',
   '/index.html',
   '/manifest.json',
+  '/favicon.ico',
   '/visitantelogo.png',
   '/icon-192x192.png',
   '/icon-512x512.png',
