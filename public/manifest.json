@@ -1,7 +1,7 @@
 {
   "name": "Gran Royalle - Sistema de Visitantes",
   "short_name": "Gran Royalle",
-  "description": "Sistema completo de gestão de visitantes para condomínios. Crie links de convite, gerencie visitantes e integre com HikCentral.",
+  "description": "Sistema de gestão de visitantes do condomínio Gran Royalle",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
@@ -12,22 +12,16 @@
   "categories": ["productivity", "utilities"],
   "icons": [
     {
-      "src": "/visitantelogo.png",
+      "src": "/icon-192x192.png",
       "type": "image/png",
-      "sizes": "72x72",
-      "purpose": "any"
+      "sizes": "192x192",
+      "purpose": "any maskable"
     },
     {
-      "src": "/visitantelogo.png",
+      "src": "/icon-512x512.png",
       "type": "image/png",
-      "sizes": "96x96",
-      "purpose": "any"
-    },
-    {
-      "src": "/visitantelogo.png",
-      "type": "image/png",
-      "sizes": "128x128",
-      "purpose": "any"
+      "sizes": "512x512",
+      "purpose": "any maskable"
     },
     {
       "src": "/visitantelogo.png",
@@ -36,63 +30,11 @@
       "purpose": "any"
     },
     {
-      "src": "/visitantelogo.png",
+      "src": "/apple-touch-icon.png",
       "type": "image/png",
-      "sizes": "152x152",
+      "sizes": "180x180",
       "purpose": "any"
-    },
-    {
-      "src": "/visitantelogo.png",
-      "type": "image/png",
-      "sizes": "192x192",
-      "purpose": "maskable"
-    },
-    {
-      "src": "/visitantelogo.png",
-      "type": "image/png",
-      "sizes": "384x384",
-      "purpose": "any"
-    },
-    {
-      "src": "/visitantelogo.png",
-      "type": "image/png", 
-      "sizes": "512x512",
-      "purpose": "any"
-    }
-  ],
-  "screenshots": [
-    {
-      "src": "/visitantelogo.png",
-      "type": "image/png",
-      "sizes": "1280x720",
-      "form_factor": "wide"
-    }
-  ],
-  "shortcuts": [
-    {
-      "name": "Novo Visitante",
-      "short_name": "Novo",
-      "description": "Criar novo link de convite",
-      "url": "/novo-visitante",
-      "icons": [
-        {
-          "src": "/visitantelogo.png",
-          "sizes": "96x96"
-        }
-      ]
-    },
-    {
-      "name": "Meus Visitantes",
-      "short_name": "Visitantes",
-      "description": "Ver visitantes cadastrados",
-      "url": "/meus-visitantes",
-      "icons": [
-        {
-          "src": "/visitantelogo.png",
-          "sizes": "96x96"
-        }
-      ]
     }
   ],
   "prefer_related_applications": false
-} 
+}
