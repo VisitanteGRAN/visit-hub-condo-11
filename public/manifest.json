@@ -17,31 +17,31 @@
       "type": "image/x-icon"
     },
     {
-      "src": "/visitantelogo.png",
+      "src": "/lovable-uploads/88120252-9c46-4bf9-a5c8-48a57400b8be.png",
       "type": "image/png",
       "sizes": "72x72",
       "purpose": "any"
     },
     {
-      "src": "/visitantelogo.png",
+      "src": "/lovable-uploads/88120252-9c46-4bf9-a5c8-48a57400b8be.png",
       "type": "image/png",
       "sizes": "96x96",
       "purpose": "any"
     },
     {
-      "src": "/visitantelogo.png",
+      "src": "/lovable-uploads/88120252-9c46-4bf9-a5c8-48a57400b8be.png",
       "type": "image/png",
       "sizes": "128x128",
       "purpose": "any"
     },
     {
-      "src": "/visitantelogo.png",
+      "src": "/lovable-uploads/88120252-9c46-4bf9-a5c8-48a57400b8be.png",
       "type": "image/png",
       "sizes": "144x144",
       "purpose": "any"
     },
     {
-      "src": "/visitantelogo.png",
+      "src": "/lovable-uploads/88120252-9c46-4bf9-a5c8-48a57400b8be.png",
       "type": "image/png",
       "sizes": "152x152",
       "purpose": "any"
@@ -53,7 +53,7 @@
       "purpose": "maskable"
     },
     {
-      "src": "/visitantelogo.png",
+      "src": "/lovable-uploads/88120252-9c46-4bf9-a5c8-48a57400b8be.png",
       "type": "image/png",
       "sizes": "384x384",
       "purpose": "any"
@@ -67,7 +67,7 @@
   ],
   "screenshots": [
     {
-      "src": "/visitantelogo.png",
+      "src": "/lovable-uploads/88120252-9c46-4bf9-a5c8-48a57400b8be.png",
       "type": "image/png",
       "sizes": "1280x720",
       "form_factor": "wide"
@@ -81,7 +81,7 @@
       "url": "/novo-visitante",
       "icons": [
         {
-          "src": "/visitantelogo.png",
+          "src": "/lovable-uploads/88120252-9c46-4bf9-a5c8-48a57400b8be.png",
           "sizes": "96x96"
         }
       ]

@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Building2, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import PWAInstallInstructions from '@/components/PWAInstallInstructions';
 import logoCondominio from '@/assets/logo-condominio.png';
 
 export default function Welcome() {
@@ -53,8 +54,17 @@ export default function Welcome() {
             <p>Sistema exclusivo para moradores e administração</p>
           </div>
         </div>
+
+        {/* PWA Install Instructions */}
+        <div className="w-full px-6 animate-fade-in" style={{ animationDelay: '0.6s' }}>
+          <PWAInstallInstructions />
+        </div>
       </main>
 
+      {/* Footer */}
+      <footer className="relative p-6 text-center text-sm text-muted-foreground">
+        <p>© 2024 Gran Royalle - Sistema de Visitantes</p>
+      </footer>
     </div>
   );
 }
