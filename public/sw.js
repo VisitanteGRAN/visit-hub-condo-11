@@ -1,23 +1,13 @@
-const CACHE_NAME = 'gran-royalle-v1.9.0';
+const CACHE_NAME = 'gran-royalle-v2.0.0';
 const urlsToCache = [
   '/',
   '/index.html',
   '/manifest.json',
   '/favicon.ico',
-  '/visitantelogo.png',
-  '/temp-working-logo.png',
-  '/lovable-uploads/88120252-9c46-4bf9-a5c8-48a57400b8be.png',
-  '/icon-192x192.png',
-  '/icon-512x512.png',
-  '/apple-icon-57x57.png',
-  '/apple-icon-60x60.png',
-  '/apple-icon-72x72.png',
-  '/apple-icon-76x76.png',
-  '/apple-icon-114x114.png',
-  '/apple-icon-120x120.png',
-  '/apple-icon-144x144.png',
-  '/apple-icon-152x152.png',
-  '/apple-icon-180x180.png'
+  '/logo.png',
+  '/pwa-icon-192.png',
+  '/pwa-icon-512.png',
+  '/visitantelogo.png'
 ];
 
 // Instalar Service Worker
@@ -164,8 +154,8 @@ self.addEventListener('push', (event) => {
   
   const options = {
     body: event.data ? event.data.text() : 'Nova notificação do Gran Royalle',
-    icon: '/visitantelogo.png',
-    badge: '/visitantelogo.png',
+    icon: '/logo.png',
+    badge: '/logo.png',
     vibrate: [100, 50, 100],
     data: {
       dateOfArrival: Date.now(),
@@ -175,12 +165,12 @@ self.addEventListener('push', (event) => {
       {
         action: 'explore',
         title: 'Ver detalhes',
-        icon: '/visitantelogo.png'
+        icon: '/logo.png'
       },
       {
         action: 'close',
         title: 'Fechar',
-        icon: '/visitantelogo.png'
+        icon: '/logo.png'
       }
     ]
   };
