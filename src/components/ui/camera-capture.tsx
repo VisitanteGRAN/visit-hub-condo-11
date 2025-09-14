@@ -73,9 +73,19 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
       
-      // Espelhar horizontalmente para corrigir a imagem
+      // Limpar canvas e salvar contexto
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      context.save();
+      
+      // Espelhar horizontalmente para corrigir a imagem da câmera frontal
+      context.translate(canvas.width, 0);
       context.scale(-1, 1);
-      context.drawImage(video, -canvas.width, 0);
+      
+      // Desenhar o vídeo
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      
+      // Restaurar contexto
+      context.restore();
       
       const imageData = canvas.toDataURL('image/jpeg', 0.8);
       setCapturedImage(imageData);
@@ -142,7 +152,8 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
                       ref={videoRef}
                       autoPlay
                       playsInline
-                      className="w-full h-full object-cover scale-x-[-1]"
+                      muted
+                      className="w-full h-full object-cover"
                       style={{ transform: 'scaleX(-1)' }}
                     />
                   ) : (

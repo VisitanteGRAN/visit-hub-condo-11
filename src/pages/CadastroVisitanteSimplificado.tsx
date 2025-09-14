@@ -206,8 +206,12 @@ export default function CadastroVisitanteSimplificado() {
         validadeDias: linkData.validDays
       };
 
-      // Salvar no banco de dados (usando supabaseAdmin para bypass RLS)
-      const { data: visitanteData, error: visitanteError } = await supabaseAdmin
+      // Salvar no banco de dados (modo público - via RLS atualizada)
+      console.log('💾 Tentando salvar visitante no banco...');
+      console.log('🔗 Link ID:', linkData.linkId);
+      console.log('👤 Morador ID:', linkData.moradorId);
+      
+      const { data: visitanteData, error: visitanteError } = await supabase
         .from('visitantes')
         .insert({
           nome: nomeCompleto,
@@ -228,8 +232,13 @@ export default function CadastroVisitanteSimplificado() {
         .single();
 
       if (visitanteError) {
+        console.error('❌ Erro detalhado RLS:', visitanteError);
+        console.error('📋 Política RLS:', visitanteError.hint);
+        console.error('🔍 Detalhes:', visitanteError.details);
         throw new Error(`Erro ao salvar visitante: ${visitanteError.message}`);
       }
+      
+      console.log('✅ Visitante salvo no banco:', visitanteData);
 
       // Criar visitante no HikCentral
       const result = await hikVisionWebSDK.createVisitorInAllDevices(visitorData as any);
