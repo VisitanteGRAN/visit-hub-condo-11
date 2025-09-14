@@ -25,6 +25,7 @@ import { toast } from 'sonner';
 import hikVisionWebSDK from '@/services/webSDKService';
 import logoCondominio from '@/assets/logo-condominio.png';
 import { supabase } from '@/integrations/supabase/client';
+import { supabaseAdmin } from '@/lib/supabase-admin';
 import { CameraCapture } from '@/components/ui/camera-capture';
 
 interface VisitanteData {
@@ -205,8 +206,8 @@ export default function CadastroVisitanteSimplificado() {
         validadeDias: linkData.validDays
       };
 
-      // Salvar no banco de dados
-      const { data: visitanteData, error: visitanteError } = await supabase
+      // Salvar no banco de dados (usando supabaseAdmin para bypass RLS)
+      const { data: visitanteData, error: visitanteError } = await supabaseAdmin
         .from('visitantes')
         .insert({
           nome: nomeCompleto,

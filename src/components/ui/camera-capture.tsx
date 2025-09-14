@@ -72,7 +72,10 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
     if (context) {
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
-      context.drawImage(video, 0, 0);
+      
+      // Espelhar horizontalmente para corrigir a imagem
+      context.scale(-1, 1);
+      context.drawImage(video, -canvas.width, 0);
       
       const imageData = canvas.toDataURL('image/jpeg', 0.8);
       setCapturedImage(imageData);
@@ -139,7 +142,8 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
                       ref={videoRef}
                       autoPlay
                       playsInline
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover scale-x-[-1]"
+                      style={{ transform: 'scaleX(-1)' }}
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-gray-500">

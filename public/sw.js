@@ -1,13 +1,10 @@
-const CACHE_NAME = 'gran-royalle-v2.0.0';
+const CACHE_NAME = 'gran-royalle-v2.1.0';
 const urlsToCache = [
   '/',
   '/index.html',
   '/manifest.json',
   '/favicon.ico',
-  '/logo.png',
-  '/pwa-icon-192.png',
-  '/pwa-icon-512.png',
-  '/visitantelogo.png'
+  '/icon.png'
 ];
 
 // Instalar Service Worker
@@ -154,8 +151,8 @@ self.addEventListener('push', (event) => {
   
   const options = {
     body: event.data ? event.data.text() : 'Nova notificação do Gran Royalle',
-    icon: '/logo.png',
-    badge: '/logo.png',
+    icon: '/icon.png',
+    badge: '/icon.png',
     vibrate: [100, 50, 100],
     data: {
       dateOfArrival: Date.now(),
@@ -165,12 +162,12 @@ self.addEventListener('push', (event) => {
       {
         action: 'explore',
         title: 'Ver detalhes',
-        icon: '/logo.png'
+        icon: '/icon.png'
       },
       {
         action: 'close',
         title: 'Fechar',
-        icon: '/logo.png'
+        icon: '/icon.png'
       }
     ]
   };
