@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gran-royalle-v3.0.0';
+const CACHE_NAME = 'gran-royalle-v3.1.0';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -7,7 +7,11 @@ const urlsToCache = [
   '/pwa-icon-192.png',
   '/pwa-icon-512.png',
   '/icon-192x192.png',
-  '/icon-512x512.png'
+  '/icon-512x512.png',
+  '/apple-touch-icon-180x180.png',
+  '/apple-touch-icon-152x152.png',
+  '/apple-touch-icon-120x120.png',
+  '/apple-touch-icon-solid-180x180.png'
 ];
 
 // Instalar Service Worker
