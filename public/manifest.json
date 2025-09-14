@@ -12,13 +12,19 @@
   "categories": ["productivity", "utilities"],
   "icons": [
     {
-      "src": "/icon.png",
+      "src": "/pwa-192.png",
       "type": "image/png",
       "sizes": "192x192",
       "purpose": "any"
     },
     {
-      "src": "/icon.png",
+      "src": "/pwa-192.png",
+      "type": "image/png",
+      "sizes": "192x192", 
+      "purpose": "maskable"
+    },
+    {
+      "src": "/pwa-512.png",
       "type": "image/png",
       "sizes": "512x512",
       "purpose": "any"
@@ -32,7 +38,7 @@
       "url": "/novo-visitante",
       "icons": [
         {
-          "src": "/icon.png",
+          "src": "/pwa-192.png",
           "sizes": "192x192"
         }
       ]
