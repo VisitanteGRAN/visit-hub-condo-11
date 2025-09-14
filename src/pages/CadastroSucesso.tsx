@@ -24,7 +24,7 @@ export default function CadastroSucesso() {
             Cadastro Realizado!
           </CardTitle>
           <p className="text-green-600">
-            Seu acesso foi criado com sucesso no HikCentral
+            Seu acesso foi criado com sucesso no sistema
           </p>
         </CardHeader>
         
@@ -70,8 +70,8 @@ export default function CadastroSucesso() {
             <div className="p-4 bg-blue-50 rounded-lg">
               <h3 className="font-semibold text-blue-800 mb-2">✅ Próximos Passos:</h3>
               <ul className="text-sm text-blue-700 space-y-1">
-                <li>• Seu acesso foi criado no sistema HikCentral</li>
-                <li>• Você pode acessar o condomínio pelos coletores</li>
+                <li>• Seu acesso foi criado no sistema de controle</li>
+                <li>• Você pode acessar o condomínio normalmente</li>
                 <li>• Apresente documento com foto na portaria</li>
                 <li>• Acesso válido apenas no período indicado</li>
               </ul>
