@@ -26,8 +26,13 @@ CREATE POLICY "Visitantes podem ser criados publicamente via link" ON visitantes
         )
     );
 
--- 4. Política para leitura (moradores e admins)
-CREATE POLICY IF NOT EXISTS "Moradores podem ver seus visitantes" ON visitantes
+-- 4. Dropar políticas antigas para recriar
+DROP POLICY IF EXISTS "Moradores podem ver seus visitantes" ON visitantes;
+DROP POLICY IF EXISTS "Moradores podem atualizar seus visitantes" ON visitantes;
+DROP POLICY IF EXISTS "Admins podem gerenciar visitantes" ON visitantes;
+
+-- 5. Política para leitura (moradores e admins)
+CREATE POLICY "Moradores podem ver seus visitantes" ON visitantes
     FOR SELECT 
     USING (
         auth.uid() IS NOT NULL AND 
@@ -41,8 +46,8 @@ CREATE POLICY IF NOT EXISTS "Moradores podem ver seus visitantes" ON visitantes
         )
     );
 
--- 5. Política para atualização (apenas moradores proprietários)
-CREATE POLICY IF NOT EXISTS "Moradores podem atualizar seus visitantes" ON visitantes
+-- 6. Política para atualização (apenas moradores proprietários)
+CREATE POLICY "Moradores podem atualizar seus visitantes" ON visitantes
     FOR UPDATE 
     USING (
         auth.uid() IS NOT NULL AND 
@@ -55,8 +60,8 @@ CREATE POLICY IF NOT EXISTS "Moradores podem atualizar seus visitantes" ON visit
         )
     );
 
--- 6. Admins podem fazer tudo
-CREATE POLICY IF NOT EXISTS "Admins podem gerenciar visitantes" ON visitantes
+-- 7. Admins podem fazer tudo
+CREATE POLICY "Admins podem gerenciar visitantes" ON visitantes
     FOR ALL 
     USING (
         auth.uid() IS NOT NULL AND
