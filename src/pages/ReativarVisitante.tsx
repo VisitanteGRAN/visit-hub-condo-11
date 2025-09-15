@@ -7,6 +7,7 @@ import { Loader2, Clock, User, CheckCircle } from 'lucide-react';
 import { cpfVerificationService, type VisitanteExistente } from '@/services/cpfVerificationService';
 import hikVisionWebSDK from '@/services/webSDKService';
 import { toast } from 'sonner';
+import { logger } from '@/utils/secureLogger';
 
 interface ReativarVisitanteProps {
   visitante: VisitanteExistente;
@@ -30,7 +31,7 @@ export default function ReativarVisitante({ visitante, linkData, onError }: Reat
 
     try {
       // 1. Atualizar visitante no banco de dados
-      console.log('🔄 Iniciando reativação no banco...');
+      logger.info('🔄 Iniciando reativação no banco...');
       const dbResult = await cpfVerificationService.reativarVisitante(
         visitante.id,
         linkData.moradorId,
@@ -56,7 +57,7 @@ export default function ReativarVisitante({ visitante, linkData, onError }: Reat
         action: 'reactivate' // ⭐ NOVO: Flag para indicar reativação
       };
 
-      console.log('🤖 Enviando para reativação no HikCentral...');
+      logger.info('🤖 Enviando para reativação no HikCentral...');
       const hikResult = await hikVisionWebSDK.createVisitorInAllDevices(reactivationData as any);
 
       if (!hikResult.success) {

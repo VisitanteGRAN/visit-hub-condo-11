@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
+import { logger } from '@/utils/secureLogger';
 
 interface NotificationState {
   permission: NotificationPermission;
@@ -79,11 +80,11 @@ export function useNotifications(): UseNotificationsReturn {
 
       if (permission === 'granted') {
         toast.success('✅ Permissão para notificações concedida!');
-        console.log('✅ Permissão para notificações concedida');
+        logger.info('✅ Permissão para notificações concedida');
         return true;
       } else {
         toast.warning('⚠️ Permissão para notificações negada');
-        console.log('❌ Permissão para notificações negada');
+        logger.info('❌ Permissão para notificações negada');
         return false;
       }
     } catch (error) {
@@ -95,7 +96,7 @@ export function useNotifications(): UseNotificationsReturn {
 
   const subscribe = async (): Promise<boolean> => {
     if (!state.isSupported || state.permission !== 'granted') {
-      console.log('❌ Não é possível se inscrever: suporte ou permissão');
+      logger.info('❌ Não é possível se inscrever: suporte ou permissão');
       return false;
     }
 
@@ -107,17 +108,17 @@ export function useNotifications(): UseNotificationsReturn {
       
       try {
         // Estratégia 1: Sem applicationServerKey (usando gcm_sender_id)
-        console.log('🔄 Tentando subscription sem VAPID key...');
+        logger.info('🔄 Tentando subscription sem VAPID key...');
         subscription = await registration.pushManager.subscribe({
           userVisibleOnly: true
         });
-        console.log('✅ Subscription sem VAPID funcionou!');
+        logger.info('✅ Subscription sem VAPID funcionou!');
       } catch (error1) {
         console.log('❌ Falha sem VAPID:', error1.message);
         
         try {
           // Estratégia 2: Com VAPID key público padrão (Firebase)
-          console.log('🔄 Tentando com VAPID key padrão...');
+          logger.info('🔄 Tentando com VAPID key padrão...');
           const vapidKey = 'BEl62iUYgUivxIkv69yViEuiBIa40HI0DLKzdHPNGkzOZS3rOw9i8uFxgOoKrOhXN5SXWU9P8W8HUwmyI9zM8R8';
           const applicationServerKey = urlBase64ToUint8Array(vapidKey);
           
@@ -125,7 +126,7 @@ export function useNotifications(): UseNotificationsReturn {
             userVisibleOnly: true,
             applicationServerKey: applicationServerKey
           });
-          console.log('✅ Subscription com VAPID funcionou!');
+          logger.info('✅ Subscription com VAPID funcionou!');
         } catch (error2) {
           console.log('❌ Falha com VAPID:', error2.message);
           throw new Error(`Push service não disponível: ${error2.message}`);
@@ -192,7 +193,7 @@ export function useNotifications(): UseNotificationsReturn {
         isSubscribed: false
       }));
 
-      console.log('✅ Desinscrito de push notifications');
+      logger.info('✅ Desinscrito de push notifications');
       toast.success('🔕 Notificações desativadas');
       
       return true;
@@ -237,9 +238,9 @@ export function useNotifications(): UseNotificationsReturn {
         oscillator.start(audioContext.currentTime);
         oscillator.stop(audioContext.currentTime + 0.2);
         
-        console.log('🔊 Som de teste reproduzido');
+        logger.info('🔊 Som de teste reproduzido');
       } catch (error) {
-        console.log('🔊 Áudio não disponível');
+        logger.info('🔊 Áudio não disponível');
       }
 
       toast.success('📨 Notificação de teste enviada com som!');

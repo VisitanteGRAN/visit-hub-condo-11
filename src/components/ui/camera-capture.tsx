@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Camera, RotateCcw, Check, X, Upload } from 'lucide-react';
 import { toast } from 'sonner';
+import { logger } from '@/utils/secureLogger';
 
 interface CameraCaptureProps {
   onCapture: (imageData: string) => void;

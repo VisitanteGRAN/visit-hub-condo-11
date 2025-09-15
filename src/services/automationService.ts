@@ -1,3 +1,5 @@
+import { logger } from '@/utils/secureLogger';
+
 /**
  * 🤖 AUTOMATION SERVICE
  * Serviço para integração com o servidor de automação HikCentral
@@ -107,7 +109,7 @@ class AutomationService {
       if (result.success) {
         console.log('✅ Automação iniciada com sucesso:', result);
         if (result.photo_received) {
-          console.log('📸 Foto recebida e processada pelo servidor');
+          logger.info('📸 Foto recebida e processada pelo servidor');
         }
         return result;
       } else {
@@ -192,7 +194,7 @@ class AutomationService {
       }
 
       const result: PhotoData = await response.json();
-      console.log('📷 Foto recuperada com sucesso');
+      logger.info('📷 Foto recuperada com sucesso');
       return result;
 
     } catch (error) {

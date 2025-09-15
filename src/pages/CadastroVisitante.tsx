@@ -22,6 +22,7 @@ import hikVisionWebSDK from '@/services/webSDKService';
 import logoCondominio from '@/assets/logo-condominio.png';
 import { supabase } from '@/integrations/supabase/client';
 import { CameraCapture } from '@/components/ui/camera-capture';
+import { logger } from '@/utils/secureLogger';
 
 interface VisitanteData {
   nome: string;
@@ -189,7 +190,7 @@ export default function CadastroVisitante() {
     setIsSubmitting(true);
     
     try {
-      console.log('🚀 Iniciando cadastro de visitante nos coletores...');
+      logger.info('🚀 Iniciando cadastro de visitante nos coletores...');
       
       // 1. Criar usuário no HikCentral via WebSDK
       const visitorData = {
@@ -245,7 +246,7 @@ export default function CadastroVisitante() {
         
         // 3. Foto já foi enviada durante a criação do usuário via WebSDK
         if (formData.foto) {
-          console.log('✅ Foto incluída no cadastro dos coletores');
+          logger.info('✅ Foto incluída no cadastro dos coletores');
         }
         
         // 4. Marcar link como usado

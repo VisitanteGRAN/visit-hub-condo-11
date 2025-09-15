@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { logger } from '@/utils/secureLogger';
 
 export interface ISAPIConfig {
   baseUrl: string;
@@ -40,7 +41,7 @@ export class HikCentralISAPIService {
   // Autenticação ISAPI
   async authenticate(): Promise<boolean> {
     try {
-      console.log('🔐 Autenticando com HikCentral ISAPI...');
+      logger.info('🔐 Autenticando com HikCentral ISAPI...');
       
       // ISAPI usa autenticação básica HTTP
       const response = await axios.get(`${this.config.baseUrl}/ISAPI/System/deviceInfo`, {
@@ -116,7 +117,7 @@ export class HikCentralISAPIService {
     };
   }): Promise<{ success: boolean; userId?: string; message: string }> {
     try {
-      console.log('👤 Criando usuário via ISAPI:', userData.name);
+      logger.info(console.log('👤 Criando usuário via ISAPI:', { userData: '[SANITIZED]' });
       
       const userConfig = {
         userName: userData.name,
@@ -169,7 +170,7 @@ export class HikCentralISAPIService {
   // Upload de foto para reconhecimento facial
   async uploadFacePhoto(userId: string, photoBase64: string): Promise<boolean> {
     try {
-      console.log('📸 Enviando foto via ISAPI...');
+      logger.info('📸 Enviando foto via ISAPI...');
       
       const response = await axios.post(
         `${this.config.baseUrl}/ISAPI/User/${userId}/face`,
@@ -190,7 +191,7 @@ export class HikCentralISAPIService {
       );
 
       if (response.status === 200) {
-        console.log('✅ Foto enviada via ISAPI');
+        logger.info('✅ Foto enviada via ISAPI');
         return true;
       }
       return false;
@@ -203,7 +204,7 @@ export class HikCentralISAPIService {
   // Controlar acesso (abrir/fechar portão)
   async controlAccess(deviceId: string, action: 'open' | 'close'): Promise<boolean> {
     try {
-      console.log(`🚪 ${action === 'open' ? 'Abrindo' : 'Fechando'} portão via ISAPI...`);
+      logger.info(`🚪 ${action === 'open' ? 'Abrindo' : 'Fechando'} portão via ISAPI...`);
       
       const response = await axios.post(
         `${this.config.baseUrl}/ISAPI/Device/${deviceId}/control`,
@@ -224,7 +225,7 @@ export class HikCentralISAPIService {
       );
 
       if (response.status === 200) {
-        console.log(`✅ Portão ${action === 'open' ? 'aberto' : 'fechado'} via ISAPI`);
+        logger.info(`✅ Portão ${action === 'open' ? 'aberto' : 'fechado'} via ISAPI`);
         return true;
       }
       return false;
@@ -237,7 +238,7 @@ export class HikCentralISAPIService {
   // Testar conexão completa
   async testConnection(): Promise<{ success: boolean; message: string; details?: any }> {
     try {
-      console.log('🔍 Testando conexão com HikCentral ISAPI...');
+      logger.info('🔍 Testando conexão com HikCentral ISAPI...');
       
       const isAuthenticated = await this.authenticate();
       if (!isAuthenticated) {

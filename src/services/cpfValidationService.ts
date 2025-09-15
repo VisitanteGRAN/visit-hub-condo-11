@@ -1,3 +1,5 @@
+import { logger } from '@/utils/secureLogger';
+
 export interface CPFData {
   cpf: string;
   nome: string;

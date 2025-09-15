@@ -6,6 +6,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, Search, User, UserCheck, Clock } from 'lucide-react';
 import { cpfVerificationService, type CPFVerificationResult, type VisitanteExistente } from '@/services/cpfVerificationService';
 import { toast } from 'sonner';
+import { logger } from '@/utils/secureLogger';
 
 interface CPFVerificationStepProps {
   onContinueAsNew: () => void;
@@ -72,11 +73,11 @@ export default function CPFVerificationStep({
   const handleContinueWithReactivation = async () => {
     // ⭐ PREVENIR MÚLTIPLOS CLIQUES
     if (isProcessingReactivation) {
-      console.log('⚠️ Reativação já em andamento - ignorando clique');
+      logger.info('⚠️ Reativação já em andamento - ignorando clique');
       return;
     }
 
-    console.log('🔄 Botão reativar clicado');
+    logger.info('🔄 Botão reativar clicado');
     
     if (verificationResult?.visitante) {
       setIsProcessingReactivation(true);
@@ -90,7 +91,7 @@ export default function CPFVerificationStep({
         setIsProcessingReactivation(false);
       }
     } else {
-      console.log('❌ Nenhum visitante encontrado para reativação');
+      logger.info('❌ Nenhum visitante encontrado para reativação');
     }
   };
 

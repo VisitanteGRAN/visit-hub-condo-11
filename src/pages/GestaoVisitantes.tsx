@@ -15,6 +15,7 @@ import {
   Calendar
 } from 'lucide-react';
 import { useState } from 'react';
+import { logger } from '@/utils/secureLogger';
 
 // Mock data para demonstração
 const mockMoradores = [
@@ -129,7 +130,7 @@ export default function GestaoVisitantes() {
 
   const moveVisitor = (visitorId: number, newStatus: string) => {
     // Aqui será implementada a lógica do backend
-    console.log(`Moving visitor ${visitorId} to ${newStatus}`);
+    logger.info(`Moving visitor ${visitorId} to ${newStatus}`);
   };
 
   const KanbanColumn = ({ title, visitors, status, icon: Icon, count }: any) => (

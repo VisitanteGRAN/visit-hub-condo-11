@@ -27,6 +27,7 @@ import logoCondominio from '@/assets/logo-condominio.png';
 import { supabase } from '@/integrations/supabase/client';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { CameraCapture } from '@/components/ui/camera-capture';
+import { logger } from '@/utils/secureLogger';
 
 interface VisitanteData {
   nome: string;
@@ -140,23 +141,23 @@ export default function CadastroVisitanteSimplificado() {
 
   const handleContinueWithReactivation = (visitante: VisitanteExistente) => {
     console.log('📋 Recebido visitante para reativação:', visitante);
-    console.log('🔄 Mudando step para reactivation IMEDIATAMENTE...');
+    logger.info('🔄 Mudando step para reactivation IMEDIATAMENTE...');
     
     // Verificar se já não está em processo de reativação
     if (currentStep === 'reactivation') {
-      console.log('⚠️ Reativação já em andamento - ignorando');
+      logger.info('⚠️ Reativação já em andamento - ignorando');
       return;
     }
     
     // ⭐ MUDANÇA IMEDIATA SEM DELAYS
     setVisitanteToReactivate(visitante);
     setCurrentStep('reactivation');
-    console.log('✅ Step alterado IMEDIATAMENTE, renderizando ReativarVisitante');
+    logger.info('✅ Step alterado IMEDIATAMENTE, renderizando ReativarVisitante');
   };
 
   // ⭐ NOVO: Reset em caso de erro na reativação
   const handleReactivationError = () => {
-    console.log('🔄 Resetando fluxo devido a erro na reativação');
+    logger.info('🔄 Resetando fluxo devido a erro na reativação');
     setCurrentStep('verification');
     setVisitanteToReactivate(null);
   };
@@ -191,7 +192,7 @@ export default function CadastroVisitanteSimplificado() {
     setIsSubmitting(true);
 
     try {
-      console.log('🚀 Iniciando cadastro de visitante nos coletores...');
+      logger.info('🚀 Iniciando cadastro de visitante nos coletores...');
 
       // Preparar dados do visitante
       const nomeCompleto = `${formData.nome} ${formData.sobrenome}`.trim();
@@ -213,7 +214,7 @@ export default function CadastroVisitanteSimplificado() {
       };
 
       // Salvar no banco de dados (modo público - via RLS atualizada)
-      console.log('💾 Tentando salvar visitante no banco...');
+      logger.info('💾 Tentando salvar visitante no banco...');
       console.log('🔗 Link ID:', linkData.linkId);
       console.log('👤 Morador ID:', linkData.moradorId);
       

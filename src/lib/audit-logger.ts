@@ -1,4 +1,5 @@
 // import { supabaseAdmin } from './supabase-admin';
+import { logger } from '@/utils/secureLogger';
 
 interface AuditLogData {
   user_id?: string;

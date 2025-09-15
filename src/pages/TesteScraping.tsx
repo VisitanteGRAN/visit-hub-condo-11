@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { hikCentralScrapingService } from '@/services/hikCentralScrapingService';
+import { logger } from '@/utils/secureLogger';
 
 export default function TesteScraping() {
   const [hikCentralUrl, setHikCentralUrl] = useState('http://192.168.1.200:3389');

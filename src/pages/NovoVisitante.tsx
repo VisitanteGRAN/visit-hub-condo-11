@@ -19,6 +19,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/utils/secureLogger';
 
 export default function NovoVisitante() {
   const navigate = useNavigate();
@@ -138,7 +139,7 @@ export default function NovoVisitante() {
     <div 
       className="min-h-screen bg-background relative overflow-hidden"
       style={{
-        backgroundImage: 'url(/lovable-uploads/88120252-9c46-4bf9-a5c8-48a57400b8be.png)',
+        backgroundImage: 'url(/icon-512x512.png)',
         backgroundSize: 'contain',
         backgroundRepeat: 'no-repeat',
         backgroundPosition: 'center',

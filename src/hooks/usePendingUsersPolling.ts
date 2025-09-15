@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { logger } from '@/utils/secureLogger';
 
 interface PendingUser {
   id: string;
@@ -50,7 +51,7 @@ export function usePendingUsersPolling(
 
   const loadPendingUsers = useCallback(async () => {
     try {
-      console.log('🔄 Verificando usuários pendentes...');
+      logger.info('🔄 Verificando usuários pendentes...');
       
       const { data, error } = await supabase
         .from('usuarios')
@@ -114,9 +115,9 @@ export function usePendingUsersPolling(
             oscillator.start(audioContext.currentTime);
             oscillator.stop(audioContext.currentTime + 0.3);
             
-            console.log('🔊 Som de notificação reproduzido');
+            logger.info('🔊 Som de notificação reproduzido');
           } catch (error) {
-            console.log('🔊 Som não disponível, usando notificação padrão');
+            logger.info('🔊 Som não disponível, usando notificação padrão');
           }
 
           // 🎉 TOAST COM SOM E AÇÃO
@@ -132,7 +133,7 @@ export function usePendingUsersPolling(
             }
           });
           
-          console.log(`🎉 Detectados ${newUsers.length} novos cadastros com notificação + som`);
+          logger.info(`🎉 Detectados ${newUsers.length} novos cadastros com notificação + som`);
         }
       }
 
@@ -157,7 +158,7 @@ export function usePendingUsersPolling(
       clearInterval(intervalRef.current);
     }
 
-    console.log(`▶️ Iniciando polling a cada ${intervalMs}ms`);
+    logger.info(`▶️ Iniciando polling a cada ${intervalMs}ms`);
     setIsPolling(true);
     
     // Primeira execução imediata
@@ -169,7 +170,7 @@ export function usePendingUsersPolling(
 
   const stopPolling = useCallback(() => {
     if (intervalRef.current) {
-      console.log('⏹️ Parando polling');
+      logger.info('⏹️ Parando polling');
       clearInterval(intervalRef.current);
       intervalRef.current = null;
     }

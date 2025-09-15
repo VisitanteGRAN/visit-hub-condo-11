@@ -9,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { usePendingUsersPolling } from '@/hooks/usePendingUsersPolling';
 import NotificationSettings from '@/components/NotificationSettings';
+import { logger } from '@/utils/secureLogger';
 
 interface PendingUser {
   id: string;
@@ -82,7 +83,7 @@ export default function AdminApprovals() {
       }
 
       if (data && data.length === 0) {
-        console.error('⚠️ Nenhum usuário foi atualizado');
+        logger.error('⚠️ Nenhum usuário foi atualizado');
         toast.error('Usuário não encontrado para aprovação');
         return;
       }

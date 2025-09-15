@@ -5,6 +5,7 @@
  */
 
 import automationService, { VisitorAutomationData } from './automationService';
+import { logger } from '@/utils/secureLogger';
 
 export class HikCentralScrapingService {
   private logs: string[] = [];

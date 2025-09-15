@@ -1,0 +1,29 @@
+{
+  "frontend_pwa": {
+    "token": "frontend_2abfed8539ab81afe02ee00abb77641e",
+    "permissions": [
+      "visitor:create",
+      "visitor:read",
+      "queue:read"
+    ],
+    "rate_limit": 60,
+    "description": "Token para o PWA frontend"
+  },
+  "admin_panel": {
+    "token": "admin_86a03f698161bb228bc0675c5eeda5c8",
+    "permissions": [
+      "*"
+    ],
+    "rate_limit": 120,
+    "description": "Token para painel administrativo"
+  },
+  "internal_system": {
+    "token": "system_cc022e9eab75dda71013be8c7d1831ae",
+    "permissions": [
+      "visitor:*",
+      "hikcentral:*"
+    ],
+    "rate_limit": 300,
+    "description": "Token para sistema interno"
+  }
+}

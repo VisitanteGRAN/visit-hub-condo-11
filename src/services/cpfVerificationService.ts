@@ -1,5 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import { supabaseAdmin } from '@/lib/supabase-admin';
+import { logger } from '@/utils/secureLogger';
 
 export interface VisitanteExistente {
   id: string;
@@ -27,7 +28,7 @@ export class CPFVerificationService {
    */
   async verificarCPF(cpf: string): Promise<CPFVerificationResult> {
     try {
-      console.log('🔍 Verificando CPF no sistema:', cpf);
+      // [REMOVED] Sensitive data log removed for security;
       
       // Limpar CPF (apenas números)
       const cpfLimpo = cpf.replace(/\D/g, '');
@@ -59,7 +60,7 @@ export class CPFVerificationService {
       }
 
       if (!visitante) {
-        console.log('✅ CPF não encontrado - visitante novo');
+        // [REMOVED] Sensitive data log removed for security;
         return {
           exists: false,
           needsReactivation: false,
@@ -198,7 +199,7 @@ export class CPFVerificationService {
       }
 
       if (!visitantesAtualizados || visitantesAtualizados.length === 0) {
-        console.error('❌ UPDATE não retornou dados. Possível problema de RLS ou permissão.');
+        logger.error('❌ UPDATE não retornou dados. Possível problema de RLS ou permissão.');
         throw new Error('Nenhum visitante foi atualizado - verifique permissões RLS');
       }
 
@@ -206,7 +207,7 @@ export class CPFVerificationService {
       const visitanteAtualizado = visitantesAtualizados[0];
 
       console.log('✅ Visitante atualizado no banco:', visitanteAtualizado);
-      console.log(`📊 Total de registros atualizados: ${visitantesAtualizados.length}`);
+      logger.info(`📊 Total de registros atualizados: ${visitantesAtualizados.length}`);
 
       // Buscar nome do morador separadamente - USANDO ADMIN
       const { data: moradorData } = await supabaseAdmin

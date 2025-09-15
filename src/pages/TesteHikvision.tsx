@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import hikVisionWebSDK from '@/services/webSDKService';
+import { logger } from '@/utils/secureLogger';
 
 export default function TesteHikvision() {
   const [connectivityResults, setConnectivityResults] = useState<any[]>([]);

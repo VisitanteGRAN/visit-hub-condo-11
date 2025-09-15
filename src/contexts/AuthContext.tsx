@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User as SupabaseUser } from '@supabase/supabase-js';
 import { AuditLogger } from '@/lib/audit-logger';
+import { logger } from '@/utils/secureLogger';
 
 export type UserRole = 'admin' | 'morador';
 
@@ -55,16 +56,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Listener para mudanças de autenticação
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('🔄 Auth state changed:', event, session?.user?.email);
+        logger.auth('Auth state changed', !!session, session?.user?.email);
         
         // Evitar reprocessar se já estamos processando
         if (isLoading) return;
         
         if (event === 'SIGNED_IN' && session?.user && !user) {
-          console.log('🔑 SIGNED_IN detectado, verificando perfil...');
+          logger.info('🔑 SIGNED_IN detectado, verificando perfil...');
           await loadUserProfile(session.user);
         } else if (event === 'SIGNED_OUT') {
-          console.log('🚪 SIGNED_OUT detectado, limpando estado...');
+          logger.info('🚪 SIGNED_OUT detectado, limpando estado...');
           setUser(null);
         }
       }
@@ -88,7 +89,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         // Se não encontrou o perfil, vamos criar um básico
         if (error.code === 'PGRST116') {
-          console.log('⚠️ Perfil não encontrado, criando perfil básico...');
+          logger.info('⚠️ Perfil não encontrado, criando perfil básico...');
           
           // Determinar o perfil baseado no email
           const isAdmin = supabaseUser.email?.includes('admin');
@@ -140,13 +141,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Se for morador, verificar aprovação RIGOROSAMENTE
         if (profile.perfil === 'morador') {
           console.log('🏠 Verificando status do morador:', { email: profile.email, ativo: profile.ativo, status: profile.status });
-          console.log('🔍 VERIFICAÇÃO RIGOROSA: Morador deve ter ativo=true E status=ativo');
+          logger.info('🔍 VERIFICAÇÃO RIGOROSA: Morador deve ter ativo=true E status=ativo');
           
           // VERIFICAÇÃO TRIPLA: ativo deve ser true E status deve ser 'ativo'
           const isApproved = profile.ativo === true && profile.status === 'ativo';
           
           if (!isApproved) {
-            console.log('❌ ACESSO NEGADO: Morador não aprovado');
+            logger.info('❌ ACESSO NEGADO: Morador não aprovado');
             console.log('📋 Status atual:', { ativo: profile.ativo, status: profile.status, aprovado: isApproved });
             
             // FORÇA LOGOUT IMEDIATO
@@ -156,12 +157,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             throw new Error(`🚫 ACESSO NEGADO: Sua conta ainda não foi aprovada pelo administrador. Status: ${profile.status}. Contate o administrador.`);
           }
           
-          console.log('✅ ACESSO LIBERADO: Morador aprovado com sucesso');
+          logger.info('✅ ACESSO LIBERADO: Morador aprovado com sucesso');
         }
         
         // Admin sempre pode logar (mas verificar se é realmente admin)
         if (profile.perfil === 'admin' && !profile.ativo) {
-          console.log('❌ Conta de administrador inativa');
+          logger.info('❌ Conta de administrador inativa');
           await supabase.auth.signOut();
           throw new Error('Conta de administrador inativa. Contate o suporte.');
         }
@@ -205,10 +206,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(true);
     
     try {
-      console.log('🔐 Tentando login com:', email, role);
+      logger.auth('Login attempt', false, email);
       
       // 🚫 VERIFICAÇÃO DE APROVAÇÃO ANTES DO LOGIN SUPABASE
-      console.log('🔍 Verificando aprovação antes do login...');
+      logger.info('🔍 Verificando aprovação antes do login');
       
       // Buscar perfil do usuário na tabela usuarios ANTES do login
       const { data: userProfile, error: profileError } = await supabase
@@ -230,28 +231,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       // Se for morador, verificar aprovação ANTES do login
       if (userProfile.perfil === 'morador') {
-        console.log('🏠 Verificando aprovação do morador...');
+        logger.info('🏠 Verificando aprovação do morador...');
         console.log('📋 Status do morador:', { 
           ativo: userProfile.ativo, 
           status: userProfile.status 
         });
 
         // Debug detalhado
-        console.log('🔍 DEBUG DETALHADO:');
+        logger.info('🔍 DEBUG DETALHADO:');
         console.log('- userProfile.ativo:', userProfile.ativo, typeof userProfile.ativo);
         console.log('- userProfile.status:', userProfile.status, typeof userProfile.status);
         console.log('- Comparação ativo === true:', userProfile.ativo === true);
-        console.log('- Comparação status === "ativo":', userProfile.status === 'ativo');
+        logger.info('- Comparação status === "ativo":', userProfile.status === 'ativo');
 
         if (!userProfile.ativo || userProfile.status !== 'ativo') {
-          console.log('🚫 ACESSO NEGADO: Morador não aprovado');
+          logger.info('🚫 ACESSO NEGADO: Morador não aprovado');
           console.log('- Falhou em ativo:', !userProfile.ativo);
-          console.log('- Falhou em status:', userProfile.status !== 'ativo');
+          logger.info('- Falhou em status:', userProfile.status !== 'ativo');
           throw new Error(`🚫 ACESSO NEGADO: Sua conta ainda não foi aprovada pelo administrador. Status: ${userProfile.status}. Entre em contato com a administração.`);
         }
       }
 
-      console.log('✅ Verificação de aprovação passou. Prosseguindo com login...');
+      logger.info('✅ Verificação de aprovação passou. Prosseguindo com login...');
       
       // ✅ APENAS APÓS VERIFICAR APROVAÇÃO, FAZER LOGIN VIA SUPABASE
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -264,7 +265,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         // Se o erro for "Email not confirmed", vamos tentar confirmar automaticamente
         if (error.message.includes('Email not confirmed')) {
-          console.log('📧 Tentando confirmar email automaticamente...');
+          logger.info('📧 Tentando confirmar email automaticamente...');
           
           // Tentar fazer login novamente (às vezes funciona mesmo sem confirmação)
           const { data: retryData, error: retryError } = await supabase.auth.signInWithPassword({
@@ -287,7 +288,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       if (data.user) {
-        console.log('✅ Login Supabase bem-sucedido:', data.user.email);
+        logger.auth('Login Supabase successful', true, data.user.email);
         await AuditLogger.logLogin(data.user.email || '', true);
         await loadUserProfile(data.user);
         return true;
@@ -299,7 +300,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return false;
     } finally {
       setIsLoading(false);
-      console.log('🔄 Estado isLoading resetado');
+      logger.info('🔄 Estado isLoading resetado');
     }
   };
 
@@ -359,7 +360,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           // Não vamos falhar aqui, pois o usuário já foi criado no Auth
         }
 
-        console.log('✅ Cadastro criado! Aguardando aprovação do administrador.');
+        logger.info('✅ Cadastro criado! Aguardando aprovação do administrador.');
         
         // ❌ NÃO fazer login automático - aguardar aprovação
         // await loadUserProfile(data.user);
@@ -371,7 +372,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return false;
     } finally {
       setIsLoading(false);
-      console.log('🔄 Estado isLoading resetado');
+      logger.info('🔄 Estado isLoading resetado');
     }
   };
 

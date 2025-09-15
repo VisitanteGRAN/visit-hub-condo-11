@@ -9,6 +9,7 @@ import { User, Home, CreditCard, Mail, Lock, Building2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import logoCondominio from '@/assets/logo-condominio.png';
+import { logger } from '@/utils/secureLogger';
 
 interface CadastroMoradorData {
   nome: string;
@@ -131,7 +132,7 @@ export default function CadastroMorador() {
     setIsSubmitting(true);
     
     try {
-      console.log('🏠 Registrando novo morador:', formData.email);
+      logger.info(console.log('🏠 Registrando novo morador:', { formData: '[SANITIZED]' });
       
       const enderecoCompleto = `${formData.rua}, ${formData.numeroRua}`;
       

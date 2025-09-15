@@ -1,5 +1,6 @@
 import { hikCentralService } from './hikvisionService';
 import { hikCentralScrapingService } from './hikCentralScrapingService';
+import { logger } from '@/utils/secureLogger';
 
 export interface VisitorData {
   nome: string;
@@ -39,7 +40,7 @@ export class HikVisionWebSDKService {
   ];
 
   async createVisitorInHikCentral(visitor: VisitorData): Promise<WebSDKResponse> {
-    console.log(`🚪 Criando visitante via FILA SUPABASE: ${visitor.nome}`);
+    logger.info(`🚪 Criando visitante via FILA SUPABASE: ${visitor.nome}`);
     
     try {
       const validadeDias = visitor.validadeDias || 1;
@@ -47,7 +48,7 @@ export class HikVisionWebSDKService {
       validadeAte.setDate(validadeAte.getDate() + validadeDias);
       validadeAte.setHours(23, 59, 59, 999);
 
-      console.log('📤 Enviando visitante para fila de processamento...');
+      logger.info('📤 Enviando visitante para fila de processamento...');
       
       // Importar serviço de fila
       const { queueService } = await import('./queueService');
@@ -66,7 +67,7 @@ export class HikVisionWebSDKService {
         photo_base64: visitor.foto // ⭐ FOTO EM BASE64
       };
       
-      console.log('📸 Foto incluída:', visitor.foto ? 'SIM' : 'NÃO');
+      logger.info('📸 Foto incluída:', visitor.foto ? 'SIM' : 'NÃO');
       console.log('📋 Dados que serão enviados para fila:', queueData);
       
       const result = await queueService.sendToQueue(queueData);
@@ -102,7 +103,7 @@ export class HikVisionWebSDKService {
 
   // Fallback: Criar diretamente nos coletores se proxy falhar
   async createUserInCollectorsFallback(visitor: VisitorData): Promise<WebSDKResponse> {
-    console.log('🔄 Usando fallback: criação direta nos coletores...');
+    logger.info('🔄 Usando fallback: criação direta nos coletores...');
     
     const validadeDias = visitor.validadeDias || 1;
     const validadeAte = new Date();
@@ -112,7 +113,7 @@ export class HikVisionWebSDKService {
     const results = await this.createUserInCollectors(visitor);
     
     if (results.successCount > 0) {
-      console.log(`✅ Visitante criado em ${results.successCount}/${results.total} coletores (fallback)`);
+      logger.info(`✅ Visitante criado em ${results.successCount}/${results.total} coletores (fallback)`);
       return {
         success: true,
         message: `Visitante ${visitor.nome} criado em ${results.successCount} coletores (método direto)`,
@@ -136,7 +137,7 @@ export class HikVisionWebSDKService {
     total: number;
     errors: string[];
   }> {
-    console.log('🔄 Criando usuário diretamente nos coletores via ISAPI...');
+    logger.info('🔄 Criando usuário diretamente nos coletores via ISAPI...');
     
     const results = {
       successCount: 0,
@@ -149,7 +150,7 @@ export class HikVisionWebSDKService {
     
     for (const collector of this.collectors) {
       try {
-        console.log(`📡 Criando usuário no coletor: ${collector.name}`);
+        logger.info(`📡 Criando usuário no coletor: ${collector.name}`);
         
         // Dados do usuário para ISAPI
         const userData = {
@@ -174,7 +175,7 @@ export class HikVisionWebSDKService {
         // Enviar via ISAPI (simulação por enquanto)
         await new Promise(resolve => setTimeout(resolve, 500));
         
-        console.log(`✅ Usuário criado no coletor: ${collector.name}`);
+        logger.info(`✅ Usuário criado no coletor: ${collector.name}`);
         results.successCount++;
         
       } catch (error) {
@@ -188,13 +189,13 @@ export class HikVisionWebSDKService {
 
   // Método principal para criar visitante
   async createVisitorInAllDevices(visitor: VisitorData): Promise<WebSDKResponse> {
-    console.log(`🎯 Criando visitante completo: ${visitor.nome}`);
+    logger.info(`🎯 Criando visitante completo: ${visitor.nome}`);
     
     // Usar método direto via ISAPI enquanto HikCentral tem problema de HTTPS
     const result = await this.createVisitorInHikCentral(visitor);
     
     if (result.success) {
-      console.log('✅ Visitante criado e distribuído para coletores');
+      logger.info('✅ Visitante criado e distribuído para coletores');
       return {
         success: true,
         message: `Visitante ${visitor.nome} criado com sucesso`,
@@ -231,7 +232,7 @@ export class HikVisionWebSDKService {
 
   async testConnection(): Promise<WebSDKResponse> {
     try {
-      console.log('🧪 Testando conexão direta com coletores...');
+      logger.info('🧪 Testando conexão direta com coletores...');
       
       let connectionsOk = 0;
       for (const collector of this.collectors) {
@@ -239,9 +240,9 @@ export class HikVisionWebSDKService {
           // Simular ping/teste de conectividade
           await new Promise(resolve => setTimeout(resolve, 200));
           connectionsOk++;
-          console.log(`✅ ${collector.name}: Conectado`);
+          logger.info(`✅ ${collector.name}: Conectado`);
         } catch (error) {
-          console.log(`❌ ${collector.name}: Falha`);
+          logger.info(`❌ ${collector.name}: Falha`);
         }
       }
       
@@ -265,13 +266,13 @@ export class HikVisionWebSDKService {
 
   // Testar conectividade com coletores
   async testCollectorConnectivity(): Promise<{ success: boolean; results: any[] }> {
-    console.log('🔍 Testando conectividade com coletores...');
+    logger.info('🔍 Testando conectividade com coletores...');
     
     const results = [];
     
     for (const collector of this.collectors) {
       try {
-        console.log(`📡 Testando coletor: ${collector.name}`);
+        logger.info(`📡 Testando coletor: ${collector.name}`);
         
         // Teste 1: Informações do dispositivo
         const deviceInfoResponse = await fetch(`${collector.ip}/ISAPI/System/deviceInfo`, {
@@ -329,7 +330,7 @@ export class HikVisionWebSDKService {
     }
     
     const onlineCount = results.filter(r => r.status === 'ONLINE').length;
-    console.log(`📊 Resultado: ${onlineCount}/${this.collectors.length} coletores online`);
+    logger.info(`📊 Resultado: ${onlineCount}/${this.collectors.length} coletores online`);
     
     return {
       success: onlineCount > 0,
@@ -339,13 +340,13 @@ export class HikVisionWebSDKService {
 
   // Verificar se usuário existe no coletor
   async checkUserExists(cpf: string): Promise<{ success: boolean; results: any[] }> {
-    console.log(`🔍 Verificando se usuário ${cpf} existe nos coletores...`);
+    // [REMOVED] Sensitive data log removed for security;
     
     const results = [];
     
     for (const collector of this.collectors) {
       try {
-        console.log(`📡 Verificando no coletor: ${collector.name}`);
+        logger.info(`📡 Verificando no coletor: ${collector.name}`);
         
         // Buscar usuário por CPF
         const searchResponse = await fetch(`${collector.ip}/ISAPI/AccessControl/UserInfo/Search`, {
@@ -366,7 +367,7 @@ export class HikVisionWebSDKService {
           const searchResult = await searchResponse.text();
           const exists = searchResult.includes(cpf);
           
-          console.log(`🔍 Usuário ${cpf} no coletor ${collector.name}: ${exists ? 'ENCONTRADO' : 'NÃO ENCONTRADO'}`);
+          // [REMOVED] Sensitive data log removed for security;
           
           results.push({
             collector: collector.name,
@@ -393,7 +394,7 @@ export class HikVisionWebSDKService {
     }
     
     const foundCount = results.filter(r => r.status === 'SUCCESS' && r.exists).length;
-    console.log(`📊 Resultado: ${foundCount}/${this.collectors.length} coletores têm o usuário`);
+    logger.info(`📊 Resultado: ${foundCount}/${this.collectors.length} coletores têm o usuário`);
     
     return {
       success: foundCount > 0,

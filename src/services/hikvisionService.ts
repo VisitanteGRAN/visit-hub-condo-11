@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { logger } from '@/utils/secureLogger';
 
 export interface HikCentralConfig {
   baseUrl: string;
@@ -42,7 +43,7 @@ export class HikCentralService {
   // Autenticação com HikCentral usando a API correta
   async authenticate(): Promise<boolean> {
     try {
-      console.log('🔐 Autenticando com HikCentral...');
+      logger.info('🔐 Autenticando com HikCentral...');
       
       // HikCentral usa autenticação via POST /api/system/v2/login
       const response = await axios.post(`${this.config.baseUrl}/api/system/v2/login`, {
@@ -126,7 +127,7 @@ export class HikCentralService {
     };
   }): Promise<{ success: boolean; userId?: string; message: string }> {
     try {
-      console.log('👤 Criando usuário no HikCentral:', userData.name);
+      logger.info(console.log('👤 Criando usuário no HikCentral:', { userData: '[SANITIZED]' });
       
       if (!this.sessionId) {
         await this.authenticate();
@@ -180,7 +181,7 @@ export class HikCentralService {
   // Upload de foto para reconhecimento facial
   async uploadFacePhoto(userId: string, photoBase64: string): Promise<boolean> {
     try {
-      console.log('📸 Enviando foto para reconhecimento facial...');
+      logger.info('📸 Enviando foto para reconhecimento facial...');
       
       if (!this.sessionId) {
         await this.authenticate();
@@ -202,7 +203,7 @@ export class HikCentralService {
       );
 
       if (response.data.code === 0) {
-        console.log('✅ Foto enviada com sucesso para reconhecimento facial');
+        logger.info('✅ Foto enviada com sucesso para reconhecimento facial');
         return true;
       }
       return false;
@@ -285,7 +286,7 @@ export class HikCentralService {
   // Controlar acesso (abrir/fechar portão)
   async controlAccess(deviceId: string, action: 'open' | 'close'): Promise<boolean> {
     try {
-      console.log(`🚪 ${action === 'open' ? 'Abrindo' : 'Fechando'} portão...`);
+      logger.info(`🚪 ${action === 'open' ? 'Abrindo' : 'Fechando'} portão...`);
       
       if (!this.sessionId) {
         await this.authenticate();
@@ -307,7 +308,7 @@ export class HikCentralService {
       );
 
       if (response.data.code === 0) {
-        console.log(`✅ Portão ${action === 'open' ? 'aberto' : 'fechado'} com sucesso`);
+        logger.info(`✅ Portão ${action === 'open' ? 'aberto' : 'fechado'} com sucesso`);
         return true;
       }
       return false;
@@ -320,7 +321,7 @@ export class HikCentralService {
   // Testar conexão completa
   async testConnection(): Promise<{ success: boolean; message: string; details?: any }> {
     try {
-      console.log('🔍 Testando conexão com HikCentral...');
+      logger.info('🔍 Testando conexão com HikCentral...');
       
       const isAuthenticated = await this.authenticate();
       if (!isAuthenticated) {

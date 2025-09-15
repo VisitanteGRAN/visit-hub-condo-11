@@ -1,5 +1,6 @@
 // Serviço temporário - será integrado com o banco quando as tabelas forem criadas
 import { CPFValidationService } from './cpfValidationService';
+import { logger } from '@/utils/secureLogger';
 
 export interface InviteLink {
   id: string;

@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Building2, Lock, Mail, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
+import { logger } from '@/utils/secureLogger';
 
 export default function Login() {
   const [email, setEmail] = useState('');

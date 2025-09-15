@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { Settings, Wifi, Users, TestTube, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import hikVisionWebSDK, { DeviceConfig, WebSDKResponse } from '@/services/webSDKService';
+import { logger } from '@/utils/secureLogger';
 
 export default function ConfiguracaoHikvision() {
   const { toast } = useToast();
@@ -27,7 +28,7 @@ export default function ConfiguracaoHikvision() {
   const handleLoadCollectors = async () => {
     setIsLoading(true);
     try {
-      console.log('🔄 Carregando lista de coletores...');
+      logger.info('🔄 Carregando lista de coletores...');
       
       const collectorList = hikVisionWebSDK.getCollectors();
       setCollectors(collectorList);
@@ -54,7 +55,7 @@ export default function ConfiguracaoHikvision() {
     setTestResults(null);
     
     try {
-      console.log('🧪 Iniciando teste de conectividade...');
+      logger.info('🧪 Iniciando teste de conectividade...');
       
       toast({
         title: "🔄 Testando conectividade",
@@ -104,7 +105,7 @@ export default function ConfiguracaoHikvision() {
     setIsLoading(true);
     
     try {
-      console.log('👤 Testando criação de usuário...');
+      logger.info('👤 Testando criação de usuário...');
       
       toast({
         title: "🔄 Testando criação",

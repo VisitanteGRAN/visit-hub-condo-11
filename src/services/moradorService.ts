@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import { logger } from '@/utils/secureLogger';
 
 export interface MoradorData {
   id: string;
@@ -17,7 +18,7 @@ export class MoradorService {
    */
   async buscarMoradorPorCPF(cpf: string): Promise<MoradorData | null> {
     try {
-      console.log('🔍 Buscando morador por CPF:', cpf);
+      // [REMOVED] Sensitive data log removed for security;
       
       // Limpar CPF (remover formatação)
       const cpfLimpo = cpf.replace(/\D/g, '');
@@ -32,7 +33,7 @@ export class MoradorService {
 
       if (error) {
         if (error.code === 'PGRST116') {
-          console.log('⚠️ Morador não encontrado para CPF:', cpfLimpo);
+          // [REMOVED] Sensitive data log removed for security;
           return null;
         }
         throw error;
