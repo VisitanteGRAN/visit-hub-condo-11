@@ -164,11 +164,17 @@ export default function CadastroVisitanteSimplificado() {
   const validateForm = () => {
     const errors = [];
 
+    // ✅ CAMPOS OBRIGATÓRIOS
     if (!formData.nome.trim()) errors.push('Nome é obrigatório');
+    if (!formData.sobrenome.trim()) errors.push('Sobrenome é obrigatório');
     if (!formData.cpf.trim()) errors.push('CPF é obrigatório');
     if (!formData.telefone.trim()) errors.push('Telefone é obrigatório');
     if (!formData.documento.trim()) errors.push('Documento é obrigatório');
+    if (!formData.tipoDocumento.trim()) errors.push('Tipo de documento é obrigatório');
+    if (!formData.genero.trim()) errors.push('Gênero é obrigatório');
     if (!formData.foto) errors.push('Foto é obrigatória para reconhecimento facial');
+
+    // ❌ CAMPOS OPCIONAIS: placaVeiculo e observacoes
 
     return errors;
   };
@@ -252,7 +258,7 @@ export default function CadastroVisitanteSimplificado() {
       // Marcar link como usado
       await supabase
         .from('links_convite')
-        .update({ usado: true } as any)
+        .update({ usado: true })
         .eq('id', linkData.linkId);
 
       toast.success('Cadastro realizado com sucesso!');
@@ -377,12 +383,13 @@ export default function CadastroVisitanteSimplificado() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="sobrenome">Sobrenome</Label>
+                  <Label htmlFor="sobrenome">Sobrenome *</Label>
                   <Input
                     id="sobrenome"
                     value={formData.sobrenome}
                     onChange={(e) => handleInputChange('sobrenome', e.target.value)}
-                    placeholder="Sobrenome (opcional)"
+                    placeholder="Seu sobrenome"
+                    required
                   />
                 </div>
               </div>
@@ -434,10 +441,11 @@ export default function CadastroVisitanteSimplificado() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="tipoDocumento">Tipo de Documento</Label>
+                  <Label htmlFor="tipoDocumento">Tipo de Documento *</Label>
                   <Select 
                     value={formData.tipoDocumento} 
                     onValueChange={(value) => handleInputChange('tipoDocumento', value)}
+                    required
                   >
                     <SelectTrigger>
                       <SelectValue />

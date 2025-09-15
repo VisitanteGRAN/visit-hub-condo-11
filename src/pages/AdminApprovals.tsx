@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { User, CheckCircle, XCircle, Clock, Mail, Home, Phone, ArrowLeft } from 'lucide-react';
+import { User, CheckCircle, XCircle, Clock, Mail, Home, Phone, ArrowLeft, FileText } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -236,7 +236,7 @@ export default function AdminApprovals() {
               </CardHeader>
               
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                   <div className="flex items-center gap-2">
                     <Mail className="h-4 w-4 text-muted-foreground" />
                     <span className="text-sm">{user.email}</span>
@@ -251,6 +251,13 @@ export default function AdminApprovals() {
                     <div className="flex items-center gap-2">
                       <Phone className="h-4 w-4 text-muted-foreground" />
                       <span className="text-sm">{user.telefone}</span>
+                    </div>
+                  )}
+                  
+                  {user.cpf && (
+                    <div className="flex items-center gap-2">
+                      <FileText className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm">{user.cpf}</span>
                     </div>
                   )}
                 </div>
