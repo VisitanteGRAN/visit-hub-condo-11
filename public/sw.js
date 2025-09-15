@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gran-royalle-v3.1.0';
+const CACHE_NAME = 'gran-royalle-v3.2.0';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -152,47 +152,113 @@ self.addEventListener('message', (event) => {
   }
 });
 
-// Notificações push (para funcionalidade futura)
+// 🔔 NOTIFICAÇÕES PUSH ADMIN
 self.addEventListener('push', (event) => {
   console.log('📨 Push recebido:', event);
   
-  const options = {
-    body: event.data ? event.data.text() : 'Nova notificação do Gran Royalle',
+  let options = {
+    body: 'Nova pendência de cadastro recebida!',
     icon: '/pwa-icon-192.png',
     badge: '/pwa-icon-192.png',
-    vibrate: [100, 50, 100],
+    tag: 'admin-notification',
+    requireInteraction: true,
+    vibrate: [200, 100, 200],
     data: {
+      url: '/admin/approvals',
       dateOfArrival: Date.now(),
-      primaryKey: 1
+      type: 'admin'
     },
     actions: [
       {
-        action: 'explore',
-        title: 'Ver detalhes',
+        action: 'open',
+        title: 'Abrir Painel',
         icon: '/pwa-icon-192.png'
       },
       {
         action: 'close',
-        title: 'Fechar',
-        icon: '/pwa-icon-192.png'
+        title: 'Fechar'
       }
     ]
   };
 
+  // Parse dos dados se existirem
+  if (event.data) {
+    try {
+      const data = event.data.json();
+      options.title = data.title || 'Gran Royalle - Novo Cadastro';
+      options.body = data.body || options.body;
+      options.data = { ...options.data, ...data };
+    } catch (e) {
+      options.title = 'Gran Royalle - Novo Cadastro';
+      options.body = event.data.text() || options.body;
+    }
+  } else {
+    options.title = 'Gran Royalle - Novo Cadastro';
+  }
+
+  console.log('🔔 Mostrando notificação:', options.title);
+
   event.waitUntil(
-    self.registration.showNotification('Gran Royalle', options)
+    self.registration.showNotification(options.title, options)
   );
 });
 
-// Lidar com cliques em notificações
+// 🖱️ LIDAR COM CLIQUES EM NOTIFICAÇÕES
 self.addEventListener('notificationclick', (event) => {
-  console.log('🔔 Notificação clicada:', event);
+  console.log('🖱️ Notificação clicada:', event);
   
   event.notification.close();
 
-  if (event.action === 'explore') {
-    event.waitUntil(
-      clients.openWindow('/')
-    );
+  if (event.action === 'close') {
+    return;
   }
-}); 
+
+  const urlToOpen = event.notification.data?.url || '/admin/approvals';
+  console.log('🌐 Abrindo URL:', urlToOpen);
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true })
+      .then((clientList) => {
+        console.log('🔍 Clientes encontrados:', clientList.length);
+        
+        // Se já tem uma janela aberta, focar nela e navegar
+        for (const client of clientList) {
+          if (client.url.includes('granroyalle-visitantes') && 'focus' in client) {
+            console.log('✅ Focando cliente existente');
+            client.navigate(urlToOpen);
+            return client.focus();
+          }
+        }
+        
+        // Se não tem janela aberta, abrir nova
+        console.log('🆕 Abrindo nova janela');
+        if (clients.openWindow) {
+          return clients.openWindow(`${self.location.origin}${urlToOpen}`);
+        }
+      })
+      .catch((error) => {
+        console.error('❌ Erro ao abrir notificação:', error);
+      })
+  );
+});
+
+// 🔄 PUSH SUBSCRIPTION CHANGE
+self.addEventListener('pushsubscriptionchange', (event) => {
+  console.log('🔄 Push subscription mudou:', event);
+  
+  event.waitUntil(
+    // Reinscrever automaticamente
+    self.registration.pushManager.subscribe({
+      userVisibleOnly: true
+    }).then((subscription) => {
+      console.log('✅ Nova subscription criada:', subscription);
+      // Aqui poderia enviar nova subscription para o servidor
+      // return fetch('/api/notifications/subscribe', ...);
+    }).catch((error) => {
+      console.error('❌ Erro ao reinscrever:', error);
+    })
+  );
+});
+
+console.log('🚀 Service Worker Gran Royalle v3.2.0 carregado!');
+console.log('🔔 Push Notifications Admin habilitadas!'); 

@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { User, CheckCircle, XCircle, Clock, Mail, Home, Phone, ArrowLeft, FileText } from 'lucide-react';
+import { User, CheckCircle, XCircle, Clock, Mail, Home, Phone, ArrowLeft, FileText, Bell, RefreshCw } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { supabaseAdmin } from '@/lib/supabase-admin';
+import { usePendingUsersPolling } from '@/hooks/usePendingUsersPolling';
+import NotificationSettings from '@/components/NotificationSettings';
 
 interface PendingUser {
   id: string;
@@ -20,37 +22,25 @@ interface PendingUser {
 }
 
 export default function AdminApprovals() {
-  const [pendingUsers, setPendingUsers] = useState<PendingUser[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [processingIds, setProcessingIds] = useState<Set<string>>(new Set());
+  const [showNotificationSettings, setShowNotificationSettings] = useState(false);
 
-  useEffect(() => {
-    loadPendingUsers();
-  }, []);
-
-  const loadPendingUsers = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('usuarios')
-        .select('*')
-        .eq('status', 'pendente')
-        .eq('perfil', 'morador')
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('❌ Erro ao carregar usuários pendentes:', error);
-        toast.error('Erro ao carregar usuários pendentes');
-        return;
-      }
-
-      setPendingUsers(data || []);
-    } catch (error) {
-      console.error('❌ Erro geral:', error);
-      toast.error('Erro ao carregar dados');
-    } finally {
-      setIsLoading(false);
+  // 🔔 POLLING COM NOTIFICAÇÕES
+  const {
+    pendingUsers,
+    isLoading,
+    lastCheck,
+    newUsersCount,
+    refreshData,
+    isPolling
+  } = usePendingUsersPolling({
+    intervalMs: 15000, // 15 segundos
+    enableNotifications: true,
+    onNewUsers: (newUsers) => {
+      console.log('🆕 Novos usuários detectados:', newUsers.length);
+      // Aqui poderia implementar lógica adicional
     }
-  };
+  });
 
   const approveUser = async (userId: string) => {
     setProcessingIds(prev => new Set(prev).add(userId));
@@ -194,9 +184,37 @@ export default function AdminApprovals() {
           </div>
         </div>
         
-        <Badge variant="secondary" className="text-lg px-4 py-2">
-          {pendingUsers.length} pendente{pendingUsers.length !== 1 ? 's' : ''}
-        </Badge>
+        <div className="flex items-center gap-3">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowNotificationSettings(!showNotificationSettings)}
+            className="flex items-center gap-2"
+          >
+            <Bell className="h-4 w-4" />
+            Notificações
+          </Button>
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={refreshData}
+            disabled={isLoading}
+            className="flex items-center gap-2"
+          >
+            <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+            Atualizar
+          </Button>
+          
+          <Badge variant="secondary" className="text-lg px-4 py-2">
+            {pendingUsers.length} pendente{pendingUsers.length !== 1 ? 's' : ''}
+            {newUsersCount > 0 && (
+              <span className="ml-2 bg-red-500 text-white rounded-full px-2 py-1 text-xs">
+                +{newUsersCount}
+              </span>
+            )}
+          </Badge>
+        </div>
       </div>
 
       {pendingUsers.length === 0 ? (
@@ -204,9 +222,17 @@ export default function AdminApprovals() {
           <CardContent className="p-12 text-center">
             <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
             <h3 className="text-xl font-semibold mb-2">Nenhum cadastro pendente</h3>
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground mb-4">
               Todos os cadastros de moradores foram processados.
             </p>
+            <div className="text-sm text-muted-foreground">
+              🔔 O sistema está verificando automaticamente a cada 15 segundos
+              {lastCheck && (
+                <div className="mt-1">
+                  Última verificação: {lastCheck.toLocaleTimeString()}
+                </div>
+              )}
+            </div>
           </CardContent>
         </Card>
       ) : (
@@ -286,6 +312,10 @@ export default function AdminApprovals() {
             </Card>
           ))}
         </div>
+      )}
+      {/* 🔔 CONFIGURAÇÕES DE NOTIFICAÇÃO */}
+      {showNotificationSettings && (
+        <NotificationSettings className="mt-6" />
       )}
     </div>
   );

@@ -2,6 +2,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { 
   Users, 
   UserPlus, 
@@ -9,6 +10,9 @@ import {
   ArrowLeft
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { usePendingUsersPolling } from '@/hooks/usePendingUsersPolling';
+import NotificationSettings from '@/components/NotificationSettings';
+import { useState } from 'react';
 
 function MoradorDashboard() {
   const { user } = useAuth();
@@ -61,6 +65,14 @@ function MoradorDashboard() {
 }
 
 function AdminDashboard() {
+  const [showNotificationSettings, setShowNotificationSettings] = useState(false);
+  
+  // 🔔 POLLING PARA DASHBOARD ADMIN
+  const { pendingUsers, lastCheck } = usePendingUsersPolling({
+    intervalMs: 15000,
+    enableNotifications: true
+  });
+
   return (
     <div className="space-y-6">
       {/* Navegação Admin */}
@@ -76,24 +88,52 @@ function AdminDashboard() {
       {/* Boas-vindas Admin */}
       <Card>
         <CardHeader>
-          <CardTitle>Painel do Administrador</CardTitle>
-          <CardDescription>
-            Gerencie cadastros de moradores
-          </CardDescription>
+          <div className="flex items-start justify-between">
+            <div>
+              <CardTitle>Painel do Administrador</CardTitle>
+              <CardDescription>
+                Gerencie cadastros de moradores
+                {lastCheck && (
+                  <div className="text-xs mt-1">
+                    🔄 Última verificação: {lastCheck.toLocaleTimeString()}
+                  </div>
+                )}
+              </CardDescription>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowNotificationSettings(!showNotificationSettings)}
+              className="flex items-center gap-2"
+            >
+              <Bell className="h-4 w-4" />
+              Configurações
+            </Button>
+          </div>
         </CardHeader>
       </Card>
 
       {/* Ação Principal Admin */}
       <Card className="hover:shadow-lg transition-shadow">
         <CardContent className="p-6">
-          <Button asChild className="w-full h-24 flex-col text-lg">
+          <Button asChild className="w-full h-24 flex-col text-lg relative">
             <Link to="/admin/approvals">
               <Users className="h-8 w-8 mb-2" />
               Gerenciar Cadastros Pendentes
+              {pendingUsers.length > 0 && (
+                <Badge className="absolute top-2 right-2 bg-red-500">
+                  {pendingUsers.length}
+                </Badge>
+              )}
             </Link>
           </Button>
         </CardContent>
       </Card>
+      
+      {/* 🔔 CONFIGURAÇÕES DE NOTIFICAÇÃO */}
+      {showNotificationSettings && (
+        <NotificationSettings />
+      )}
     </div>
   );
 }
