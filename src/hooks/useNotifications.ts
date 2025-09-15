@@ -101,10 +101,10 @@ export function useNotifications(): UseNotificationsReturn {
     try {
       const registration = await navigator.serviceWorker.ready;
       
-      // VAPID key será configurada depois (por enquanto null)
+      // 🔔 USO DO GCM_SENDER_ID DO MANIFEST PARA RESOLVER VAPID
       const subscription = await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: null // Será configurado depois com VAPID key
+        userVisibleOnly: true
+        // applicationServerKey não é necessário com gcm_sender_id no manifest
       });
 
       setState(prev => ({
@@ -158,16 +158,40 @@ export function useNotifications(): UseNotificationsReturn {
       return;
     }
 
-    // Enviar notificação local para teste
+    // 🔊 ENVIAR NOTIFICAÇÃO DE TESTE COM SOM
     if ('Notification' in window) {
       new Notification('Gran Royalle - Teste', {
         body: 'Esta é uma notificação de teste do sistema!',
         icon: '/pwa-icon-192.png',
         badge: '/pwa-icon-192.png',
-        tag: 'test-notification'
+        tag: 'test-notification',
+        requireInteraction: true,
+        silent: false, // 🔊 GARANTIR SOM
+        vibrate: [200, 100, 200] // 📨 VIBRAÇÃO
       });
 
-      toast.success('📨 Notificação de teste enviada!');
+      // 🔊 REPRODUZIR SOM DE TESTE
+      try {
+        const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        oscillator.frequency.setValueAtTime(600, audioContext.currentTime);
+        gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+        
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.2);
+        
+        console.log('🔊 Som de teste reproduzido');
+      } catch (error) {
+        console.log('🔊 Áudio não disponível');
+      }
+
+      toast.success('📨 Notificação de teste enviada com som!');
     }
   };
 

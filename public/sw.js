@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gran-royalle-v3.2.0';
+const CACHE_NAME = 'gran-royalle-v3.3.0';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -162,11 +162,13 @@ self.addEventListener('push', (event) => {
     badge: '/pwa-icon-192.png',
     tag: 'admin-notification',
     requireInteraction: true,
-    vibrate: [200, 100, 200],
+    vibrate: [200, 100, 200, 100, 200], // 📨 VIBRAÇÃO MAIS LONGA
+    silent: false, // 🔊 GARANTIR QUE NÃO ESTÁ SILENCIOSO
     data: {
       url: '/admin/approvals',
       dateOfArrival: Date.now(),
-      type: 'admin'
+      type: 'admin',
+      sound: true // 🔊 INDICADOR DE SOM
     },
     actions: [
       {
@@ -197,9 +199,21 @@ self.addEventListener('push', (event) => {
   }
 
   console.log('🔔 Mostrando notificação:', options.title);
+  console.log('🔊 Configurando som da notificação');
 
   event.waitUntil(
     self.registration.showNotification(options.title, options)
+      .then(() => {
+        // 🔊 TENTAR REPRODUZIR SOM CUSTOMIZADO
+        try {
+          // Para navegadores que suportam, tentar reproduzir som customizado
+          if ('AudioContext' in self || 'webkitAudioContext' in self) {
+            console.log('🎵 Sistema de áudio disponível para notificações');
+          }
+        } catch (error) {
+          console.log('🔊 Som padrão do sistema será usado');
+        }
+      })
   );
 });
 

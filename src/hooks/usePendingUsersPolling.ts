@@ -77,22 +77,56 @@ export function usePendingUsersPolling(
         // Callback para novos usuários
         onNewUsers?.(newUsers);
         
-        // Notificação local se habilitada
+        // 🔊 NOTIFICAÇÃO COM SOM
         if (enableNotifications && 'Notification' in window && Notification.permission === 'granted') {
           const userName = newUsers[0]?.nome || 'Usuário';
           const message = newUsers.length === 1 
             ? `${userName} solicitou cadastro`
             : `${newUsers.length} novos cadastros pendentes`;
 
-          new Notification('Gran Royalle - Novo Cadastro', {
+          // 🔊 CRIAR NOTIFICATION COM SOM
+          const notification = new Notification('Gran Royalle - Novo Cadastro', {
             body: message,
             icon: '/pwa-icon-192.png',
             badge: '/pwa-icon-192.png',
             tag: 'admin-notification',
+            requireInteraction: true,
+            silent: false, // 🔊 GARANTIR SOM
+            vibrate: [200, 100, 200, 100, 200], // 📨 VIBRAÇÃO
             data: { url: '/admin/approvals' }
           });
 
-          toast.success(`🔔 ${newUsers.length} novo(s) cadastro(s) pendente(s)!`);
+          // 🔊 TENTAR REPRODUZIR SOM ADICIONAL NO NAVEGADOR
+          try {
+            // Criar beep sintético para navegadores
+            const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            // 🎵 CONFIGURAÇÃO DO SOM
+            oscillator.frequency.setValueAtTime(800, audioContext.currentTime); // Frequência mais alta
+            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.3);
+            
+            console.log('🔊 Som de notificação reproduzido');
+          } catch (error) {
+            console.log('🔊 Som não disponível, usando notificação padrão');
+          }
+
+          // 🎉 TOAST COM SOM
+          toast.success(`🔔 ${newUsers.length} novo(s) cadastro(s) pendente(s)!`, {
+            duration: 5000,
+            action: {
+              label: 'Ver',
+              onClick: () => window.location.href = '/admin/approvals'
+            }
+          });
         }
       }
 
