@@ -303,7 +303,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const register = async (email: string, password: string, nome: string, role: UserRole, unidade: string): Promise<boolean> => {
+  const register = async (email: string, password: string, nome: string, role: UserRole, unidade: string, cpf?: string, telefone?: string): Promise<boolean> => {
     setIsLoading(true);
     try {
       console.log('👤 Tentando registrar novo usuário:', email, role);
@@ -330,18 +330,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.log('✅ Registro Supabase bem-sucedido:', data.user.email);
         
         // 2. Criar perfil na tabela usuarios (status pendente)
+        const profileData: any = {
+          id: data.user.id,
+          email: email,
+          senha_hash: '', // Não precisamos da senha hash aqui, pois está no Auth
+          nome: nome,
+          perfil: role,
+          unidade: unidade,
+          ativo: false, // ❌ INATIVO ATÉ APROVAÇÃO DO ADMIN
+          status: 'pendente' // ⏳ STATUS PENDENTE
+        };
+
+        // 📱 INCLUIR CPF E TELEFONE SE FORNECIDOS
+        if (cpf) {
+          profileData.cpf = cpf.replace(/\D/g, ''); // CPF limpo (apenas números)
+        }
+        if (telefone) {
+          profileData.telefone = telefone;
+        }
+
+        // @ts-ignore - Supabase types issue
         const { error: profileError } = await supabase
           .from('usuarios')
-          .insert({
-            id: data.user.id,
-            email: email,
-            senha_hash: '', // Não precisamos da senha hash aqui, pois está no Auth
-            nome: nome,
-            perfil: role,
-            unidade: unidade,
-            ativo: false, // ❌ INATIVO ATÉ APROVAÇÃO DO ADMIN
-            status: 'pendente' // ⏳ STATUS PENDENTE
-          });
+          .insert(profileData);
 
         if (profileError) {
           console.error('❌ Erro ao criar perfil:', profileError);

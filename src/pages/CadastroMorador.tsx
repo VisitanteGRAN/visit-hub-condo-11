@@ -140,7 +140,9 @@ export default function CadastroMorador() {
         formData.senha,
         formData.nome,
         'morador',
-        enderecoCompleto
+        enderecoCompleto,
+        formData.cpf, // 📱 INCLUIR CPF
+        formData.telefone // 📞 INCLUIR TELEFONE
       );
       
       if (success) {
