@@ -77,7 +77,7 @@ export function usePendingUsersPolling(
         // Callback para novos usuários
         onNewUsers?.(newUsers);
         
-        // 🔊 NOTIFICAÇÃO COM SOM
+        // 🔊 NOTIFICAÇÃO COM SOM (SEMPRE FUNCIONA SE TEM PERMISSÃO)
         if (enableNotifications && 'Notification' in window && Notification.permission === 'granted') {
           const userName = newUsers[0]?.nome || 'Usuário';
           const message = newUsers.length === 1 
@@ -119,14 +119,20 @@ export function usePendingUsersPolling(
             console.log('🔊 Som não disponível, usando notificação padrão');
           }
 
-          // 🎉 TOAST COM SOM
+          // 🎉 TOAST COM SOM E AÇÃO
           toast.success(`🔔 ${newUsers.length} novo(s) cadastro(s) pendente(s)!`, {
-            duration: 5000,
+            duration: 8000, // Mais tempo para ler
             action: {
-              label: 'Ver',
-              onClick: () => window.location.href = '/admin/approvals'
+              label: '👁️ Ver Agora',
+              onClick: () => {
+                // Focar na janela se possível
+                if (window.focus) window.focus();
+                window.location.href = '/admin/approvals';
+              }
             }
           });
+          
+          console.log(`🎉 Detectados ${newUsers.length} novos cadastros com notificação + som`);
         }
       }
 

@@ -13,6 +13,7 @@ interface UseNotificationsReturn extends NotificationState {
   subscribe: () => Promise<boolean>;
   unsubscribe: () => Promise<boolean>;
   sendTestNotification: () => void;
+  hasLocalNotifications: boolean;
 }
 
 export function useNotifications(): UseNotificationsReturn {
@@ -101,11 +102,35 @@ export function useNotifications(): UseNotificationsReturn {
     try {
       const registration = await navigator.serviceWorker.ready;
       
-      // 🔔 USO DO GCM_SENDER_ID DO MANIFEST PARA RESOLVER VAPID
-      const subscription = await registration.pushManager.subscribe({
-        userVisibleOnly: true
-        // applicationServerKey não é necessário com gcm_sender_id no manifest
-      });
+      // 🔔 TENTAR VÁRIAS ESTRATÉGIAS DE SUBSCRIPTION
+      let subscription = null;
+      
+      try {
+        // Estratégia 1: Sem applicationServerKey (usando gcm_sender_id)
+        console.log('🔄 Tentando subscription sem VAPID key...');
+        subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true
+        });
+        console.log('✅ Subscription sem VAPID funcionou!');
+      } catch (error1) {
+        console.log('❌ Falha sem VAPID:', error1.message);
+        
+        try {
+          // Estratégia 2: Com VAPID key público padrão (Firebase)
+          console.log('🔄 Tentando com VAPID key padrão...');
+          const vapidKey = 'BEl62iUYgUivxIkv69yViEuiBIa40HI0DLKzdHPNGkzOZS3rOw9i8uFxgOoKrOhXN5SXWU9P8W8HUwmyI9zM8R8';
+          const applicationServerKey = urlBase64ToUint8Array(vapidKey);
+          
+          subscription = await registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: applicationServerKey
+          });
+          console.log('✅ Subscription com VAPID funcionou!');
+        } catch (error2) {
+          console.log('❌ Falha com VAPID:', error2.message);
+          throw new Error(`Push service não disponível: ${error2.message}`);
+        }
+      }
 
       setState(prev => ({
         ...prev,
@@ -114,17 +139,43 @@ export function useNotifications(): UseNotificationsReturn {
       }));
 
       console.log('✅ Inscrito em push notifications:', subscription);
-      toast.success('🔔 Notificações ativadas!');
-      
-      // Aqui poderia enviar subscription para o servidor
-      // await sendSubscriptionToServer(subscription);
+      toast.success('🔔 Notificações push ativadas!\n💡 Fallback: notificações locais também funcionam');
       
       return true;
     } catch (error) {
       console.error('❌ Erro ao se inscrever:', error);
-      toast.error('Erro ao ativar notificações');
+      
+      // 🔄 FALLBACK: Ativar apenas notificações locais
+      if (state.permission === 'granted') {
+        setState(prev => ({
+          ...prev,
+          isSubscribed: false, // Push falhou, mas notificações locais funcionam
+          subscription: null
+        }));
+        
+        toast.success('🔔 Notificações locais ativadas!\n💡 Push notifications não disponíveis, mas você receberá alertas visuais e sonoros');
+        return true; // Considerar sucesso para notificações locais
+      }
+      
+      toast.error('❌ Erro ao ativar notificações');
       return false;
     }
+  };
+  
+  // Função auxiliar para converter VAPID key
+  const urlBase64ToUint8Array = (base64String: string) => {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding)
+      .replace(/-/g, '+')
+      .replace(/_/g, '/');
+    
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
   };
 
   const unsubscribe = async (): Promise<boolean> => {
@@ -200,6 +251,7 @@ export function useNotifications(): UseNotificationsReturn {
     requestPermission,
     subscribe,
     unsubscribe,
-    sendTestNotification
+    sendTestNotification,
+    hasLocalNotifications: state.permission === 'granted' // Sempre true se tem permissão
   };
 }

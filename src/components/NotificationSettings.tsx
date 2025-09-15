@@ -25,7 +25,8 @@ export default function NotificationSettings({ className }: NotificationSettings
     requestPermission,
     subscribe,
     unsubscribe,
-    sendTestNotification
+    sendTestNotification,
+    hasLocalNotifications
   } = useNotifications();
 
   const getPermissionBadge = () => {
@@ -59,7 +60,14 @@ export default function NotificationSettings({ className }: NotificationSettings
       return (
         <Badge variant="default" className="bg-blue-500">
           <Bell className="h-3 w-3 mr-1" />
-          Ativado
+          Push Ativo
+        </Badge>
+      );
+    } else if (hasLocalNotifications) {
+      return (
+        <Badge variant="default" className="bg-orange-500">
+          <Bell className="h-3 w-3 mr-1" />
+          Local Ativo
         </Badge>
       );
     }
@@ -172,8 +180,19 @@ export default function NotificationSettings({ className }: NotificationSettings
           <Alert>
             <CheckCircle className="h-4 w-4" />
             <AlertDescription>
-              ✅ Perfeito! Você receberá notificações instantâneas quando novos moradores 
+              ✅ Perfeito! Você receberá notificações push instantâneas quando novos moradores 
               se cadastrarem e precisarem de aprovação.
+            </AlertDescription>
+          </Alert>
+        )}
+        
+        {permission === 'granted' && !isSubscribed && hasLocalNotifications && (
+          <Alert>
+            <Bell className="h-4 w-4" />
+            <AlertDescription>
+              🔔 Notificações locais ativas! Você receberá alertas visuais e sonoros 
+              quando estiver com o navegador aberto. Push notifications não estão disponíveis 
+              no momento, mas o sistema continua funcionando.
             </AlertDescription>
           </Alert>
         )}
