@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
-# 🔐 API SIMPLES COM AUTENTICAÇÃO POR TOKEN
-# Versão mínima para implementação imediata
+# API SIMPLES COM AUTENTICAÇÃO POR TOKEN - VERSÃO CORRIGIDA
+# ✅ Consulta Supabase real
+# ✅ Sem emojis para Windows
+# ✅ Configurações via .env
 
 import json
 import time
@@ -51,14 +53,14 @@ class SecureAPIHandler(BaseHTTPRequestHandler):
                             cls.SUPABASE_SERVICE_KEY = value
             
             if cls.SUPABASE_URL and cls.SUPABASE_SERVICE_KEY:
-                logger.info("Configurações do Supabase carregadas com sucesso")
+                logger.info("[OK] Configurações do Supabase carregadas com sucesso")
             else:
-                logger.warning("Configurações do Supabase não encontradas no .env")
+                logger.warning("[AVISO] Configurações do Supabase não encontradas no .env")
                 
         except FileNotFoundError:
-            logger.error("Arquivo .env não encontrado")
+            logger.error("[ERRO] Arquivo .env não encontrado")
         except Exception as e:
-            logger.error(f"Erro ao carregar .env: {e}")
+            logger.error(f"[ERRO] Erro ao carregar .env: {e}")
 
     @classmethod
     def load_tokens(cls):
@@ -85,7 +87,7 @@ class SecureAPIHandler(BaseHTTPRequestHandler):
     def get_supabase_queue(self):
         """Consulta a fila de visitantes no Supabase"""
         if not self.SUPABASE_URL or not self.SUPABASE_SERVICE_KEY:
-            logger.error("Configurações do Supabase não carregadas")
+            logger.error("[ERRO] Configurações do Supabase não carregadas")
             return {'queue': [], 'total': 0, 'error': 'Configuração inválida'}
         
         try:
@@ -106,14 +108,14 @@ class SecureAPIHandler(BaseHTTPRequestHandler):
             
             if response.status_code == 200:
                 visitors = response.json()
-                logger.info(f"Supabase: {len(visitors)} visitantes pendentes encontrados")
+                logger.info(f"[SUPABASE] {len(visitors)} visitantes pendentes encontrados")
                 return {
                     'queue': visitors,
                     'total': len(visitors),
                     'status': 'success'
                 }
             else:
-                logger.error(f"Erro Supabase: {response.status_code} - {response.text}")
+                logger.error(f"[ERRO] Supabase: {response.status_code} - {response.text}")
                 return {
                     'queue': [],
                     'total': 0, 
@@ -122,7 +124,7 @@ class SecureAPIHandler(BaseHTTPRequestHandler):
                 }
                 
         except requests.exceptions.RequestException as e:
-            logger.error(f"Erro de conexão com Supabase: {e}")
+            logger.error(f"[ERRO] Conexão com Supabase: {e}")
             return {
                 'queue': [],
                 'total': 0,
@@ -148,106 +150,89 @@ class SecureAPIHandler(BaseHTTPRequestHandler):
         if len(self.request_counts[client_ip]) >= rate_limit:
             return False
         
-        # Adicionar request atual
+        # Adicionar este request
         self.request_counts[client_ip].append(now)
         return True
     
-    def log_security_event(self, event_type, details):
-        """Log de segurança"""
-        log_entry = {
-            'timestamp': datetime.now().isoformat(),
-            'event': event_type,
-            'ip': self.client_address[0],
-            'path': self.path,
-            'details': details
-        }
-        logger.info(f"SECURITY: {json.dumps(log_entry)}")
-    
-    def send_json_response(self, status_code, data):
-        """Envia resposta JSON"""
-        self.send_response(status_code)
-        self.send_header('Content-Type', 'application/json')
-        self.send_header('Access-Control-Allow-Origin', '*')
-        self.send_header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
-        self.send_header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-API-Key')
-        self.send_header('X-Content-Type-Options', 'nosniff')
-        self.send_header('X-Frame-Options', 'DENY')
-        self.end_headers()
-        
-        response = json.dumps(data, ensure_ascii=False)
-        self.wfile.write(response.encode('utf-8'))
-    
     def authenticate_request(self):
-        """Autentica request usando token no header"""
+        """Autenticar requisição usando token"""
         client_ip = self.client_address[0]
         
         # Verificar se IP está bloqueado
         if client_ip in self.blocked_ips:
-            self.log_security_event('BLOCKED_IP_ACCESS', {'ip': client_ip})
-            self.send_json_response(403, {'error': 'IP bloqueado'})
+            self.send_json_response(429, {'error': 'IP bloqueado por tentativas excessivas'})
             return False
         
-        # Health check sem autenticação
-        if self.path == '/health':
-            return True
+        # Extrair token do header
+        auth_header = self.headers.get('Authorization', '')
+        api_key_header = self.headers.get('X-API-Key', '')
         
-        # Extrair token dos headers
         token = None
-        auth_header = self.headers.get('Authorization')
-        api_key_header = self.headers.get('X-API-Key')
-        
-        if auth_header and auth_header.startswith('Bearer '):
-            token = auth_header[7:]  # Remove 'Bearer '
+        if auth_header.startswith('Bearer '):
+            token = auth_header[7:]
         elif api_key_header:
             token = api_key_header
         
         if not token:
-            self.log_security_event('MISSING_TOKEN', {'ip': client_ip})
             self.failed_attempts[client_ip] += 1
-            
-            # Bloquear após 5 tentativas
             if self.failed_attempts[client_ip] >= 5:
                 self.blocked_ips.add(client_ip)
-                self.log_security_event('IP_BLOCKED', {
-                    'ip': client_ip,
-                    'failed_attempts': self.failed_attempts[client_ip]
-                })
+                logger.warning(f"[BLOQUEIO] IP {client_ip} bloqueado por tentativas excessivas")
             
-            self.send_json_response(401, {'error': 'Token obrigatório'})
+            self.send_json_response(401, {'error': 'Token de autenticação obrigatório'})
             return False
         
         # Validar token
         token_data = self.validate_token(token)
         if not token_data:
-            self.log_security_event('INVALID_TOKEN', {
-                'ip': client_ip,
-                'token_prefix': token[:10] + '...'
-            })
             self.failed_attempts[client_ip] += 1
+            if self.failed_attempts[client_ip] >= 5:
+                self.blocked_ips.add(client_ip)
+                logger.warning(f"[BLOQUEIO] IP {client_ip} bloqueado por tentativas excessivas")
+            
             self.send_json_response(401, {'error': 'Token inválido'})
             return False
         
-        # Rate limiting
+        # Verificar rate limiting
         if not self.check_rate_limit(client_ip, token_data['rate_limit']):
-            self.log_security_event('RATE_LIMIT_EXCEEDED', {
-                'ip': client_ip,
-                'token_name': token_data['name'],
-                'rate_limit': token_data['rate_limit']
-            })
             self.send_json_response(429, {'error': 'Rate limit excedido'})
             return False
+        
+        # Reset failed attempts para este IP
+        self.failed_attempts[client_ip] = 0
         
         # Armazenar dados do token para uso posterior
         self.token_data = token_data
         
-        # Reset failed attempts
-        if client_ip in self.failed_attempts:
-            del self.failed_attempts[client_ip]
-        
+        # Log de sucesso
         self.log_security_event('AUTH_SUCCESS', {
             'token_name': token_data['name'],
             'permissions': token_data['permissions']
         })
+        
+        return True
+    
+    def send_json_response(self, status_code, data):
+        """Enviar resposta JSON"""
+        self.send_response(status_code)
+        self.send_header('Content-Type', 'application/json')
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.end_headers()
+        
+        response = json.dumps(data, ensure_ascii=False, indent=2)
+        self.wfile.write(response.encode('utf-8'))
+    
+    def log_security_event(self, event_type, details):
+        """Log de evento de segurança"""
+        security_log = {
+            'timestamp': datetime.now().isoformat(),
+            'event': event_type,
+            'ip': self.client_address[0],
+            'path': getattr(self, 'path', 'unknown'),
+            'details': details
+        }
+        
+        logger.info(f"SECURITY: {json.dumps(security_log)}")
         
         return True
     
@@ -334,32 +319,13 @@ class SecureAPIHandler(BaseHTTPRequestHandler):
         path = parsed_path.path
         
         if path == '/api/visitante':
-            # Criar visitante
-            self.log_security_event('VISITOR_CREATE', {
-                'token_name': self.token_data['name'],
-                'visitor_name': request_data.get('nome', 'N/A')
-            })
-            
+            # Processar dados do visitante
             self.send_json_response(200, {
-                'success': True,
-                'message': 'Visitante criado com sucesso',
-                'visitor_id': f"visitor_{int(time.time())}",
-                'authenticated_as': self.token_data['name']
+                'message': 'Dados recebidos com sucesso',
+                'data': request_data,
+                'authenticated_as': getattr(self, 'token_data', {}).get('name', 'unknown'),
+                'timestamp': datetime.now().isoformat()
             })
-            
-        elif path == '/api/visitante/reactivate':
-            # Reativar visitante
-            self.log_security_event('VISITOR_REACTIVATE', {
-                'token_name': self.token_data['name'],
-                'cpf_hash': request_data.get('cpf', '')[:5] + '...'
-            })
-            
-            self.send_json_response(200, {
-                'success': True,
-                'message': 'Visitante reativado',
-                'authenticated_as': self.token_data['name']
-            })
-            
         else:
             self.send_json_response(404, {'error': 'Endpoint não encontrado'})
     

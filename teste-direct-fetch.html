@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Teste Fetch Direto Supabase</title>
+</head>
+<body>
+    <h1>Teste Service Key via Fetch Direto</h1>
+    <button onclick="testarFetch()">Testar Fetch</button>
+    <div id="resultado"></div>
+
+    <script>
+        async function testarFetch() {
+            const resultado = document.getElementById('resultado');
+            resultado.innerHTML = '<p>Testando...</p>';
+            
+            const url = 'https://rnpgtwughapxxvvckepd.supabase.co';
+            const serviceKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJucGd0d3VnaGFweHh2dmNrZXBkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NTAzMzUzOSwiZXhwIjoyMDcwNjA5NTM5fQ.2t6m1iUk_TRXtbEACh-P6dKJWRqyeLBe1OrUZemFd90';
+            
+            try {
+                console.log('🧪 Testando fetch direto...');
+                
+                const response = await fetch(`${url}/rest/v1/usuarios?select=*&limit=1`, {
+                    method: 'GET',
+                    headers: {
+                        'apikey': serviceKey,
+                        'authorization': `Bearer ${serviceKey}`,
+                        'content-type': 'application/json',
+                        'accept': 'application/json'
+                    }
+                });
+                
+                console.log('📊 Status:', response.status);
+                console.log('📋 Headers:', Object.fromEntries(response.headers.entries()));
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('❌ Erro:', response.status, errorText);
+                    resultado.innerHTML = `<p style="color:red">❌ Erro ${response.status}: ${errorText}</p>`;
+                    return;
+                }
+                
+                const data = await response.json();
+                console.log('✅ Sucesso:', data);
+                resultado.innerHTML = `<p style="color:green">✅ Sucesso! ${data.length} usuários encontrados</p><pre>${JSON.stringify(data, null, 2)}</pre>`;
+                
+            } catch (err) {
+                console.error('❌ Erro fetch:', err);
+                resultado.innerHTML = `<p style="color:red">❌ Erro: ${err.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>

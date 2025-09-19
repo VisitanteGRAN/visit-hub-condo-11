@@ -9,12 +9,14 @@ interface CameraCaptureProps {
   onCapture: (imageData: string) => void;
   onClose: () => void;
   title?: string;
+  showUpload?: boolean;
 }
 
 export const CameraCapture: React.FC<CameraCaptureProps> = ({ 
   onCapture, 
   onClose, 
-  title = "Tirar Foto" 
+  title = "Tirar Foto",
+  showUpload = true
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -216,14 +218,16 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
                       Capturar
                     </Button>
                   )}
-                  <Button 
-                    variant="outline" 
-                    onClick={() => fileInputRef.current?.click()}
-                    className="flex-1"
-                  >
-                    <Upload className="w-4 h-4 mr-2" />
-                    Upload
-                  </Button>
+                  {showUpload && (
+                    <Button 
+                      variant="outline" 
+                      onClick={() => fileInputRef.current?.click()}
+                      className="flex-1"
+                    >
+                      <Upload className="w-4 h-4 mr-2" />
+                      Upload
+                    </Button>
+                  )}
                 </>
               )}
             </div>
@@ -239,4 +243,49 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
       </Card>
     </div>
   );
-}; 
+};
+
+// Wrapper para compatibilidade com onPhotoCapture
+interface CameraCaptureWrapperProps {
+  onPhotoCapture: (imageData: string) => void;
+  showUpload?: boolean;
+  title?: string;
+}
+
+export const CameraCaptureWrapper: React.FC<CameraCaptureWrapperProps> = ({ 
+  onPhotoCapture, 
+  showUpload = true, 
+  title = "Tirar Foto" 
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const handleCapture = (imageData: string) => {
+    onPhotoCapture(imageData);
+    setIsOpen(false);
+  };
+
+  return (
+    <>
+      <Button 
+        onClick={() => setIsOpen(true)}
+        variant="outline"
+        className="w-full"
+      >
+        <Camera className="w-4 h-4 mr-2" />
+        {title}
+      </Button>
+      
+      {isOpen && (
+        <CameraCapture
+          onCapture={handleCapture}
+          onClose={() => setIsOpen(false)}
+          title={title}
+          showUpload={showUpload}
+        />
+      )}
+    </>
+  );
+};
+
+// Exportar também como default para compatibilidade
+export default CameraCaptureWrapper; 

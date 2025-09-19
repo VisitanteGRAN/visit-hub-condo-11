@@ -7,9 +7,9 @@ SUPABASE_URL=https://rnpgtwughapxxvvckepd.supabase.co
 SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJucGd0d3VnaGFweHh2dmNrZXBkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTI5NDYyNzAsImV4cCI6MjAyODUyMjI3MH0.Gm4DJJWjNGLw1vCLJjjKKLhOvPjBwOsS4lMO8Cn6Jvo
 
 # 🏢 HikCentral (Sistema Interno)
-HIKCENTRAL_URL=http://45.4.132.189:8080
-HIKCENTRAL_USER=admin
-HIKCENTRAL_PASS=Admin123456
+HIKCENTRAL_URL=http://45.4.132.189:3389
+HIKCENTRAL_USER=luca
+HIKCENTRAL_PASS=Luca123#
 
 # 🔑 Tokens de API (carregados do arquivo JSON)
 # Os tokens reais estão em api_tokens_CONFIDENTIAL.json

@@ -5,11 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { User, Home, CreditCard, Mail, Lock, Building2 } from 'lucide-react';
+import { User, Home, CreditCard, Mail, Lock, Building2, Camera } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import logoCondominio from '@/assets/logo-condominio.png';
 import { logger } from '@/utils/secureLogger';
+import CameraCapture from '@/components/ui/camera-capture';
 
 interface CadastroMoradorData {
   nome: string;
@@ -20,6 +21,7 @@ interface CadastroMoradorData {
   telefone: string;
   rua: string;
   numeroRua: string;
+  foto: string;
 }
 
 export default function CadastroMorador() {
@@ -34,7 +36,8 @@ export default function CadastroMorador() {
     cpf: '',
     telefone: '',
     rua: '',
-    numeroRua: ''
+    numeroRua: '',
+    foto: ''
   });
 
   const handleInputChange = (field: keyof CadastroMoradorData, value: string) => {
@@ -128,11 +131,16 @@ export default function CadastroMorador() {
       toast.error('As senhas não coincidem');
       return;
     }
+    
+    if (!formData.foto.trim()) {
+      toast.error('Por favor, tire uma foto para seu cadastro');
+      return;
+    }
 
     setIsSubmitting(true);
     
     try {
-      logger.info(console.log('🏠 Registrando novo morador:', { formData: '[SANITIZED]' });
+      logger.info('🏠 Registrando novo morador', { formData: '[SANITIZED]' });
       
       const enderecoCompleto = `${formData.rua}, ${formData.numeroRua}`;
       
@@ -143,7 +151,8 @@ export default function CadastroMorador() {
         'morador',
         enderecoCompleto,
         formData.cpf, // 📱 INCLUIR CPF
-        formData.telefone // 📞 INCLUIR TELEFONE
+        formData.telefone, // 📞 INCLUIR TELEFONE
+        formData.foto // 📸 INCLUIR FOTO
       );
       
       if (success) {
@@ -281,6 +290,21 @@ export default function CadastroMorador() {
                     required
                   />
                 </div>
+              </div>
+
+              {/* Foto do Morador */}
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  <Camera className="h-4 w-4" />
+                  Foto do Rosto *
+                </Label>
+                <CameraCapture
+                  onPhotoCapture={(photoBase64) => handleInputChange('foto', photoBase64)}
+                  showUpload={false}
+                />
+                <p className="text-sm text-muted-foreground">
+                  Tire uma foto clara do seu rosto para identificação
+                </p>
               </div>
 
               {/* Senha */}

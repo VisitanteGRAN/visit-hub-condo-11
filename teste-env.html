@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Teste Variáveis ENV</title>
+</head>
+<body>
+    <h1>Teste das Variáveis de Ambiente</h1>
+    <div id="resultado"></div>
+
+    <script type="module">
+        const resultado = document.getElementById('resultado');
+        
+        const envVars = {
+            'VITE_SUPABASE_URL': import.meta.env.VITE_SUPABASE_URL,
+            'VITE_SUPABASE_ANON_KEY': import.meta.env.VITE_SUPABASE_ANON_KEY,
+            'VITE_SUPABASE_SERVICE_ROLE_KEY': import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY
+        };
+
+        let html = '<h2>Variáveis Carregadas:</h2>';
+        
+        for (const [key, value] of Object.entries(envVars)) {
+            const status = value ? '✅' : '❌';
+            const preview = value ? value.substring(0, 30) + '...' : 'NÃO ENCONTRADA';
+            html += `<p><strong>${key}:</strong> ${status} ${preview}</p>`;
+        }
+        
+        resultado.innerHTML = html;
+        
+        // Log no console também
+        console.log('🔍 Variáveis ENV:', envVars);
+    </script>
+</body>
+</html>

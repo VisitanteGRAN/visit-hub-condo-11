@@ -582,6 +582,7 @@ export default function CadastroVisitanteSimplificado() {
                 <CameraCapture 
                   onCapture={handleCameraCapture}
                   onClose={() => setShowCamera(false)}
+                  showUpload={false}
                 />
               </CardContent>
             </Card>

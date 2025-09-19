@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { rawSupabaseQuery } from '@/lib/supabase-raw';
 import { toast } from 'sonner';
 import { logger } from '@/utils/secureLogger';
 
@@ -53,15 +54,19 @@ export function usePendingUsersPolling(
     try {
       logger.info('🔄 Verificando usuários pendentes...');
       
-      const { data, error } = await supabase
-        .from('usuarios')
-        .select('*')
-        .eq('status', 'pendente')
-        .eq('perfil', 'morador')
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('❌ Erro ao carregar usuários pendentes:', error);
+      // Usar cliente RAW para buscar usuários pendentes
+      let data = null;
+      let error = null;
+      
+      try {
+        data = await rawSupabaseQuery('usuarios', {
+          select: '*',
+          eq: { status: 'pendente', perfil: 'morador' }
+        });
+        console.log('✅ RAW polling - Usuários pendentes:', data?.length || 0);
+      } catch (err: any) {
+        error = err;
+        console.error('❌ RAW polling - Erro:', err);
         return;
       }
 

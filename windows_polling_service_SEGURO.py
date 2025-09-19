@@ -29,21 +29,21 @@ logger = logging.getLogger(__name__)
 
 class SecurePollingService:
     def __init__(self):
-        """🔐 Inicializar serviço de polling seguro"""
-        logger.info("🚀 Iniciando Serviço de Polling Seguro")
+        """Inicializar servico de polling seguro"""
+        logger.info("Iniciando Servico de Polling Seguro")
         
-        # 🔑 Carregar configurações
+        # Carregar configuracoes
         self.load_config()
         
-        # 🔐 Carregar tokens
+        # Carregar tokens
         self.load_tokens()
         
-        # 📊 Configurações de polling
+        # Configuracoes de polling
         self.polling_interval = 30  # segundos
         self.max_retries = 3
         self.retry_delay = 5
         
-        logger.info(f"✅ Serviço configurado - Intervalo: {self.polling_interval}s")
+        logger.info(f"Servico configurado - Intervalo: {self.polling_interval}s")
 
     def load_config(self):
         """📁 Carregar configurações do .env"""
@@ -128,9 +128,9 @@ class SecurePollingService:
             
             # 🚀 Fazer requisição
             if method == 'GET':
-                response = requests.get(url, headers=headers, timeout=10)
+                response = requests.get(url, headers=headers, timeout=30)
             elif method == 'POST':
-                response = requests.post(url, headers=headers, json=data, timeout=10)
+                response = requests.post(url, headers=headers, json=data, timeout=30)
             else:
                 raise ValueError(f"Método {method} não suportado")
             
@@ -159,15 +159,15 @@ class SecurePollingService:
             return None
 
     def check_pending_visitors(self):
-        """👥 Verificar visitantes pendentes"""
+        """Verificar visitantes pendentes"""
         try:
-            logger.info("🔍 Verificando visitantes pendentes...")
+            logger.info("Verificando visitantes pendentes...")
             
-            # 📊 Buscar fila de visitantes
+            # Buscar fila de visitantes
             data = self.make_secure_request('/api/queue')
             
             if data is None:
-                logger.warning("⚠️ Nenhum dado retornado da API")
+                logger.warning("Nenhum dado retornado da API")
                 return []
             
             if isinstance(data, dict) and 'queue' in data:
@@ -179,14 +179,14 @@ class SecurePollingService:
                 return []
             
             if pending:
-                logger.info(f"📋 {len(pending)} visitantes pendentes encontrados")
-                # 📊 Log seguro (sem dados pessoais)
+                logger.info(f"{len(pending)} visitantes pendentes encontrados")
+                # Log seguro (sem dados pessoais)
                 for visitor in pending[:3]:  # Apenas primeiros 3
                     name = visitor.get('nome', 'N/A')
                     id_visitor = visitor.get('id', 'N/A')
-                    logger.info(f"   👤 Visitante: {name} (ID: {id_visitor})")
+                    logger.info(f"   Visitante: {name} (ID: {id_visitor})")
             else:
-                logger.info("✅ Nenhum visitante pendente")
+                logger.info("Nenhum visitante pendente")
             
             return pending
             
@@ -200,13 +200,13 @@ class SecurePollingService:
             visitor_name = visitor_data.get('nome', 'Visitante')
             visitor_id = visitor_data.get('id', 'N/A')
             
-            logger.info(f"🤖 Processando visitante: {visitor_name} (ID: {visitor_id})")
+            logger.info(f"[PROCESSANDO] Visitante: {visitor_name} (ID: {visitor_id})")
             
-            # 🚀 Executar script de cadastro
+            # Executar script de cadastro
             script_path = 'test_form_direct_SEGURO.py'
             
             if not os.path.exists(script_path):
-                # 📁 Fallback para script original
+                # 📁 Fallback para script originalme
                 script_path = 'test_form_direct.py'
                 if not os.path.exists(script_path):
                     logger.error(f"❌ Script não encontrado: {script_path}")
@@ -217,10 +217,10 @@ class SecurePollingService:
                 sys.executable,
                 script_path,
                 '--visitor-data', json.dumps(visitor_data, ensure_ascii=False),
-                '--headless'
+                '--no-headless'  # Chrome visível para debug
             ]
             
-            logger.info(f"🚀 Executando: {' '.join(cmd[:2])} [dados-do-visitante]")
+            logger.info(f"[EXECUTANDO] {' '.join(cmd[:2])} [dados-do-visitante]")
             
             # ⏱️ Executar com timeout
             result = subprocess.run(
@@ -232,13 +232,13 @@ class SecurePollingService:
             )
             
             if result.returncode == 0:
-                logger.info(f"✅ Visitante {visitor_name} processado com sucesso")
+                logger.info(f"[SUCESSO] Visitante {visitor_name} processado com sucesso")
                 
                 # 📊 Marcar como processado na API
                 self.mark_visitor_processed(visitor_id)
                 return True
             else:
-                logger.error(f"❌ Erro ao processar visitante {visitor_name}")
+                logger.error(f"[ERRO] Erro ao processar visitante {visitor_name}")
                 logger.error(f"   Stdout: {result.stdout}")
                 logger.error(f"   Stderr: {result.stderr}")
                 return False
@@ -316,10 +316,10 @@ class SecurePollingService:
                             consecutive_errors += 1
                 
                 else:
-                    logger.info("😴 Nenhum visitante pendente, aguardando...")
+                    logger.info("Nenhum visitante pendente, aguardando...")
                     consecutive_errors = 0  # Reset contador se não há erros
                 
-                # 🚨 Verificar erros consecutivos
+                # Verificar erros consecutivos
                 if consecutive_errors >= max_consecutive_errors:
                     logger.error(f"🚨 MUITOS ERROS CONSECUTIVOS ({consecutive_errors})")
                     logger.error("🔄 Reiniciando serviço em 60 segundos...")

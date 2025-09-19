@@ -1,8 +1,11 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { supabaseAdmin } from '@/lib/supabase-admin';
 import { User as SupabaseUser } from '@supabase/supabase-js';
 import { AuditLogger } from '@/lib/audit-logger';
 import { logger } from '@/utils/secureLogger';
+// Imports de teste removidos para melhorar performance
+import { rawSupabaseQuery, rawSupabaseInsert } from '@/lib/supabase-raw';
 
 export type UserRole = 'admin' | 'morador';
 
@@ -17,7 +20,7 @@ export interface User {
 interface AuthContextType {
   user: User | null;
   login: (email: string, password: string, role: UserRole) => Promise<boolean>;
-  register: (email: string, password: string, nome: string, role: UserRole, unidade: string) => Promise<boolean>;
+  register: (email: string, password: string, nome: string, role: UserRole, unidade: string, cpf?: string, telefone?: string, foto?: string) => Promise<boolean>;
   logout: () => void;
   isLoading: boolean;
 }
@@ -78,11 +81,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       console.log('🔍 Carregando perfil do usuário:', supabaseUser.email);
       
-      const { data: profile, error } = await supabase
-        .from('usuarios')
-        .select('*')
-        .eq('email', supabaseUser.email)
-        .single();
+      // Usar cliente RAW para loadUserProfile
+      let profile = null;
+      let error = null;
+      
+      try {
+        profile = await rawSupabaseQuery('usuarios', {
+          select: '*',
+          eq: { email: supabaseUser.email },
+          single: true
+        });
+        console.log('✅ RAW loadUserProfile - Usuário encontrado:', profile);
+      } catch (err: any) {
+        error = err;
+        console.error('❌ RAW loadUserProfile - Erro:', err);
+      }
 
       if (error) {
         console.error('❌ Erro ao buscar perfil:', error);
@@ -96,21 +109,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const perfil = isAdmin ? 'admin' : 'morador';
           const unidade = isAdmin ? 'ADMIN' : supabaseUser.user_metadata?.unidade || 'Unidade não informada';
           
-          const { data: newProfile, error: createError } = await supabase
-            .from('usuarios')
-            .insert({
+          // Usar cliente RAW para criar perfil
+          try {
+            const newProfile = await rawSupabaseInsert('usuarios', {
               id: supabaseUser.id,
               email: supabaseUser.email || '',
               senha_hash: '',
               nome: supabaseUser.user_metadata?.nome || (isAdmin ? 'Administrador Sistema' : 'Morador'),
               perfil: perfil,
               unidade: unidade,
-              ativo: true
-            })
-            .select()
-            .single();
+              ativo: isAdmin, // Admin ativo, morador pendente
+              status: isAdmin ? 'ativo' : 'pendente',
+              supabase_user_id: supabaseUser.id
+            });
             
-          if (createError) {
+            console.log('✅ RAW Insert - Perfil básico criado:', newProfile);
+          } catch (createError) {
             console.error('❌ Erro ao criar perfil básico:', createError);
             throw createError;
           }
@@ -203,6 +217,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const login = async (email: string, password: string, role: UserRole): Promise<boolean> => {
+    console.log('🚀 FUNÇÃO LOGIN INICIADA PARA:', email);
     setIsLoading(true);
     
     try {
@@ -211,19 +226,45 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // 🚫 VERIFICAÇÃO DE APROVAÇÃO ANTES DO LOGIN SUPABASE
       logger.info('🔍 Verificando aprovação antes do login');
       
-      // Buscar perfil do usuário na tabela usuarios ANTES do login
-      const { data: userProfile, error: profileError } = await supabase
-        .from('usuarios')
-        .select('*')
-        .eq('email', email)
-        .single();
+      // Debug removido para melhorar performance
+      
+      // Buscar perfil do usuário na tabela usuarios ANTES do login (usando cliente RAW)
+      console.log('🔑 Usando cliente RAW para consultar tabela usuarios...');
+      let userProfile = null;
+      let profileError = null;
+      
+      try {
+        userProfile = await rawSupabaseQuery('usuarios', {
+          select: '*',
+          eq: { email: email },
+          single: true
+        });
+        console.log('✅ RAW Query - Usuário encontrado:', userProfile);
+      } catch (err: any) {
+        profileError = err;
+        console.error('❌ RAW Query - Erro:', err);
+      }
 
       if (profileError) {
         console.error('❌ Erro ao verificar perfil:', profileError);
         
-        // Se for erro de "not found", pode ser usuário não cadastrado ou com cadastro pendente
-        if (profileError.code === 'PGRST116') {
-          throw new Error('🚫 USUÁRIO NÃO ENCONTRADO: Este email não está cadastrado no sistema ou o cadastro ainda está pendente de aprovação.');
+        // Se for erro de "not found", verificar se o usuário existe mas está pendente
+        if (profileError.message === 'No rows found') {
+          // Verificar se existe um usuário pendente com este email
+          try {
+            const pendingUser = await rawSupabaseQuery('usuarios', {
+              select: 'id,email,nome,status',
+              eq: { email: email },
+              single: true
+            });
+            
+            if (pendingUser && pendingUser.status === 'pendente') {
+              throw new Error('⏳ CADASTRO PENDENTE: Sua conta está aguardando aprovação do administrador. Entre em contato com a administração.');
+            }
+          } catch (pendingError) {
+            // Se não encontrou nem pendente, é usuário realmente não cadastrado
+            throw new Error('🚫 USUÁRIO NÃO ENCONTRADO: Este email não está cadastrado no sistema. Verifique o email ou faça um novo cadastro.');
+          }
         }
         
         throw new Error('Erro ao verificar dados do usuário. Tente novamente.');
@@ -304,7 +345,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const register = async (email: string, password: string, nome: string, role: UserRole, unidade: string, cpf?: string, telefone?: string): Promise<boolean> => {
+  const register = async (email: string, password: string, nome: string, role: UserRole, unidade: string, cpf?: string, telefone?: string, foto?: string): Promise<boolean> => {
     setIsLoading(true);
     try {
       console.log('👤 Tentando registrar novo usuário:', email, role);
@@ -324,6 +365,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) {
         console.error('❌ Erro no registro Supabase:', error);
+        
+        if (error.message?.includes('User already registered')) {
+          throw new Error('📧 Este email já está cadastrado no sistema. Tente fazer login ou use "Esqueci minha senha".');
+        }
+        
         throw error;
       }
 
@@ -349,15 +395,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (telefone) {
           profileData.telefone = telefone;
         }
+        // Nota: coluna 'foto' não existe na tabela usuarios
 
-        // @ts-ignore - Supabase types issue
-        const { error: profileError } = await supabase
-          .from('usuarios')
-          .insert(profileData);
-
-        if (profileError) {
-          console.error('❌ Erro ao criar perfil:', profileError);
-          // Não vamos falhar aqui, pois o usuário já foi criado no Auth
+        // Usar cliente RAW para inserir perfil
+        try {
+          console.log('🔑 Usando cliente RAW para inserir perfil...');
+          console.log('📝 Dados do perfil:', profileData);
+          const insertResult = await rawSupabaseInsert('usuarios', profileData);
+          console.log('✅ RAW Insert - Perfil criado:', insertResult);
+          
+          if (insertResult && insertResult.length > 0) {
+            console.log('✅ Perfil inserido com sucesso na tabela usuarios');
+          } else {
+            console.warn('⚠️ Perfil inserido mas sem retorno de dados');
+          }
+        } catch (profileError) {
+          console.error('❌ ERRO CRÍTICO ao criar perfil:', profileError);
+          console.error('❌ Stack trace:', profileError.stack);
+          console.error('❌ Dados que causaram erro:', profileData);
+          // Este erro é crítico - usuario foi criado no Auth mas não na tabela usuarios
+          throw profileError; // Propagar o erro para debug
         }
 
         logger.info('✅ Cadastro criado! Aguardando aprovação do administrador.');

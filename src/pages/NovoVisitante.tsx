@@ -19,6 +19,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { rawSupabaseInsert } from '@/lib/supabase-raw';
 import { logger } from '@/utils/secureLogger';
 
 export default function NovoVisitante() {
@@ -65,10 +66,9 @@ export default function NovoVisitante() {
       const expiresAt = new Date();
       expiresAt.setHours(expiresAt.getHours() + 24); // 24 horas
 
-      // Salvar link no banco de dados
-      const { data: linkData, error } = await supabase
-        .from('links_convite')
-        .insert({
+      // Salvar link no banco de dados usando cliente RAW
+      try {
+        const linkData = await rawSupabaseInsert('links_convite', {
           token: linkId, // Usar 'token' em vez de 'link_id'
           morador_id: user.id,
           nome_visitante: formData.firstName,
@@ -76,11 +76,10 @@ export default function NovoVisitante() {
           expires_at: expiresAt.toISOString(),
           usado: false,
           expirado: false
-        })
-        .select()
-        .single();
+        });
 
-      if (error) {
+        console.log('✅ RAW - Link criado:', linkData);
+      } catch (error) {
         console.error('❌ Erro ao criar link:', error);
         toast.error('Erro ao gerar link. Tente novamente.');
         return;

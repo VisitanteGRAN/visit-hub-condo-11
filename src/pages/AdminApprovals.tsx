@@ -7,6 +7,7 @@ import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { supabaseAdmin } from '@/lib/supabase-admin';
+import { rawSupabaseQuery, rawSupabaseInsert, rawSupabaseUpdate, rawSupabaseDelete } from '@/lib/supabase-raw';
 import { usePendingUsersPolling } from '@/hooks/usePendingUsersPolling';
 import NotificationSettings from '@/components/NotificationSettings';
 import { logger } from '@/utils/secureLogger';
@@ -18,6 +19,7 @@ interface PendingUser {
   unidade: string;
   telefone?: string;
   cpf?: string;
+  foto?: string;
   created_at: string;
   status: string;
 }
@@ -49,50 +51,40 @@ export default function AdminApprovals() {
     try {
       console.log('🔄 Aprovando usuário:', userId);
       
-      // Primeiro, verificar se o usuário existe
-      const { data: existingUser } = await supabase
-        .from('usuarios')
-        .select('id, email, nome, ativo, status')
-        .eq('id', userId)
-        .single();
-      
-      console.log('👤 Usuário encontrado:', existingUser);
-      
-      if (!existingUser) {
-        console.error('❌ Usuário não encontrado com ID:', userId);
+      // Primeiro, verificar se o usuário existe usando cliente RAW
+      let existingUser = null;
+      try {
+        existingUser = await rawSupabaseQuery('usuarios', {
+          select: 'id,email,nome,ativo,status',
+          eq: { id: userId },
+          single: true
+        });
+        console.log('✅ RAW - Usuário encontrado:', existingUser);
+      } catch (err) {
+        console.error('❌ RAW - Usuário não encontrado:', err);
         toast.error('Usuário não encontrado');
         return;
       }
       
-      // Usar supabaseAdmin para bypassar RLS
-      const { data, error } = await supabaseAdmin
-        .from('usuarios')
-        .update({ 
+      // Usar cliente RAW para aprovar usuário
+      try {
+        const result = await rawSupabaseUpdate('usuarios', {
           ativo: true, 
           status: 'ativo' 
-        })
-        .eq('id', userId)
-        .select(); // Adicionar select para ver o resultado
+        }, { id: userId });
 
-      console.log('📋 Resultado da aprovação:', { data, error });
-
-      if (error) {
-        console.error('❌ Erro ao aprovar usuário:', error);
+        console.log('✅ RAW - Usuário aprovado:', result);
+      } catch (error) {
+        console.error('❌ RAW - Erro ao aprovar usuário:', error);
         toast.error(`Erro ao aprovar usuário: ${error.message}`);
         return;
       }
 
-      if (data && data.length === 0) {
-        logger.error('⚠️ Nenhum usuário foi atualizado');
-        toast.error('Usuário não encontrado para aprovação');
-        return;
-      }
-
-      console.log('✅ Usuário aprovado:', data);
+      // Sucesso - usuário foi aprovado
       toast.success('Usuário aprovado com sucesso!');
       
-      // Remover da lista
-      setPendingUsers(prev => prev.filter(user => user.id !== userId));
+      // Atualizar dados automaticamente
+      refreshData();
       
     } catch (error) {
       console.error('❌ Erro geral:', error);
@@ -110,22 +102,14 @@ export default function AdminApprovals() {
     setProcessingIds(prev => new Set(prev).add(userId));
     
     try {
-      // Deletar usuário rejeitado
-      const { error } = await supabaseAdmin
-        .from('usuarios')
-        .delete()
-        .eq('id', userId);
-
-      if (error) {
-        console.error('❌ Erro ao rejeitar usuário:', error);
-        toast.error('Erro ao rejeitar usuário');
-        return;
-      }
+      // Deletar usuário rejeitado usando cliente RAW
+      await rawSupabaseDelete('usuarios', { id: userId });
+      console.log('✅ RAW - Usuário rejeitado e removido:', userId);
 
       toast.success('Usuário rejeitado e removido');
       
-      // Remover da lista
-      setPendingUsers(prev => prev.filter(user => user.id !== userId));
+      // Atualizar dados automaticamente
+      refreshData();
       
     } catch (error) {
       console.error('❌ Erro geral:', error);
@@ -243,8 +227,16 @@ export default function AdminApprovals() {
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-3">
-                    <div className="p-2 bg-yellow-100 rounded-lg">
-                      <User className="h-5 w-5 text-yellow-600" />
+                    <div className="w-12 h-12 rounded-full overflow-hidden bg-yellow-100 flex items-center justify-center">
+                      {user.foto ? (
+                        <img
+                          src={user.foto}
+                          alt={`Foto de ${user.nome}`}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <User className="h-5 w-5 text-yellow-600" />
+                      )}
                     </div>
                     <div>
                       <CardTitle className="text-lg">{user.nome}</CardTitle>
