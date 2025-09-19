@@ -143,12 +143,58 @@ class HikCentralFormTest:
             print("[WAIT] Aguardando página carregar completamente...")
             time.sleep(10)  # Aumentado para ambientes lentos
             
-            # Login usando IDs com wait explícito
+            # Estratégia robusta para login
             print("[LOGIN] Procurando campo username...")
-            username_field = WebDriverWait(self.driver, 15).until(
-                EC.presence_of_element_located((By.ID, "username"))
-            )
-            password_field = self.driver.find_element(By.ID, "password")
+            username_field = None
+            password_field = None
+            
+            # Múltiplas estratégias para encontrar campos de login
+            username_selectors = [
+                (By.ID, "username"),
+                (By.NAME, "username"),
+                (By.CSS_SELECTOR, "input[type='text']"),
+                (By.CSS_SELECTOR, "input[placeholder*='user']"),
+                (By.CSS_SELECTOR, "input[placeholder*='nome']"),
+                (By.XPATH, "//input[@type='text'][1]")
+            ]
+            
+            password_selectors = [
+                (By.ID, "password"),
+                (By.NAME, "password"),
+                (By.CSS_SELECTOR, "input[type='password']"),
+                (By.CSS_SELECTOR, "input[placeholder*='password']"),
+                (By.CSS_SELECTOR, "input[placeholder*='senha']"),
+                (By.XPATH, "//input[@type='password'][1]")
+            ]
+            
+            # Tentar encontrar campo username
+            for by, selector in username_selectors:
+                try:
+                    username_field = WebDriverWait(self.driver, 5).until(
+                        EC.presence_of_element_located((by, selector))
+                    )
+                    print(f"[OK] Campo username encontrado com: {by}={selector}")
+                    break
+                except:
+                    continue
+            
+            if not username_field:
+                print("[ERRO] Campo username não encontrado com nenhuma estratégia")
+                return False
+            
+            # Tentar encontrar campo password
+            for by, selector in password_selectors:
+                try:
+                    password_field = self.driver.find_element(by, selector)
+                    print(f"[OK] Campo password encontrado com: {by}={selector}")
+                    break
+                except:
+                    continue
+            
+            if not password_field:
+                print("[ERRO] Campo password não encontrado com nenhuma estratégia")
+                return False
+            
             print("[OK] Campos de login encontrados!")
             
             # Preencher usuário
@@ -165,9 +211,32 @@ class HikCentralFormTest:
                 time.sleep(0.1)
             time.sleep(1)
             
-            # Clicar login
-            login_btn = self.driver.find_element(By.CSS_SELECTOR, ".login-btn")
-            login_btn.click()
+            # Múltiplas estratégias para botão de login
+            login_selectors = [
+                (By.CSS_SELECTOR, ".login-btn"),
+                (By.CSS_SELECTOR, "button[type='submit']"),
+                (By.CSS_SELECTOR, "input[type='submit']"),
+                (By.XPATH, "//button[contains(text(), 'Login')]"),
+                (By.XPATH, "//button[contains(text(), 'Entrar')]"),
+                (By.XPATH, "//input[@value='Login']"),
+                (By.XPATH, "//button[@type='submit']")
+            ]
+            
+            login_clicked = False
+            for by, selector in login_selectors:
+                try:
+                    login_btn = self.driver.find_element(by, selector)
+                    login_btn.click()
+                    print(f"[OK] Login clicado com: {by}={selector}")
+                    login_clicked = True
+                    break
+                except:
+                    continue
+            
+            if not login_clicked:
+                print("[ERRO] Botão de login não encontrado")
+                return False
+            
             print("[OK] Login realizado!")
             
             # Aguardar carregamento
