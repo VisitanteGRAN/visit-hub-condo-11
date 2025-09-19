@@ -201,7 +201,12 @@ export default function CadastroMorador() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form 
+              onSubmit={handleSubmit} 
+              className="space-y-6"
+              autoComplete="off"
+              noValidate
+            >
               {/* Dados Pessoais */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -372,7 +377,10 @@ export default function CadastroMorador() {
                     value={formData.senha}
                     onChange={(e) => handleInputChange('senha', e.target.value)}
                     placeholder="Mínimo 8 caracteres"
-                    autoComplete="new-password"
+                    autoComplete="off"
+                    autoCorrect="off"
+                    autoCapitalize="off"
+                    spellCheck="false"
                     required
                   />
                 </div>
@@ -388,7 +396,10 @@ export default function CadastroMorador() {
                     value={formData.confirmarSenha}
                     onChange={(e) => handleInputChange('confirmarSenha', e.target.value)}
                     placeholder="Repita a senha"
-                    autoComplete="new-password"
+                    autoComplete="off"
+                    autoCorrect="off"
+                    autoCapitalize="off"
+                    spellCheck="false"
                     required
                   />
                 </div>

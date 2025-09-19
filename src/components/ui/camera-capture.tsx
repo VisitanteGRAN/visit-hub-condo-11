@@ -36,6 +36,10 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
   const startCamera = async () => {
     try {
       setIsLoading(true);
+      
+      // Aguardar um pouco para evitar conflitos com autoComplete
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       const mediaStream = await navigator.mediaDevices.getUserMedia({
         video: {
           width: { ideal: 640 },
@@ -128,9 +132,19 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
     return true;
   };
 
+  const handleOverlayClick = (e: React.MouseEvent) => {
+    // Impedir fechamento acidental - só fecha se clicar fora do card
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <Card className="w-full max-w-md mx-4">
+    <div 
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      onClick={handleOverlayClick}
+    >
+      <Card className="w-full max-w-md mx-4" onClick={(e) => e.stopPropagation()}>
         <CardContent className="p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold">{title}</h3>
