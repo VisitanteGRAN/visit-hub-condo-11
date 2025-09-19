@@ -4,30 +4,30 @@
     <title>Teste Variáveis ENV</title>
 </head>
 <body>
-    <h1>Teste das Variáveis de Ambiente</h1>
+    <h1>🔧 Teste de Variáveis de Ambiente</h1>
     <div id="resultado"></div>
-
+    
     <script type="module">
         const resultado = document.getElementById('resultado');
         
-        const envVars = {
+        const vars = {
             'VITE_SUPABASE_URL': import.meta.env.VITE_SUPABASE_URL,
             'VITE_SUPABASE_ANON_KEY': import.meta.env.VITE_SUPABASE_ANON_KEY,
-            'VITE_SUPABASE_SERVICE_ROLE_KEY': import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY
+            'VITE_SUPABASE_SERVICE_KEY': import.meta.env.VITE_SUPABASE_SERVICE_KEY
         };
-
-        let html = '<h2>Variáveis Carregadas:</h2>';
         
-        for (const [key, value] of Object.entries(envVars)) {
-            const status = value ? '✅' : '❌';
-            const preview = value ? value.substring(0, 30) + '...' : 'NÃO ENCONTRADA';
-            html += `<p><strong>${key}:</strong> ${status} ${preview}</p>`;
-        }
+        let html = '<ul>';
+        Object.entries(vars).forEach(([key, value]) => {
+            const status = value ? '✅ Presente' : '❌ Faltando';
+            const preview = value ? value.substring(0, 20) + '...' : 'N/A';
+            html += `<li><strong>${key}:</strong> ${status} (${preview})</li>`;
+        });
+        html += '</ul>';
         
         resultado.innerHTML = html;
         
         // Log no console também
-        console.log('🔍 Variáveis ENV:', envVars);
+        console.log('🔧 Variáveis ENV:', vars);
     </script>
 </body>
 </html>

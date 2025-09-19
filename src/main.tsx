@@ -1,5 +1,12 @@
 import { createRoot } from 'react-dom/client'
 
+// 🧪 TESTE DIRETO DAS VARIÁVEIS (TEMPORÁRIO)
+console.log('=== TESTE VARIÁVEIS ENV (MAIN.TSX) ===');
+console.log('VITE_SUPABASE_URL:', import.meta.env.VITE_SUPABASE_URL);
+console.log('VITE_SUPABASE_ANON_KEY:', import.meta.env.VITE_SUPABASE_ANON_KEY ? 'PRESENTE ✅' : 'FALTANDO ❌');
+console.log('VITE_SUPABASE_SERVICE_KEY:', import.meta.env.VITE_SUPABASE_SERVICE_KEY ? 'PRESENTE ✅' : 'FALTANDO ❌');
+console.log('Todas as variáveis ENV:', import.meta.env);
+
 // 🔐 Inicializar utilitários de segurança
 import './utils/securityHeaders'
 import envValidator from './utils/envValidator'

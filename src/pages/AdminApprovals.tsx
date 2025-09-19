@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { User, CheckCircle, XCircle, Clock, Mail, Home, Phone, ArrowLeft, FileText, Bell, RefreshCw } from 'lucide-react';
+// Dialog será criado manualmente
+import { User, CheckCircle, XCircle, Clock, Mail, Home, Phone, ArrowLeft, FileText, Bell, RefreshCw, Expand } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -27,6 +28,7 @@ interface PendingUser {
 export default function AdminApprovals() {
   const [processingIds, setProcessingIds] = useState<Set<string>>(new Set());
   const [showNotificationSettings, setShowNotificationSettings] = useState(false);
+  const [selectedPhoto, setSelectedPhoto] = useState<{url: string, name: string} | null>(null);
 
   // 🔔 POLLING COM NOTIFICAÇÕES
   const {
@@ -222,18 +224,29 @@ export default function AdminApprovals() {
         </Card>
       ) : (
         <div className="grid gap-4">
-          {pendingUsers.map((user) => (
+          {pendingUsers.map((user) => {
+            console.log('👤 Debug usuário:', user.nome, 'Foto:', user.foto ? 'PRESENTE' : 'AUSENTE');
+            console.log('📋 Dados completos do usuário:', JSON.stringify(user, null, 2));
+            return (
             <Card key={user.id} className="border-l-4 border-l-yellow-500">
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-3">
-                    <div className="w-12 h-12 rounded-full overflow-hidden bg-yellow-100 flex items-center justify-center">
+                    <div className="w-12 h-12 rounded-full overflow-hidden bg-yellow-100 flex items-center justify-center relative group">
                       {user.foto ? (
-                        <img
-                          src={user.foto}
-                          alt={`Foto de ${user.nome}`}
-                          className="w-full h-full object-cover"
-                        />
+                        <div 
+                          className="relative cursor-pointer w-full h-full"
+                          onClick={() => setSelectedPhoto({url: user.foto!, name: user.nome})}
+                        >
+                          <img
+                            src={user.foto}
+                            alt={`Foto de ${user.nome}`}
+                            className="w-full h-full object-cover"
+                          />
+                          <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-200 flex items-center justify-center">
+                            <Expand className="h-4 w-4 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+                          </div>
+                        </div>
                       ) : (
                         <User className="h-5 w-5 text-yellow-600" />
                       )}
@@ -303,12 +316,44 @@ export default function AdminApprovals() {
                 </div>
               </CardContent>
             </Card>
-          ))}
+            );
+          })}
         </div>
       )}
       {/* 🔔 CONFIGURAÇÕES DE NOTIFICAÇÃO */}
       {showNotificationSettings && (
         <NotificationSettings className="mt-6" />
+      )}
+      
+      {/* 📸 MODAL DE FOTO EXPANDIDA */}
+      {selectedPhoto && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50"
+          onClick={() => setSelectedPhoto(null)}
+        >
+          <div className="max-w-4xl max-h-screen p-4">
+            <div className="bg-white rounded-lg p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold">Foto de {selectedPhoto.name}</h3>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setSelectedPhoto(null)}
+                >
+                  <XCircle className="h-4 w-4 mr-2" />
+                  Fechar
+                </Button>
+              </div>
+              <div className="flex justify-center">
+                <img
+                  src={selectedPhoto.url}
+                  alt={`Foto de ${selectedPhoto.name}`}
+                  className="max-w-full max-h-96 object-contain rounded-lg"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

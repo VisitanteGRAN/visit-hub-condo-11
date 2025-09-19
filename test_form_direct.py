@@ -1252,7 +1252,7 @@ class HikCentralFormTest:
                         continue
                 
                 if entrada_clicked:
-                    time.sleep(0.5)  # Otimizado para 0.5s
+                    time.sleep(2)  # Aumentado para 2s para dar tempo dos botões carregarem
                     print("[SUCCESS] CADASTRO FINALIZADO COM ENTRADA!")
                     
                 # ============ VISUALIZAR E APLICAR AGORA - OTIMIZADO ============
@@ -1268,7 +1268,7 @@ class HikCentralFormTest:
                     visualizar_clicked = False
                     for selector in visualizar_selectors:
                         try:
-                            visualizar_btn = WebDriverWait(self.driver, 1).until(  # Reduzido de 2s para 1s
+                            visualizar_btn = WebDriverWait(self.driver, 3).until(  # Aumentado para 3s para dar tempo
                                 EC.element_to_be_clickable((By.XPATH, selector))
                             )
                             
@@ -1292,9 +1292,9 @@ class HikCentralFormTest:
                     
                     if not visualizar_clicked:
                         print("[WARN] Não foi possível clicar em Visualizar")
-                        return True  # Continuar mesmo sem visualizar
+                        # Não retorna aqui, continua para tentar Aplicar agora
                     
-                    time.sleep(0.5)  # Reduzido de 1s para 0.5s
+                    time.sleep(2)  # Aumentado para 2s para dar tempo dos botões carregarem
                     
                     # 2. Clicar em APLICAR AGORA - COM TIMEOUT REDUZIDO
                     aplicar_selectors = [
@@ -1306,7 +1306,7 @@ class HikCentralFormTest:
                     aplicar_clicked = False
                     for selector in aplicar_selectors:
                         try:
-                            aplicar_btn = WebDriverWait(self.driver, 1).until(  # Reduzido de 2s para 1s
+                            aplicar_btn = WebDriverWait(self.driver, 3).until(  # Aumentado para 3s para dar tempo
                                 EC.element_to_be_clickable((By.XPATH, selector))
                             )
                             

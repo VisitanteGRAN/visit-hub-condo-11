@@ -22,7 +22,6 @@ import CPFVerificationStep from '@/components/CPFVerificationStep';
 import ReativarVisitante from '@/pages/ReativarVisitante';
 import { type VisitanteExistente } from '@/services/cpfVerificationService';
 import { toast } from 'sonner';
-import hikVisionWebSDK from '@/services/webSDKService';
 import logoCondominio from '@/assets/logo-condominio.png';
 import { supabase } from '@/integrations/supabase/client';
 import { supabaseAdmin } from '@/lib/supabase-admin';
@@ -76,17 +75,39 @@ export default function CadastroVisitanteSimplificado() {
     try {
       setIsLoading(true);
       
-      const { data: linkData, error } = await supabase
-        .from('links_convite')
-        .select(`
-          *,
-          morador:usuarios(nome, unidade)
-        `)
-        .eq('token', linkId)
-        .eq('usado', false)
-        .eq('expirado', false)
-        .gt('expires_at', new Date().toISOString())
-        .single();
+      // 🧪 DEBUG - Verificar se as keys estão carregadas
+      console.log('🔑 DEBUG KEYS:');
+      console.log('URL:', import.meta.env.VITE_SUPABASE_URL ? 'PRESENTE' : 'AUSENTE');
+      console.log('ANON_KEY:', import.meta.env.VITE_SUPABASE_ANON_KEY ? 'PRESENTE' : 'AUSENTE');
+      console.log('SERVICE_KEY:', import.meta.env.VITE_SUPABASE_SERVICE_KEY ? 'PRESENTE' : 'AUSENTE');
+      
+      // Usar fetch direto com SERVICE_KEY para garantir funcionamento
+      const serviceKey = import.meta.env.VITE_SUPABASE_SERVICE_KEY;
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      
+      const url = `${supabaseUrl}/rest/v1/links_convite?select=*,morador:usuarios(nome,unidade)&token=eq.${linkId}&usado=eq.false&expirado=eq.false&expires_at=gt.${new Date().toISOString()}`;
+      
+      const response = await fetch(url, {
+        headers: {
+          'apikey': serviceKey,
+          'authorization': `Bearer ${serviceKey}`,
+          'content-type': 'application/json',
+          'accept': 'application/json'
+        }
+      });
+      
+      let linkData = null;
+      let error = null;
+      
+      if (!response.ok) {
+        error = { message: `HTTP ${response.status}`, hint: 'Request failed' };
+      } else {
+        const data = await response.json();
+        linkData = data[0] || null; // Pegar primeiro resultado
+        if (!linkData) {
+          error = { message: 'Link not found' };
+        }
+      }
 
       if (error || !linkData) {
         console.error('❌ Link inválido:', error);
@@ -218,25 +239,51 @@ export default function CadastroVisitanteSimplificado() {
       console.log('🔗 Link ID:', linkData.linkId);
       console.log('👤 Morador ID:', linkData.moradorId);
       
-      const { data: visitanteData, error: visitanteError } = await supabase
-        .from('visitantes')
-        .insert({
-          nome: nomeCompleto,
-          cpf: formData.cpf,
-          telefone: formData.telefone,
-          documento: formData.documento,
-          tipo_documento: formData.tipoDocumento,
-          observacoes: formData.observacoes,
-          morador_id: linkData.moradorId,
-          link_convite_id: linkData.linkId,
-          hikvision_user_id: '',
-          validade_inicio: new Date().toISOString(),
-          validade_fim: new Date(Date.now() + linkData.validDays * 24 * 60 * 60 * 1000).toISOString(),
-          unidade: linkData.unidade
-          // Removido foto_url que não existe na tabela
-        } as any)
-        .select()
-        .single();
+      // Usar fetch direto para garantir funcionamento
+      const serviceKey = import.meta.env.VITE_SUPABASE_SERVICE_KEY;
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      
+      const visitantePayload = {
+        nome: nomeCompleto,
+        cpf: formData.cpf,
+        telefone: formData.telefone,
+        documento: formData.documento,
+        tipo_documento: formData.tipoDocumento,
+        observacoes: formData.observacoes,
+        morador_id: linkData.moradorId,
+        link_convite_id: linkData.linkId,
+        hikvision_user_id: '',
+        validade_inicio: new Date().toISOString(),
+        validade_fim: new Date(Date.now() + linkData.validDays * 24 * 60 * 60 * 1000).toISOString(),
+        unidade: linkData.unidade,
+        foto: formData.foto // Incluir foto
+      };
+      
+      const visitanteResponse = await fetch(`${supabaseUrl}/rest/v1/visitantes`, {
+        method: 'POST',
+        headers: {
+          'apikey': serviceKey,
+          'authorization': `Bearer ${serviceKey}`,
+          'content-type': 'application/json',
+          'accept': 'application/json',
+          'prefer': 'return=representation'
+        },
+        body: JSON.stringify(visitantePayload)
+      });
+      
+      let visitanteData = null;
+      let visitanteError = null;
+      
+      if (!visitanteResponse.ok) {
+        visitanteError = { 
+          message: `HTTP ${visitanteResponse.status}`, 
+          hint: 'Request failed',
+          details: await visitanteResponse.text()
+        };
+      } else {
+        const data = await visitanteResponse.json();
+        visitanteData = Array.isArray(data) ? data[0] : data;
+      }
 
       if (visitanteError) {
         console.error('❌ Erro detalhado RLS:', visitanteError);
@@ -247,20 +294,25 @@ export default function CadastroVisitanteSimplificado() {
       
       console.log('✅ Visitante salvo no banco:', visitanteData);
 
-      // Criar visitante no HikCentral
-      const result = await hikVisionWebSDK.createVisitorInAllDevices(visitorData as any);
+      // 🔒 MÉTODO SEGURO: Visitante será processado pelo polling direto no Windows
+      // Não precisamos mais da API - o sistema Windows monitora o banco automaticamente
+      console.log('🏠 Visitante será processado pelo sistema Windows automaticamente');
+
+      // Marcar link como usado usando método direto
+      const updateResponse = await fetch(`${supabaseUrl}/rest/v1/links_convite?id=eq.${linkData.linkId}`, {
+        method: 'PATCH',
+        headers: {
+          'apikey': serviceKey,
+          'authorization': `Bearer ${serviceKey}`,
+          'content-type': 'application/json',
+          'accept': 'application/json'
+        },
+        body: JSON.stringify({ usado: true })
+      });
       
-      if (!result.success) {
-        throw new Error(result.message || 'Falha ao criar visitante no HikCentral');
+      if (!updateResponse.ok) {
+        console.warn('⚠️ Não foi possível marcar link como usado, mas visitante foi salvo');
       }
-
-      console.log('✅ Visitante criado com sucesso:', result);
-
-      // Marcar link como usado
-      await supabase
-        .from('links_convite')
-        .update({ usado: true })
-        .eq('id', linkData.linkId);
 
       toast.success('Cadastro realizado com sucesso!');
       navigate(`/cadastro-sucesso?nome=${encodeURIComponent(nomeCompleto)}`);

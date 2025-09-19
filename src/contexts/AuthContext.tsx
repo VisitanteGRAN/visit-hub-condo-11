@@ -388,14 +388,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           status: 'pendente' // ⏳ STATUS PENDENTE
         };
 
-        // 📱 INCLUIR CPF E TELEFONE SE FORNECIDOS
+        // 📱 INCLUIR CPF, TELEFONE E FOTO SE FORNECIDOS
         if (cpf) {
           profileData.cpf = cpf.replace(/\D/g, ''); // CPF limpo (apenas números)
         }
         if (telefone) {
           profileData.telefone = telefone;
         }
-        // Nota: coluna 'foto' não existe na tabela usuarios
+        if (foto) {
+          profileData.foto = foto; // Foto em base64
+          console.log('📸 Foto incluída no profileData:', foto.substring(0, 50) + '...');
+        } else {
+          console.log('📸 Nenhuma foto fornecida para o usuário');
+        }
 
         // Usar cliente RAW para inserir perfil
         try {

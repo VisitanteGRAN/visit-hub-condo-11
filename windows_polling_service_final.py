@@ -240,7 +240,7 @@ class WindowsPollingService:
                 'rg': visitor_data_from_queue.get('rg', ''),
                 'placa': visitor_data_from_queue.get('placa', ''),
                 'genero': visitor_data_from_queue.get('genero', 'Masculino'),
-                'morador_nome': visitor_data_from_queue.get('morador_nome', 'lucca lacerda'),  # ⭐ Nome do morador (CRÍTICO para reativação)
+                'morador_nome': visitor_data_from_queue.get('morador_nome', 'lucca lacerda'),  # Nome do morador (CRITICO para reativacao)
                 'photo_path': photo_path
             }
             
@@ -262,7 +262,7 @@ class WindowsPollingService:
                     'python', 
                     script_path,
                     '--visitor-id', visitor_id
-                    # ⭐ REMOVIDO --headless para permitir visualização da configuração de data
+                    # REMOVIDO --headless para permitir visualizacao da configuracao de data
                 ]
             else:
                 # Script de cadastro: visitor-data + visitor-id (SEM HEADLESS para configurar duração)
@@ -271,7 +271,7 @@ class WindowsPollingService:
                     script_path,
                     '--visitor-data', json_path,
                     '--visitor-id', visitor_id
-                    # ⭐ REMOVIDO --headless para permitir configuração manual de data
+                    # REMOVIDO --headless para permitir configuracao manual de data
                 ]
             
             logging.info(f"[PROCESS] Executando: {' '.join(cmd)}")
@@ -314,7 +314,7 @@ class WindowsPollingService:
 
     def worker_thread(self, worker_id):
         """Thread worker para processar itens da fila"""
-        logging.info(f"🚀 Worker {worker_id} iniciado")
+        logging.info(f"Worker {worker_id} iniciado")
         
         while True:
             try:
@@ -325,22 +325,22 @@ class WindowsPollingService:
                     continue
                 
                 with worker_lock:
-                    logging.info(f"📝 Worker {worker_id} processando: {item['id']}")
+                    logging.info(f"Worker {worker_id} processando: {item['id']}")
                 
                 # Processar visitante
                 success = self.process_visitor(item)
                 
                 with worker_lock:
                     if success:
-                        logging.info(f"✅ Worker {worker_id} completou: {item['id']}")
+                        logging.info(f"Worker {worker_id} completou: {item['id']}")
                     else:
-                        logging.error(f"❌ Worker {worker_id} falhou: {item['id']}")
+                        logging.error(f"Worker {worker_id} falhou: {item['id']}")
                 
                 # Marcar tarefa como concluída
                 work_queue.task_done()
                 
             except Exception as e:
-                logging.error(f"❌ Worker {worker_id} erro: {e}")
+                logging.error(f"Worker {worker_id} erro: {e}")
                 work_queue.task_done()
 
     def run(self):
@@ -355,7 +355,7 @@ class WindowsPollingService:
                 daemon=True
             )
             worker.start()
-            logging.info(f"✅ Worker {worker_id} thread iniciada")
+            logging.info(f"Worker {worker_id} thread iniciada")
         
         # Loop principal - alimenta a fila
         while True:
@@ -369,7 +369,7 @@ class WindowsPollingService:
                     # Adicionar itens à fila de workers
                     for item in items:
                         work_queue.put(item)
-                        logging.info(f"📥 Item {item['id']} adicionado à fila de workers")
+                        logging.info(f"Item {item['id']} adicionado à fila de workers")
                 else:
                     logging.info("[QUEUE] Fila vazia")
                     logging.info("[INFO] Aguardando novos itens...")

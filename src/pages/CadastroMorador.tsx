@@ -39,6 +39,7 @@ export default function CadastroMorador() {
     numeroRua: '',
     foto: ''
   });
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
   const handleInputChange = (field: keyof CadastroMoradorData, value: string) => {
     setFormData(prev => ({
@@ -143,6 +144,12 @@ export default function CadastroMorador() {
       logger.info('🏠 Registrando novo morador', { formData: '[SANITIZED]' });
       
       const enderecoCompleto = `${formData.rua}, ${formData.numeroRua}`;
+      
+      // 📸 DEBUG: Verificar se foto está sendo passada
+      console.log('📸 Foto no formData:', formData.foto ? 'PRESENTE ✅' : 'AUSENTE ❌');
+      if (formData.foto) {
+        console.log('📸 Tamanho da foto:', formData.foto.length, 'caracteres');
+      }
       
       const success = await register(
         formData.email,
@@ -298,10 +305,49 @@ export default function CadastroMorador() {
                   <Camera className="h-4 w-4" />
                   Foto do Rosto *
                 </Label>
-                <CameraCapture
-                  onPhotoCapture={(photoBase64) => handleInputChange('foto', photoBase64)}
-                  showUpload={false}
-                />
+                {photoPreview ? (
+                  <div className="space-y-2">
+                    <div className="relative">
+                      <img 
+                        src={photoPreview} 
+                        alt="Foto capturada" 
+                        className="w-full h-48 object-cover rounded-lg border"
+                      />
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => {
+                          setPhotoPreview(null);
+                          handleInputChange('foto', '');
+                        }}
+                        className="absolute top-2 right-2"
+                      >
+                        <Camera className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        setPhotoPreview(null);
+                        handleInputChange('foto', '');
+                      }}
+                      className="w-full"
+                    >
+                      <Camera className="h-4 w-4 mr-2" />
+                      Tirar Nova Foto
+                    </Button>
+                  </div>
+                ) : (
+                  <CameraCapture
+                    onPhotoCapture={(photoBase64) => {
+                      handleInputChange('foto', photoBase64);
+                      setPhotoPreview(photoBase64);
+                    }}
+                    showUpload={false}
+                  />
+                )}
                 <p className="text-sm text-muted-foreground">
                   Tire uma foto clara do seu rosto para identificação
                 </p>
