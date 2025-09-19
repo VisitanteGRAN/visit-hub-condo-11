@@ -143,58 +143,12 @@ class HikCentralFormTest:
             print("[WAIT] Aguardando página carregar completamente...")
             time.sleep(10)  # Aumentado para ambientes lentos
             
-            # Estratégia robusta para login
+            # Login usando IDs com wait explícito
             print("[LOGIN] Procurando campo username...")
-            username_field = None
-            password_field = None
-            
-            # Múltiplas estratégias para encontrar campos de login
-            username_selectors = [
-                (By.ID, "username"),
-                (By.NAME, "username"),
-                (By.CSS_SELECTOR, "input[type='text']"),
-                (By.CSS_SELECTOR, "input[placeholder*='user']"),
-                (By.CSS_SELECTOR, "input[placeholder*='nome']"),
-                (By.XPATH, "//input[@type='text'][1]")
-            ]
-            
-            password_selectors = [
-                (By.ID, "password"),
-                (By.NAME, "password"),
-                (By.CSS_SELECTOR, "input[type='password']"),
-                (By.CSS_SELECTOR, "input[placeholder*='password']"),
-                (By.CSS_SELECTOR, "input[placeholder*='senha']"),
-                (By.XPATH, "//input[@type='password'][1]")
-            ]
-            
-            # Tentar encontrar campo username
-            for by, selector in username_selectors:
-                try:
-                    username_field = WebDriverWait(self.driver, 5).until(
-                        EC.presence_of_element_located((by, selector))
-                    )
-                    print(f"[OK] Campo username encontrado com: {by}={selector}")
-                    break
-                except:
-                    continue
-            
-            if not username_field:
-                print("[ERRO] Campo username não encontrado com nenhuma estratégia")
-                return False
-            
-            # Tentar encontrar campo password
-            for by, selector in password_selectors:
-                try:
-                    password_field = self.driver.find_element(by, selector)
-                    print(f"[OK] Campo password encontrado com: {by}={selector}")
-                    break
-                except:
-                    continue
-            
-            if not password_field:
-                print("[ERRO] Campo password não encontrado com nenhuma estratégia")
-                return False
-            
+            username_field = WebDriverWait(self.driver, 15).until(
+                EC.presence_of_element_located((By.ID, "username"))
+            )
+            password_field = self.driver.find_element(By.ID, "password")
             print("[OK] Campos de login encontrados!")
             
             # Preencher usuário
@@ -211,32 +165,9 @@ class HikCentralFormTest:
                 time.sleep(0.1)
             time.sleep(1)
             
-            # Múltiplas estratégias para botão de login
-            login_selectors = [
-                (By.CSS_SELECTOR, ".login-btn"),
-                (By.CSS_SELECTOR, "button[type='submit']"),
-                (By.CSS_SELECTOR, "input[type='submit']"),
-                (By.XPATH, "//button[contains(text(), 'Login')]"),
-                (By.XPATH, "//button[contains(text(), 'Entrar')]"),
-                (By.XPATH, "//input[@value='Login']"),
-                (By.XPATH, "//button[@type='submit']")
-            ]
-            
-            login_clicked = False
-            for by, selector in login_selectors:
-                try:
-                    login_btn = self.driver.find_element(by, selector)
-                    login_btn.click()
-                    print(f"[OK] Login clicado com: {by}={selector}")
-                    login_clicked = True
-                    break
-                except:
-                    continue
-            
-            if not login_clicked:
-                print("[ERRO] Botão de login não encontrado")
-                return False
-            
+            # Clicar login
+            login_btn = self.driver.find_element(By.CSS_SELECTOR, ".login-btn")
+            login_btn.click()
             print("[OK] Login realizado!")
             
             # Aguardar carregamento
@@ -1321,24 +1252,17 @@ class HikCentralFormTest:
                         continue
                 
                 if entrada_clicked:
-                    time.sleep(2)  # Aumentado para 2s para dar tempo dos botões carregarem
+                    time.sleep(5)  # Aumentado para 5s para estabilizar a página
                     print("[SUCCESS] CADASTRO FINALIZADO COM ENTRADA!")
                     
-                # ============ VISUALIZAR E APLICAR AGORA - MELHORADO ============
+                # ============ VISUALIZAR E APLICAR AGORA - OTIMIZADO ============
                 print("[FINAL] Clicando em Visualizar e Aplicar agora...")
                 try:
-                    # Aguardar um pouco mais para a página estabilizar após "Entrada"
-                    print("[WAIT] Aguardando página estabilizar após Entrada...")
-                    time.sleep(3)
-                    
-                    # 1. Clicar em VISUALIZAR no topo - SELETORES MELHORADOS
+                    # 1. Clicar em VISUALIZAR no topo - COM TIMEOUT REDUZIDO
                     visualizar_selectors = [
-                        "//button[contains(@class, 'el-button--link')]//span[contains(text(), 'Visualizar')]",
-                        "//button[@title='']//span[contains(text(), 'Visualizar')]", 
-                        "//span[contains(text(), 'Visualizar')]/parent::button",
-                        "//button[contains(@class, 'el-button')]//span[text()='Visualizar']",
-                        "//div[contains(@class, 'toolbar')]//span[text()='Visualizar']/parent::button",
-                        "//span[text()='Visualizar']/.."
+                        "//button[contains(@class, 'el-button--link')]//span[text()='Visualizar']",
+                        "//button[@title='']//span[text()='Visualizar']",
+                        "//span[text()='Visualizar']/parent::button"
                     ]
                     
                     visualizar_clicked = False
@@ -1367,37 +1291,16 @@ class HikCentralFormTest:
                             continue
                     
                     if not visualizar_clicked:
-                        print("[WARN] Não foi possível clicar em Visualizar usando seletores padrão")
-                        print("[TRY] Tentando estratégia alternativa - buscar por qualquer botão com 'Visualizar'...")
-                        
-                        # Estratégia alternativa - buscar qualquer elemento com texto "Visualizar"
-                        try:
-                            all_elements = self.driver.find_elements(By.XPATH, "//*[contains(text(), 'Visualizar')]")
-                            for element in all_elements:
-                                if element.is_displayed() and element.is_enabled():
-                                    try:
-                                        element.click()
-                                        print("[OK] Visualizar clicado via estratégia alternativa")
-                                        visualizar_clicked = True
-                                        break
-                                    except:
-                                        continue
-                        except:
-                            pass
-                        
-                        if not visualizar_clicked:
-                            print("[INFO] Pular Visualizar e ir direto para Aplicar agora")
+                        print("[WARN] Não foi possível clicar em Visualizar")
+                        # Não retorna aqui, continua para tentar Aplicar agora
                     
                     time.sleep(2)  # Aumentado para 2s para dar tempo dos botões carregarem
                     
-                    # 2. Clicar em APLICAR AGORA - SELETORES MELHORADOS
+                    # 2. Clicar em APLICAR AGORA - COM TIMEOUT REDUZIDO
                     aplicar_selectors = [
-                        "//button[contains(@class, 'el-button--primary')]//span[contains(text(), 'Aplicar')]",
-                        "//button[@data-v-3f3e8cbf]//span[contains(text(), 'Aplicar')]",
-                        "//span[contains(text(), 'Aplicar agora')]/parent::button",
-                        "//button[contains(@class, 'el-button')]//span[contains(text(), 'Aplicar')]",
-                        "//span[contains(text(), 'Aplicar')]/parent::button",
-                        "//div[contains(@class, 'toolbar')]//span[contains(text(), 'Aplicar')]/parent::button"
+                        "//button[contains(@class, 'el-button--primary')]//span[text()='Aplicar agora']",
+                        "//button[@data-v-3f3e8cbf]//span[text()='Aplicar agora']",
+                        "//span[text()='Aplicar agora']/parent::button"
                     ]
                     
                     aplicar_clicked = False
@@ -1421,39 +1324,18 @@ class HikCentralFormTest:
                             print(f"[WARN] Selector Aplicar {selector} falhou: {e}")
                             continue
                     
-                    if not aplicar_clicked:
-                        print("[WARN] Não foi possível clicar em Aplicar agora usando seletores padrão")
-                        print("[TRY] Tentando estratégia alternativa - buscar por qualquer botão com 'Aplicar'...")
-                        
-                        # Estratégia alternativa - buscar qualquer elemento com texto "Aplicar"
-                        try:
-                            all_elements = self.driver.find_elements(By.XPATH, "//*[contains(text(), 'Aplicar')]")
-                            for element in all_elements:
-                                if element.is_displayed() and element.is_enabled():
-                                    try:
-                                        element.click()
-                                        print("[OK] Aplicar clicado via estratégia alternativa")
-                                        aplicar_clicked = True
-                                        break
-                                    except:
-                                        continue
-                        except:
-                            pass
-                    
                     if aplicar_clicked:
                         print("[WAIT] Aguardando sincronização do cadastro (30s)...")
                         time.sleep(30)  # Reduzido de 60s para 30s
                         print("[SUCCESS] CADASTRO TOTALMENTE FINALIZADO E SINCRONIZADO!")
                     else:
                         print("[WARN] Não foi possível clicar em Aplicar agora")
-                        print("[INFO] Cadastro pode ter sido finalizado mesmo sem Aplicar agora")
                         
                 except Exception as e:
                     print(f"[ERRO] Erro na finalização com Visualizar/Aplicar: {e}")
                         
                 else:
                     print("[WARN] Não foi possível clicar no botão Entrada")
-                    # Continua mesmo assim para tentar Visualizar/Aplicar
                     
             except Exception as e:
                 print(f"[ERRO] Erro ao finalizar com botão Entrada: {e}")
