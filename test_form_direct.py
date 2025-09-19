@@ -1325,9 +1325,44 @@ class HikCentralFormTest:
                             continue
                     
                     if aplicar_clicked:
-                        print("[WAIT] Aguardando sincronização do cadastro (30s)...")
-                        time.sleep(30)  # Reduzido de 60s para 30s
-                        print("[SUCCESS] CADASTRO TOTALMENTE FINALIZADO E SINCRONIZADO!")
+                        print("[WAIT] Aguardando aparecer botão Fechar...")
+                        time.sleep(3)  # Aguardar botão Fechar aparecer
+                        
+                        # 3. Clicar em FECHAR
+                        fechar_selectors = [
+                            "//button[contains(@class, 'el-button--default')]//span[text()='Fechar']",
+                            "//button[@title='']//span[text()='Fechar']",
+                            "//span[text()='Fechar']/parent::button"
+                        ]
+                        
+                        fechar_clicked = False
+                        for selector in fechar_selectors:
+                            try:
+                                fechar_btn = WebDriverWait(self.driver, 3).until(
+                                    EC.element_to_be_clickable((By.XPATH, selector))
+                                )
+                                
+                                # Clicar em Fechar
+                                try:
+                                    fechar_btn.click()
+                                except:
+                                    self.driver.execute_script("arguments[0].click();", fechar_btn)
+                                
+                                print(f"[OK] Botão Fechar clicado usando: {selector}")
+                                fechar_clicked = True
+                                break
+                                
+                            except Exception as e:
+                                print(f"[WARN] Selector Fechar {selector} falhou: {e}")
+                                continue
+                        
+                        if fechar_clicked:
+                            print("[WAIT] Aguardando finalização completa (20s)...")
+                            time.sleep(20)  # Aguardar 20 segundos para finalizar
+                            print("[SUCCESS] CADASTRO TOTALMENTE FINALIZADO E SINCRONIZADO!")
+                        else:
+                            print("[WARN] Não foi possível clicar em Fechar, mas cadastro foi aplicado")
+                            time.sleep(10)  # Aguardar menos tempo se não conseguir fechar
                     else:
                         print("[WARN] Não foi possível clicar em Aplicar agora")
                         
