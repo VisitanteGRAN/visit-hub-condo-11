@@ -1255,14 +1255,21 @@ class HikCentralFormTest:
                     time.sleep(2)  # Aumentado para 2s para dar tempo dos botões carregarem
                     print("[SUCCESS] CADASTRO FINALIZADO COM ENTRADA!")
                     
-                # ============ VISUALIZAR E APLICAR AGORA - OTIMIZADO ============
+                # ============ VISUALIZAR E APLICAR AGORA - MELHORADO ============
                 print("[FINAL] Clicando em Visualizar e Aplicar agora...")
                 try:
-                    # 1. Clicar em VISUALIZAR no topo - COM TIMEOUT REDUZIDO
+                    # Aguardar um pouco mais para a página estabilizar após "Entrada"
+                    print("[WAIT] Aguardando página estabilizar após Entrada...")
+                    time.sleep(3)
+                    
+                    # 1. Clicar em VISUALIZAR no topo - SELETORES MELHORADOS
                     visualizar_selectors = [
-                        "//button[contains(@class, 'el-button--link')]//span[text()='Visualizar']",
-                        "//button[@title='']//span[text()='Visualizar']",
-                        "//span[text()='Visualizar']/parent::button"
+                        "//button[contains(@class, 'el-button--link')]//span[contains(text(), 'Visualizar')]",
+                        "//button[@title='']//span[contains(text(), 'Visualizar')]", 
+                        "//span[contains(text(), 'Visualizar')]/parent::button",
+                        "//button[contains(@class, 'el-button')]//span[text()='Visualizar']",
+                        "//div[contains(@class, 'toolbar')]//span[text()='Visualizar']/parent::button",
+                        "//span[text()='Visualizar']/.."
                     ]
                     
                     visualizar_clicked = False
@@ -1291,16 +1298,37 @@ class HikCentralFormTest:
                             continue
                     
                     if not visualizar_clicked:
-                        print("[WARN] Não foi possível clicar em Visualizar")
-                        # Não retorna aqui, continua para tentar Aplicar agora
+                        print("[WARN] Não foi possível clicar em Visualizar usando seletores padrão")
+                        print("[TRY] Tentando estratégia alternativa - buscar por qualquer botão com 'Visualizar'...")
+                        
+                        # Estratégia alternativa - buscar qualquer elemento com texto "Visualizar"
+                        try:
+                            all_elements = self.driver.find_elements(By.XPATH, "//*[contains(text(), 'Visualizar')]")
+                            for element in all_elements:
+                                if element.is_displayed() and element.is_enabled():
+                                    try:
+                                        element.click()
+                                        print("[OK] Visualizar clicado via estratégia alternativa")
+                                        visualizar_clicked = True
+                                        break
+                                    except:
+                                        continue
+                        except:
+                            pass
+                        
+                        if not visualizar_clicked:
+                            print("[INFO] Pular Visualizar e ir direto para Aplicar agora")
                     
                     time.sleep(2)  # Aumentado para 2s para dar tempo dos botões carregarem
                     
-                    # 2. Clicar em APLICAR AGORA - COM TIMEOUT REDUZIDO
+                    # 2. Clicar em APLICAR AGORA - SELETORES MELHORADOS
                     aplicar_selectors = [
-                        "//button[contains(@class, 'el-button--primary')]//span[text()='Aplicar agora']",
-                        "//button[@data-v-3f3e8cbf]//span[text()='Aplicar agora']",
-                        "//span[text()='Aplicar agora']/parent::button"
+                        "//button[contains(@class, 'el-button--primary')]//span[contains(text(), 'Aplicar')]",
+                        "//button[@data-v-3f3e8cbf]//span[contains(text(), 'Aplicar')]",
+                        "//span[contains(text(), 'Aplicar agora')]/parent::button",
+                        "//button[contains(@class, 'el-button')]//span[contains(text(), 'Aplicar')]",
+                        "//span[contains(text(), 'Aplicar')]/parent::button",
+                        "//div[contains(@class, 'toolbar')]//span[contains(text(), 'Aplicar')]/parent::button"
                     ]
                     
                     aplicar_clicked = False
@@ -1324,18 +1352,39 @@ class HikCentralFormTest:
                             print(f"[WARN] Selector Aplicar {selector} falhou: {e}")
                             continue
                     
+                    if not aplicar_clicked:
+                        print("[WARN] Não foi possível clicar em Aplicar agora usando seletores padrão")
+                        print("[TRY] Tentando estratégia alternativa - buscar por qualquer botão com 'Aplicar'...")
+                        
+                        # Estratégia alternativa - buscar qualquer elemento com texto "Aplicar"
+                        try:
+                            all_elements = self.driver.find_elements(By.XPATH, "//*[contains(text(), 'Aplicar')]")
+                            for element in all_elements:
+                                if element.is_displayed() and element.is_enabled():
+                                    try:
+                                        element.click()
+                                        print("[OK] Aplicar clicado via estratégia alternativa")
+                                        aplicar_clicked = True
+                                        break
+                                    except:
+                                        continue
+                        except:
+                            pass
+                    
                     if aplicar_clicked:
                         print("[WAIT] Aguardando sincronização do cadastro (30s)...")
                         time.sleep(30)  # Reduzido de 60s para 30s
                         print("[SUCCESS] CADASTRO TOTALMENTE FINALIZADO E SINCRONIZADO!")
                     else:
                         print("[WARN] Não foi possível clicar em Aplicar agora")
+                        print("[INFO] Cadastro pode ter sido finalizado mesmo sem Aplicar agora")
                         
                 except Exception as e:
                     print(f"[ERRO] Erro na finalização com Visualizar/Aplicar: {e}")
                         
                 else:
                     print("[WARN] Não foi possível clicar no botão Entrada")
+                    # Continua mesmo assim para tentar Visualizar/Aplicar
                     
             except Exception as e:
                 print(f"[ERRO] Erro ao finalizar com botão Entrada: {e}")
