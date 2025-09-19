@@ -7,14 +7,14 @@ export const testSupabaseConfig = () => {
   
   const url = import.meta.env.VITE_SUPABASE_URL;
   const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-  const serviceKey = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
+  const serviceKey = import.meta.env.VITE_SUPABASE_SERVICE_KEY;
   
   console.log('📍 URL:', url);
   console.log('🔑 Anon Key disponível:', !!anonKey);
   console.log('🔐 Service Key disponível:', !!serviceKey);
   
   if (!serviceKey) {
-    console.error('❌ PROBLEMA: VITE_SUPABASE_SERVICE_ROLE_KEY não carregada!');
+    console.error('❌ PROBLEMA: VITE_SUPABASE_SERVICE_KEY não carregada!');
     return null;
   }
   
@@ -80,7 +80,7 @@ export const testDirectFetch = async (email: string) => {
   console.log('=======================');
   
   const url = import.meta.env.VITE_SUPABASE_URL;
-  const serviceKey = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
+  const serviceKey = import.meta.env.VITE_SUPABASE_SERVICE_KEY;
   
   if (!serviceKey) {
     console.error('❌ Service key não encontrada');

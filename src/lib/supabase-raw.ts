@@ -2,7 +2,7 @@
 // Bypassa completamente o client JS
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || "https://rnpgtwughapxxvvckepd.supabase.co";
-const SERVICE_KEY = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
+const SERVICE_KEY = import.meta.env.VITE_SUPABASE_SERVICE_KEY;
 
 console.log('🔧 Cliente RAW - URL:', SUPABASE_URL);
 console.log('🔧 Cliente RAW - Service Key disponível:', !!SERVICE_KEY);
