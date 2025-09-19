@@ -294,9 +294,45 @@ export default function CadastroVisitanteSimplificado() {
       
       console.log('✅ Visitante salvo no banco:', visitanteData);
 
-      // 🔒 MÉTODO SEGURO: Visitante será processado pelo polling direto no Windows
-      // Não precisamos mais da API - o sistema Windows monitora o banco automaticamente
-      console.log('🏠 Visitante será processado pelo sistema Windows automaticamente');
+      // 🔄 ENVIAR PARA FILA DE PROCESSAMENTO DO WINDOWS
+      console.log('📤 Enviando para fila de processamento Windows...');
+      
+      const queuePayload = {
+        visitor_data: {
+          nome: nomeCompleto,
+          telefone: formData.telefone,
+          cpf: formData.cpf,
+          rg: formData.documento,
+          placa: formData.placaVeiculo || '',
+          genero: formData.genero,
+          morador_nome: linkData.morador,
+          action: 'create',
+          validade_dias: linkData.validDays || 1
+        },
+        photo_base64: formData.foto || null,
+        status: 'pending',
+        priority: 1
+      };
+
+      const queueResponse = await fetch(`${supabaseUrl}/rest/v1/visitor_registration_queue`, {
+        method: 'POST',
+        headers: {
+          'apikey': serviceKey,
+          'authorization': `Bearer ${serviceKey}`,
+          'content-type': 'application/json',
+          'accept': 'application/json',
+          'prefer': 'return=representation'
+        },
+        body: JSON.stringify(queuePayload)
+      });
+
+      if (queueResponse.ok) {
+        const queueData = await queueResponse.json();
+        console.log('✅ Visitante enviado para fila Windows:', queueData[0]?.id);
+        console.log('🏠 Visitante será processado pelo sistema Windows automaticamente');
+      } else {
+        console.warn('⚠️ Erro ao enviar para fila Windows, mas visitante foi salvo no banco');
+      }
 
       // Marcar link como usado usando método direto
       const updateResponse = await fetch(`${supabaseUrl}/rest/v1/links_convite?id=eq.${linkData.linkId}`, {
