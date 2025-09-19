@@ -214,6 +214,7 @@ export default function CadastroMorador() {
                     value={formData.nome}
                     onChange={(e) => handleInputChange('nome', e.target.value)}
                     placeholder="Seu nome completo"
+                    autoComplete="off"
                     required
                   />
                 </div>
@@ -228,6 +229,7 @@ export default function CadastroMorador() {
                     value={formData.cpf}
                     onChange={(e) => handleCPFChange(e.target.value)}
                     placeholder="000.000.000-00"
+                    autoComplete="off"
                     required
                   />
                   <p className="text-xs text-muted-foreground">
@@ -249,6 +251,7 @@ export default function CadastroMorador() {
                     value={formData.email}
                     onChange={(e) => handleInputChange('email', e.target.value)}
                     placeholder="seu.email@gmail.com"
+                    autoComplete="off"
                     required
                   />
                 </div>
@@ -263,6 +266,7 @@ export default function CadastroMorador() {
                     value={formData.telefone}
                     onChange={(e) => handleTelefoneChange(e.target.value)}
                     placeholder="(11) 99999-9999"
+                    autoComplete="off"
                     required
                   />
                 </div>
@@ -280,6 +284,7 @@ export default function CadastroMorador() {
                     value={formData.rua}
                     onChange={(e) => handleInputChange('rua', e.target.value)}
                     placeholder="Ex: Rua das Flores"
+                    autoComplete="off"
                     required
                   />
                 </div>
@@ -294,6 +299,7 @@ export default function CadastroMorador() {
                     value={formData.numeroRua}
                     onChange={(e) => handleInputChange('numeroRua', e.target.value)}
                     placeholder="123"
+                    autoComplete="off"
                     required
                   />
                 </div>
@@ -366,6 +372,7 @@ export default function CadastroMorador() {
                     value={formData.senha}
                     onChange={(e) => handleInputChange('senha', e.target.value)}
                     placeholder="Mínimo 8 caracteres"
+                    autoComplete="new-password"
                     required
                   />
                 </div>
@@ -381,6 +388,7 @@ export default function CadastroMorador() {
                     value={formData.confirmarSenha}
                     onChange={(e) => handleInputChange('confirmarSenha', e.target.value)}
                     placeholder="Repita a senha"
+                    autoComplete="new-password"
                     required
                   />
                 </div>
