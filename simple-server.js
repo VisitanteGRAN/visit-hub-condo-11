@@ -1,34 +1,18 @@
-const http = require('http');
-const fs = require('fs');
+const express = require('express');
 const path = require('path');
+const app = express();
 
-const server = http.createServer((req, res) => {
-  console.log(`Requisição: ${req.method} ${req.url}`);
-  
-  if (req.url === '/') {
-    const html = `
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Teste Simples</title>
-</head>
-<body>
-    <h1>🏠 Visit Hub Condo</h1>
-    <p>Sistema de Gestão de Visitantes</p>
-    <button onclick="alert('🎉 Funcionando!')">Testar Sistema</button>
-</body>
-</html>`;
-    
-    res.writeHead(200, { 'Content-Type': 'text/html' });
-    res.end(html);
-  } else {
-    res.writeHead(404);
-    res.end('Página não encontrada');
-  }
+// Servir arquivos estáticos da pasta public
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Rota para servir o index.html
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-const PORT = 3000;
-server.listen(PORT, () => {
-  console.log(`🚀 Servidor rodando em http://localhost:${PORT}`);
-  console.log(`📁 Diretório: ${__dirname}`);
-}); 
+// Iniciar o servidor na porta 8080
+const PORT = 8080;
+app.listen(PORT, () => {
+  console.log(`Servidor rodando em http://localhost:${PORT}`);
+  console.log(`Para acessar na rede local: http://192.168.15.11:${PORT}`);
+});

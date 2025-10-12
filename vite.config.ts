@@ -7,6 +7,16 @@ export default defineConfig({
   server: {
     port: 5173,
     host: true,
+    hmr: {
+      // Configuração específica para HMR (Hot Module Replacement)
+      protocol: 'ws',
+      port: 5174, // Porta diferente para WebSocket
+      host: 'localhost',
+      clientPort: 5174 // Porta que o cliente vai usar para conectar
+    },
+    watch: {
+      usePolling: true, // Ajuda em ambientes onde o file watching não funciona bem
+    }
   },
   plugins: [
     react(),

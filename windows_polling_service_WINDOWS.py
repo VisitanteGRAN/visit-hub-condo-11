@@ -13,7 +13,31 @@ import queue
 from datetime import datetime
 from dotenv import load_dotenv
 
-# Carregar .env
+# Carregar .Logging error ---
+Traceback (most recent call last):
+  File "C:\Users\Gran Royalle\AppData\Local\Programs\Python\Python313\Lib\logging\__init__.py", line 1154, in emit
+    stream.write(msg + self.terminator)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Gran Royalle\AppData\Local\Programs\Python\Python313\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u274c' in position 34: character maps to <undefined>
+Call stack:
+  File "C:\Users\Gran Royalle\AppData\Local\Programs\Python\Python313\Lib\threading.py", line 1014, in _bootstrap
+    self._bootstrap_inner()
+  File "C:\Users\Gran Royalle\AppData\Local\Programs\Python\Python313\Lib\threading.py", line 1043, in _bootstrap_inner
+    self.run()
+  File "C:\Users\Gran Royalle\AppData\Local\Programs\Python\Python313\Lib\threading.py", line 994, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\Gran Royalle\Desktop\windows_package\windows_polling_service_final.py", line 337, in worker_thread
+    logging.error(f"❌ Worker {worker_id} falhou: {item['id']}")
+Message: '❌ Worker 1 falhou: 617d79dd-8b1d-40de-a71d-ec2ef7b5ba60'
+Arguments: ()
+2025-09-19 11:39:31,950 - ERROR - ❌ Worker 1 falhou: 617d79dd-8b1d-40de-a71d-ec2ef7b5ba60
+2025-09-19 11:39:37,723 - INFO - [QUEUE] Fila vazia
+2025-09-19 11:39:37,827 - INFO - [INFO] Aguardando novos itens...
+2025-09-19 11:39:53,309 - INFO - [QUEUE] Fila vazia
+2025-09-19 11:39:53,309 - INFO - [INFO] Aguardando novos itens...env
 load_dotenv()
 
 # FORÇAR DIRETÓRIO ABSOLUTO
