@@ -50,10 +50,12 @@ logs/
 debug/
 
 # Screenshots e arquivos temporários
-*.png
-*.jpg
-*.jpeg
-*.gif
+# Permitir ícones do PWA
+!public/*.png
+!public/*.ico
+!public/*.jpg
+!public/*.jpeg
+!public/*.gif
 temp/
 screenshots/
 
