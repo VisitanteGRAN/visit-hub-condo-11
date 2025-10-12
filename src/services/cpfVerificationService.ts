@@ -43,7 +43,7 @@ export class CPFVerificationService {
       }
 
       // Buscar visitante no banco
-      const { data: visitante, error } = await supabase
+      const { data: visitante, error } = await supabaseAdmin
         .from('visitantes')
         .select(`
           *,
@@ -145,7 +145,7 @@ export class CPFVerificationService {
       });
 
       // Verificar se o visitante existe antes de tentar atualizar
-      const { data: visitanteExiste, error: checkError } = await supabase
+      const { data: visitanteExiste, error: checkError } = await supabaseAdmin
         .from('visitantes')
         .select('id, nome, status, morador_id')
         .eq('id', visitanteId);
