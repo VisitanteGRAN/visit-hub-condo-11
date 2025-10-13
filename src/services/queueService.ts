@@ -55,37 +55,77 @@ export class QueueService {
       
       console.log('📦 Dados que serão inseridos no Supabase:', insertData);
 
-      const { data, error } = await supabaseAdmin
-        .from('visitor_registration_queue')
-        .insert(insertData as any)
-        .select('id')
-        .single();
+      // 🛡️ DUPLA PROTEÇÃO: Tentar supabaseAdmin primeiro, depois fetch direto
+      try {
+        const { data, error } = await supabaseAdmin
+          .from('visitor_registration_queue')
+          .insert(insertData as any)
+          .select('id')
+          .single();
 
-      if (error) {
-        console.error('❌ Erro ao enviar para fila:', error);
+        if (error) {
+          console.warn('⚠️ Erro no supabaseAdmin, tentando fetch direto:', error.message);
+          throw new Error('Fallback para fetch direto');
+        }
+
+        const queueId = (data as any)?.id;
+        if (!queueId) {
+          console.warn('⚠️ ID não retornado, tentando fetch direto');
+          throw new Error('Fallback para fetch direto');
+        }
+
+        console.log('✅ Visitante enviado para fila com ID (supabaseAdmin):', queueId);
+        
         return {
-          success: false,
-          error: error.message
+          success: true,
+          id: queueId
+        };
+
+      } catch (adminError) {
+        console.log('🔄 Tentando fetch direto como fallback...');
+        
+        // 🚨 FALLBACK: Usar fetch direto com service key hardcoded
+        const response = await fetch(`${supabaseUrl}/rest/v1/visitor_registration_queue`, {
+          method: 'POST',
+          headers: {
+            'apikey': serviceKey,
+            'authorization': `Bearer ${serviceKey}`,
+            'content-type': 'application/json',
+            'accept': 'application/json',
+            'prefer': 'return=representation'
+          },
+          body: JSON.stringify(insertData)
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('❌ Erro no fetch direto:', response.status, errorText);
+          return {
+            success: false,
+            error: `HTTP ${response.status}: ${errorText}`
+          };
+        }
+
+        const data = await response.json();
+        const queueId = Array.isArray(data) ? data[0]?.id : data?.id;
+        
+        if (!queueId) {
+          return {
+            success: false,
+            error: 'ID não retornado após inserção (fetch direto)'
+          };
+        }
+
+        console.log('✅ Visitante enviado para fila com ID (fetch direto):', queueId);
+        
+        return {
+          success: true,
+          id: queueId
         };
       }
-
-      const queueId = (data as any)?.id;
-      if (!queueId) {
-        return {
-          success: false,
-          error: 'ID não retornado após inserção'
-        };
-      }
-
-      console.log('✅ Visitante enviado para fila com ID:', queueId);
-      
-      return {
-        success: true,
-        id: queueId
-      };
 
     } catch (error) {
-      console.error('❌ Erro ao enviar para fila:', error);
+      console.error('❌ Erro geral ao enviar para fila:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Erro desconhecido'
@@ -98,23 +138,64 @@ export class QueueService {
    */
   async checkQueueStatus(queueId: string): Promise<{ status: string; error_message?: string }> {
     try {
-      const { data, error } = await supabaseAdmin
-        .from('visitor_registration_queue')
-        .select('status, error_message')
-        .eq('id', queueId)
-        .single();
+      // 🛡️ DUPLA PROTEÇÃO: Tentar supabaseAdmin primeiro, depois fetch direto
+      try {
+        const { data, error } = await supabaseAdmin
+          .from('visitor_registration_queue')
+          .select('status, error_message')
+          .eq('id', queueId)
+          .single();
 
-      if (error || !data) {
-        throw new Error(error?.message || 'Dados não encontrados');
+        if (error || !data) {
+          console.warn('⚠️ Erro no supabaseAdmin, tentando fetch direto:', error?.message);
+          throw new Error('Fallback para fetch direto');
+        }
+
+        return {
+          status: (data as any).status,
+          error_message: (data as any).error_message
+        };
+
+      } catch (adminError) {
+        console.log('🔄 Tentando fetch direto como fallback...');
+        
+        // 🚨 FALLBACK: Usar fetch direto com service key hardcoded
+        const response = await fetch(`${supabaseUrl}/rest/v1/visitor_registration_queue?select=status,error_message&id=eq.${queueId}`, {
+          headers: {
+            'apikey': serviceKey,
+            'authorization': `Bearer ${serviceKey}`,
+            'content-type': 'application/json',
+            'accept': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('❌ Erro no fetch direto:', response.status, errorText);
+          return {
+            status: 'error',
+            error_message: `HTTP ${response.status}: ${errorText}`
+          };
+        }
+
+        const data = await response.json();
+        const item = Array.isArray(data) ? data[0] : data;
+        
+        if (!item) {
+          return {
+            status: 'error',
+            error_message: 'Item não encontrado na fila'
+          };
+        }
+
+        return {
+          status: item.status,
+          error_message: item.error_message
+        };
       }
 
-      return {
-        status: (data as any).status,
-        error_message: (data as any).error_message
-      };
-
     } catch (error) {
-      console.error('❌ Erro ao verificar status da fila:', error);
+      console.error('❌ Erro geral ao verificar status da fila:', error);
       return {
         status: 'error',
         error_message: error instanceof Error ? error.message : 'Erro desconhecido'
