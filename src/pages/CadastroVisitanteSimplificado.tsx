@@ -27,6 +27,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { CameraCapture } from '@/components/ui/camera-capture';
 import { logger } from '@/utils/secureLogger';
+import { queueService } from '@/services/queueService';
 
 interface VisitanteData {
   nome: string;
@@ -297,41 +298,25 @@ export default function CadastroVisitanteSimplificado() {
       // 🔄 ENVIAR PARA FILA DE PROCESSAMENTO DO WINDOWS
       console.log('📤 Enviando para fila de processamento Windows...');
       
-      const queuePayload = {
-        visitor_data: {
-          nome: nomeCompleto,
-          telefone: formData.telefone,
-          cpf: formData.cpf,
-          rg: formData.documento,
-          placa: formData.placaVeiculo || '',
-          genero: formData.genero,
-          morador_nome: linkData.morador,
-          action: 'create',
-          validade_dias: linkData.validDays || 1
-        },
-        photo_base64: formData.foto || null,
-        status: 'pending',
-        priority: 1
-      };
-
-      const queueResponse = await fetch(`${supabaseUrl}/rest/v1/visitor_registration_queue`, {
-        method: 'POST',
-        headers: {
-          'apikey': serviceKey,
-          'authorization': `Bearer ${serviceKey}`,
-          'content-type': 'application/json',
-          'accept': 'application/json',
-          'prefer': 'return=representation'
-        },
-        body: JSON.stringify(queuePayload)
+      const queueResult = await queueService.sendToQueue({
+        nome: nomeCompleto,
+        telefone: formData.telefone,
+        cpf: formData.cpf,
+        rg: formData.documento,
+        placa: formData.placaVeiculo || '',
+        genero: formData.genero,
+        morador_nome: linkData.morador,
+        action: 'create',
+        validade_dias: linkData.validDays || 1,
+        photo_base64: formData.foto || null
       });
 
-      if (queueResponse.ok) {
-        const queueData = await queueResponse.json();
-        console.log('✅ Visitante enviado para fila Windows:', queueData[0]?.id);
+      if (queueResult.success) {
+        console.log('✅ Visitante enviado para fila Windows:', queueResult.id);
         console.log('🏠 Visitante será processado pelo sistema Windows automaticamente');
       } else {
-        console.warn('⚠️ Erro ao enviar para fila Windows, mas visitante foi salvo no banco');
+        console.warn('⚠️ Erro ao enviar para fila Windows:', queueResult.error);
+        console.warn('⚠️ Visitante foi salvo no banco, mas não foi enviado para processamento');
       }
 
       // Marcar link como usado usando método direto
