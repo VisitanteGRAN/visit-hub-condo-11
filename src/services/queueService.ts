@@ -1,5 +1,17 @@
-import { supabase } from '@/integrations/supabase/client';
+import { createClient } from '@supabase/supabase-js';
 import { logger } from '@/utils/secureLogger';
+
+// CLIENTE DIRETO COM SERVICE KEY HARDCODED PARA GARANTIR FUNCIONAMENTO
+const supabaseUrl = "https://rnpgtwughapxxvvckepd.supabase.co";
+const serviceKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJucGd0d3VnaGFweHh2dmNrZXBkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NTAzMzUzOSwiZXhwIjoyMDcwNjA5NTM5fQ.2t6m1iUk_TRXtbEACh-P6dKJWRqyeLBe1OrUZemFd90";
+
+// Cliente admin direto
+const supabaseAdmin = createClient(supabaseUrl, serviceKey, {
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false
+  }
+});
 
 export interface VisitorQueueData {
   nome: string;
@@ -43,7 +55,7 @@ export class QueueService {
       
       console.log('📦 Dados que serão inseridos no Supabase:', insertData);
 
-      const { data, error } = await supabase
+      const { data, error } = await supabaseAdmin
         .from('visitor_registration_queue')
         .insert(insertData as any)
         .select('id')
@@ -86,7 +98,7 @@ export class QueueService {
    */
   async checkQueueStatus(queueId: string): Promise<{ status: string; error_message?: string }> {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseAdmin
         .from('visitor_registration_queue')
         .select('status, error_message')
         .eq('id', queueId)
