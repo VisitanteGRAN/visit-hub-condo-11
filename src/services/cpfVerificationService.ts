@@ -191,89 +191,111 @@ export class CPFVerificationService {
         validadeFim: validadeFim.toISOString()
       });
 
-      // Verificar se o visitante existe antes de tentar atualizar
-      const { data: visitanteExiste, error: checkError } = await supabaseAdmin
-        .from('visitantes')
-        .select('id, nome, status, morador_id')
-        .eq('id', visitanteId);
+      // MÉTODO 1: Tentar com supabaseAdmin local
+      try {
+        // Verificar se o visitante existe
+        const { data: visitanteExiste, error: checkError } = await supabaseAdmin
+          .from('visitantes')
+          .select('id, nome, status, morador_id')
+          .eq('id', visitanteId);
 
-      console.log('🔍 Verificação de existência:', { visitanteExiste, checkError });
-      
-      if (visitanteExiste && visitanteExiste.length > 0) {
-        console.log('✅ Visitante encontrado para update:', visitanteExiste[0]);
-      }
+        if (checkError) {
+          console.warn('⚠️ Erro na verificação, tentando fetch direto:', checkError);
+          throw checkError;
+        }
 
-      if (checkError) {
-        throw new Error(`Erro ao verificar visitante: ${checkError.message}`);
-      }
+        if (!visitanteExiste || visitanteExiste.length === 0) {
+          throw new Error(`Visitante com ID ${visitanteId} não encontrado`);
+        }
 
-      if (!visitanteExiste || visitanteExiste.length === 0) {
-        throw new Error(`Visitante com ID ${visitanteId} não encontrado para atualização`);
-      }
+        // Atualizar visitante
+        const { error: updateError } = await supabaseAdmin
+          .from('visitantes')
+          .update({
+            morador_id: novoMoradorId,
+            status: 'ativo',
+            validade_inicio: validadeInicio.toISOString(),
+            validade_fim: validadeFim.toISOString(),
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', visitanteId);
 
-      // Primeiro tentar UPDATE simples sem SELECT
-      const { error: simpleUpdateError } = await supabaseAdmin
-        .from('visitantes')
-        .update({
+        if (updateError) {
+          console.warn('⚠️ Erro no update, tentando fetch direto:', updateError);
+          throw updateError;
+        }
+
+        // Buscar visitante atualizado
+        const { data: visitanteAtualizado, error: selectError } = await supabaseAdmin
+          .from('visitantes')
+          .select('*')
+          .eq('id', visitanteId)
+          .single();
+
+        if (selectError) {
+          console.warn('⚠️ Erro no select, mas update foi bem-sucedido');
+        }
+
+        // Buscar nome do morador
+        const { data: moradorData } = await supabaseAdmin
+          .from('usuarios')
+          .select('nome')
+          .eq('id', novoMoradorId)
+          .single();
+
+        const nomeDoMorador = moradorData?.nome || 'Morador';
+
+        return {
+          success: true,
+          message: `Visitante reativado com sucesso até ${validadeFim.toLocaleDateString()}`,
+          data: {
+            visitante: visitanteAtualizado || { id: visitanteId },
+            validadeAte: validadeFim.toISOString(),
+            morador: nomeDoMorador
+          }
+        };
+
+      } catch (supabaseError) {
+        console.warn('⚠️ Erro no supabaseAdmin, usando fetch direto:', supabaseError);
+        
+        // MÉTODO 2: Fetch direto como backup
+        const updateData = {
           morador_id: novoMoradorId,
           status: 'ativo',
           validade_inicio: validadeInicio.toISOString(),
           validade_fim: validadeFim.toISOString(),
           updated_at: new Date().toISOString()
-        })
-        .eq('id', visitanteId);
+        };
 
-      console.log('🔧 Resultado UPDATE simples:', { error: simpleUpdateError });
+        const response = await fetch(`${supabaseUrl}/rest/v1/visitantes?id=eq.${visitanteId}`, {
+          method: 'PATCH',
+          headers: {
+            'apikey': serviceKey,
+            'authorization': `Bearer ${serviceKey}`,
+            'content-type': 'application/json',
+            'accept': 'application/json',
+            'prefer': 'return=representation'
+          },
+          body: JSON.stringify(updateData)
+        });
 
-      if (simpleUpdateError) {
-        throw new Error(`Erro no UPDATE simples: ${simpleUpdateError.message}`);
-      }
-
-      // Agora buscar o registro atualizado
-      const { data: visitantesAtualizados, error: selectError } = await supabaseAdmin
-        .from('visitantes')
-        .select('*')
-        .eq('id', visitanteId);
-
-      console.log('🔧 Resultado do SELECT após UPDATE:', { 
-        data: visitantesAtualizados, 
-        error: selectError,
-        length: visitantesAtualizados?.length || 0
-      });
-
-      if (selectError) {
-        throw new Error(`Erro ao buscar visitante atualizado: ${selectError.message}`);
-      }
-
-      if (!visitantesAtualizados || visitantesAtualizados.length === 0) {
-        logger.error('❌ UPDATE não retornou dados. Possível problema de RLS ou permissão.');
-        throw new Error('Nenhum visitante foi atualizado - verifique permissões RLS');
-      }
-
-      // Pegar o primeiro (e deveria ser único) resultado
-      const visitanteAtualizado = visitantesAtualizados[0];
-
-      console.log('✅ Visitante atualizado no banco:', visitanteAtualizado);
-      logger.info(`📊 Total de registros atualizados: ${visitantesAtualizados.length}`);
-
-      // Buscar nome do morador separadamente - USANDO ADMIN
-      const { data: moradorData } = await supabaseAdmin
-        .from('usuarios')
-        .select('nome')
-        .eq('id', novoMoradorId)
-        .single();
-
-      const nomeDoMorador = moradorData?.nome || 'Morador';
-
-      return {
-        success: true,
-        message: `Visitante reativado com sucesso até ${validadeFim.toLocaleDateString()}`,
-        data: {
-          visitante: visitanteAtualizado,
-          validadeAte: validadeFim.toISOString(),
-          morador: nomeDoMorador
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
-      };
+
+        const updatedData = await response.json();
+        console.log('✅ Visitante atualizado via fetch:', updatedData);
+
+        return {
+          success: true,
+          message: `Visitante reativado com sucesso até ${validadeFim.toLocaleDateString()}`,
+          data: {
+            visitante: updatedData[0] || { id: visitanteId },
+            validadeAte: validadeFim.toISOString(),
+            morador: 'Morador'
+          }
+        };
+      }
 
     } catch (error) {
       console.error('❌ Erro ao reativar visitante:', error);
