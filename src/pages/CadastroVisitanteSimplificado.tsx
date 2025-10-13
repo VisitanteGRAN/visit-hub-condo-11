@@ -137,10 +137,99 @@ export default function CadastroVisitanteSimplificado() {
     }
   };
 
+  // 🔧 FUNÇÕES DE FORMATAÇÃO
+  const formatCPF = (value: string) => {
+    // Remove tudo que não é número
+    const numbers = value.replace(/\D/g, '');
+    
+    // Limita a 11 dígitos
+    const limitedNumbers = numbers.slice(0, 11);
+    
+    // Aplica a máscara
+    return limitedNumbers
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+  };
+
+  const formatTelefone = (value: string) => {
+    // Remove tudo que não é número
+    const numbers = value.replace(/\D/g, '');
+    
+    // Limita a 11 dígitos (DDD + 9 dígitos)
+    const limitedNumbers = numbers.slice(0, 11);
+    
+    // Aplica a máscara
+    if (limitedNumbers.length <= 10) {
+      // Formato: (00) 0000-0000
+      return limitedNumbers
+        .replace(/(\d{2})(\d)/, '($1) $2')
+        .replace(/(\d{4})(\d)/, '$1-$2');
+    } else {
+      // Formato: (00) 00000-0000
+      return limitedNumbers
+        .replace(/(\d{2})(\d)/, '($1) $2')
+        .replace(/(\d{5})(\d)/, '$1-$2');
+    }
+  };
+
+  const formatDocumento = (value: string) => {
+    // Remove caracteres especiais, mantém apenas números e letras
+    return value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+  };
+
+  const formatPlacaVeiculo = (value: string) => {
+    // Remove caracteres especiais
+    const clean = value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+    
+    // Limita a 7 caracteres e aplica máscara ABC-1234
+    if (clean.length <= 7) {
+      return clean.replace(/(\w{3})(\w)/, '$1-$2');
+    }
+    
+    return clean.slice(0, 7).replace(/(\w{3})(\w)/, '$1-$2');
+  };
+
+  // 🔧 FUNÇÕES DE VALIDAÇÃO
+  const validateCPF = (cpf: string) => {
+    const numbers = cpf.replace(/\D/g, '');
+    return numbers.length === 11;
+  };
+
+  const validateTelefone = (telefone: string) => {
+    const numbers = telefone.replace(/\D/g, '');
+    return numbers.length >= 10 && numbers.length <= 11;
+  };
+
   const handleInputChange = (field: keyof VisitanteData, value: string) => {
+    let formattedValue = value;
+    
+    // Aplicar formatação específica por campo
+    switch (field) {
+      case 'cpf':
+        formattedValue = formatCPF(value);
+        break;
+      case 'telefone':
+        formattedValue = formatTelefone(value);
+        break;
+      case 'documento':
+        formattedValue = formatDocumento(value);
+        break;
+      case 'placaVeiculo':
+        formattedValue = formatPlacaVeiculo(value);
+        break;
+      case 'nome':
+      case 'sobrenome':
+        // Apenas letras e espaços
+        formattedValue = value.replace(/[^a-zA-ZÀ-ÿ\s]/g, '');
+        break;
+      default:
+        formattedValue = value;
+    }
+    
     setFormData(prev => ({
       ...prev,
-      [field]: value
+      [field]: formattedValue
     }));
   };
 
@@ -187,11 +276,24 @@ export default function CadastroVisitanteSimplificado() {
   const validateForm = () => {
     const errors = [];
 
-    // ✅ CAMPOS OBRIGATÓRIOS
+    // ✅ CAMPOS OBRIGATÓRIOS COM VALIDAÇÃO
     if (!formData.nome.trim()) errors.push('Nome é obrigatório');
     if (!formData.sobrenome.trim()) errors.push('Sobrenome é obrigatório');
-    if (!formData.cpf.trim()) errors.push('CPF é obrigatório');
-    if (!formData.telefone.trim()) errors.push('Telefone é obrigatório');
+    
+    // Validação CPF
+    if (!formData.cpf.trim()) {
+      errors.push('CPF é obrigatório');
+    } else if (!validateCPF(formData.cpf)) {
+      errors.push('CPF deve ter exatamente 11 dígitos');
+    }
+    
+    // Validação Telefone
+    if (!formData.telefone.trim()) {
+      errors.push('Telefone é obrigatório');
+    } else if (!validateTelefone(formData.telefone)) {
+      errors.push('Telefone deve ter entre 10 e 11 dígitos');
+    }
+    
     if (!formData.documento.trim()) errors.push('Documento é obrigatório');
     if (!formData.tipoDocumento.trim()) errors.push('Tipo de documento é obrigatório');
     if (!formData.genero.trim()) errors.push('Gênero é obrigatório');
@@ -476,6 +578,7 @@ export default function CadastroVisitanteSimplificado() {
                     value={formData.cpf}
                     onChange={(e) => handleInputChange('cpf', e.target.value)}
                     placeholder="000.000.000-00"
+                    maxLength={14}
                     required
                   />
                 </div>
@@ -487,6 +590,7 @@ export default function CadastroVisitanteSimplificado() {
                     value={formData.telefone}
                     onChange={(e) => handleInputChange('telefone', e.target.value)}
                     placeholder="(11) 99999-9999"
+                    maxLength={15}
                     required
                   />
                 </div>
@@ -538,7 +642,8 @@ export default function CadastroVisitanteSimplificado() {
                     id="documento"
                     value={formData.documento}
                     onChange={(e) => handleInputChange('documento', e.target.value)}
-                    placeholder="Número do documento"
+                    placeholder="Ex: 123456789 ou AB123456"
+                    maxLength={20}
                     required
                   />
                 </div>
@@ -552,7 +657,8 @@ export default function CadastroVisitanteSimplificado() {
                     id="placaVeiculo"
                     value={formData.placaVeiculo}
                     onChange={(e) => handleInputChange('placaVeiculo', e.target.value)}
-                    placeholder="ABC-1234 (opcional)"
+                    placeholder="ABC-1234"
+                    maxLength={8}
                   />
                 </div>
                 <p className="text-xs text-muted-foreground">
