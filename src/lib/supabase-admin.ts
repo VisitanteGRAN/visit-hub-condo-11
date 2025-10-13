@@ -4,22 +4,21 @@ import { logger } from '@/utils/secureLogger';
 // Cliente Supabase com Service Role Key para operações administrativas
 // Bypassa Row Level Security (RLS)
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "https://rnpgtwughapxxvvckepd.supabase.co";
-const supabaseServiceKey = import.meta.env.VITE_SUPABASE_SERVICE_KEY;
+
+// Tentar múltiplas variáveis para service key
+const supabaseServiceKey = import.meta.env.VITE_SUPABASE_SERVICE_KEY || 
+                          import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY ||
+                          "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJucGd0d3VnaGFweHh2dmNrZXBkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NTAzMzUzOSwiZXhwIjoyMDcwNjA5NTM5fQ.2t6m1iUk_TRXtbEACh-P6dKJWRqyeLBe1OrUZemFd90";
+
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJucGd0d3VnaGFweHh2dmNrZXBkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwMzM1MzksImV4cCI6MjA3MDYwOTUzOX0.rlPAA5La3_xBKchaSXs8JZZ1IhjCkfBmzTwylLe25eE";
 
-if (!supabaseServiceKey) {
-  console.warn('⚠️ VITE_SUPABASE_SERVICE_KEY não configurado. Usando anon key como fallback.');
-  logger.warn('⚠️ VITE_SUPABASE_SERVICE_KEY não configurado. Usando anon key como fallback.');
-}
+console.log('🔧 Criando supabaseAdmin:');
+console.log('- URL:', supabaseUrl);
+console.log('- Service key disponível:', !!supabaseServiceKey);
+console.log('- Service key começa com:', supabaseServiceKey?.substring(0, 20) + '...');
 
-// Usar service key se disponível, senão usar anon key como fallback
-const keyToUse = supabaseServiceKey || supabaseAnonKey;
-
-// Debug sem expor chaves sensíveis
-console.log('🔧 Criando supabaseAdmin - Service key:', !!supabaseServiceKey);
-
-// CRIAR CLIENTE SEM HEADERS PERSONALIZADOS - DEIXAR O SUPABASE GERENCIAR
-export const supabaseAdmin = createClient(supabaseUrl, keyToUse, {
+// SEMPRE usar a service key (com fallback hardcoded)
+export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
   auth: {
     autoRefreshToken: false,
     persistSession: false
@@ -27,5 +26,4 @@ export const supabaseAdmin = createClient(supabaseUrl, keyToUse, {
 });
 
 // Log adicional
-console.log('🔧 supabaseAdmin criado. URL:', supabaseUrl);
-console.log('🔧 Service key disponível:', !!supabaseServiceKey);
+console.log('✅ supabaseAdmin criado com service key');

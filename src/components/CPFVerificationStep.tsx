@@ -54,8 +54,36 @@ export default function CPFVerificationStep({
       setVerificationResult(result);
 
       if (result.exists && result.visitante) {
-        if (result.needsReactivation) {
-          toast.info(`Visitante ${result.visitante.nome} encontrado - será reativado`);
+        if (result.needsReactivation && result.canReactivate) {
+          toast.info(`🔄 Visitante ${result.visitante.nome} encontrado - reativando automaticamente...`);
+          
+          // Auto-reativar imediatamente após 1 segundo
+          setTimeout(async () => {
+            try {
+              console.log('🔄 Iniciando auto-reativação para:', result.visitante!.nome);
+              
+              const reactivationResult = await cpfVerificationService.reativarVisitante(
+                result.visitante!.id,
+                linkData.moradorId,
+                linkData.validDays || 1
+              );
+
+              if (reactivationResult.success) {
+                toast.success(`✅ ${result.visitante!.nome} reativado automaticamente!`);
+                console.log('✅ Auto-reativação bem-sucedida');
+                
+                // Continuar automaticamente para o cadastro
+                onContinueWithReactivation(result.visitante!);
+              } else {
+                toast.error(`❌ Erro na auto-reativação: ${reactivationResult.message}`);
+                console.error('❌ Erro na auto-reativação:', reactivationResult);
+              }
+            } catch (error) {
+              console.error('❌ Erro na auto-reativação:', error);
+              toast.error('❌ Erro ao reativar automaticamente. Use o botão manual.');
+            }
+          }, 1000);
+          
         } else {
           toast.warning(result.message);
         }
