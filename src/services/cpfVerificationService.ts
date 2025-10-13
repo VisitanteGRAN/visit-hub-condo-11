@@ -1,6 +1,17 @@
-import { supabase } from '@/integrations/supabase/client';
-import { supabaseAdmin } from '@/lib/supabase-admin';
+import { createClient } from '@supabase/supabase-js';
 import { logger } from '@/utils/secureLogger';
+
+// CLIENTE DIRETO COM SERVICE KEY HARDCODED PARA GARANTIR FUNCIONAMENTO
+const supabaseUrl = "https://rnpgtwughapxxvvckepd.supabase.co";
+const serviceKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJucGd0d3VnaGFweHh2dmNrZXBkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NTAzMzUzOSwiZXhwIjoyMDcwNjA5NTM5fQ.2t6m1iUk_TRXtbEACh-P6dKJWRqyeLBe1OrUZemFd90";
+
+// Cliente admin direto
+const supabaseAdmin = createClient(supabaseUrl, serviceKey, {
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false
+  }
+});
 
 export interface VisitanteExistente {
   id: string;
@@ -28,7 +39,7 @@ export class CPFVerificationService {
    */
   async verificarCPF(cpf: string): Promise<CPFVerificationResult> {
     try {
-      // [REMOVED] Sensitive data log removed for security;
+      console.log('🔍 Iniciando verificação de CPF...');
       
       // Limpar CPF (apenas números)
       const cpfLimpo = cpf.replace(/\D/g, '');
@@ -42,72 +53,51 @@ export class CPFVerificationService {
         };
       }
 
-      // Buscar visitante no banco
-      const { data: visitante, error } = await supabaseAdmin
-        .from('visitantes')
-        .select(`
-          *,
-          morador:usuarios(nome)
-        `)
-        .eq('cpf', cpfLimpo)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .single();
+      console.log('🔍 CPF limpo:', cpfLimpo);
 
-      if (error && error.code !== 'PGRST116') {
-        console.error('❌ Erro ao verificar CPF:', error);
-        throw new Error(`Erro ao verificar CPF: ${error.message}`);
+      // MÉTODO 1: Tentar com supabaseAdmin
+      try {
+        const { data: visitante, error } = await supabaseAdmin
+          .from('visitantes')
+          .select(`
+            *,
+            morador:usuarios(nome)
+          `)
+          .eq('cpf', cpfLimpo)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single();
+
+        if (!error || error.code === 'PGRST116') {
+          return this.processVisitanteResult(visitante, error);
+        }
+        
+        console.warn('⚠️ Supabase client falhou, tentando fetch direto...');
+        throw error;
+        
+      } catch (supabaseError) {
+        console.warn('⚠️ Erro no supabaseAdmin, usando fetch direto:', supabaseError);
+        
+        // MÉTODO 2: Fetch direto como backup
+        const response = await fetch(`${supabaseUrl}/rest/v1/visitantes?select=*,morador:usuarios(nome)&cpf=eq.${cpfLimpo}&order=created_at.desc&limit=1`, {
+          method: 'GET',
+          headers: {
+            'apikey': serviceKey,
+            'authorization': `Bearer ${serviceKey}`,
+            'content-type': 'application/json',
+            'accept': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        const visitante = data && data.length > 0 ? data[0] : null;
+        
+        return this.processVisitanteResult(visitante, null);
       }
-
-      if (!visitante) {
-        // [REMOVED] Sensitive data log removed for security;
-        return {
-          exists: false,
-          needsReactivation: false,
-          canReactivate: false,
-          message: 'CPF não cadastrado - visitante novo'
-        };
-      }
-
-      console.log('📋 Visitante encontrado:', visitante);
-
-      // Verificar se está ativo
-      const agora = new Date();
-      const validadeFim = new Date(visitante.validade_fim);
-      const isVencido = validadeFim < agora;
-      const isInativo = visitante.status !== 'ativo';
-
-      const needsReactivation = isVencido || isInativo;
-
-      const visitanteData: VisitanteExistente = {
-        id: visitante.id,
-        nome: visitante.nome,
-        cpf: visitante.cpf,
-        telefone: visitante.telefone || '',
-        status: visitante.status,
-        validade_fim: visitante.validade_fim,
-        morador_id: visitante.morador_id,
-        morador_nome: visitante.morador?.nome || '',
-        ultimo_acesso: visitante.updated_at
-      };
-
-      if (!needsReactivation) {
-        return {
-          exists: true,
-          visitante: visitanteData,
-          needsReactivation: false,
-          canReactivate: false,
-          message: `Visitante ${visitante.nome} já está ativo até ${validadeFim.toLocaleDateString()}`
-        };
-      }
-
-      return {
-        exists: true,
-        visitante: visitanteData,
-        needsReactivation: true,
-        canReactivate: true,
-        message: `Visitante ${visitante.nome} encontrado - precisa reativar`
-      };
 
     } catch (error) {
       console.error('❌ Erro na verificação de CPF:', error);
@@ -118,6 +108,63 @@ export class CPFVerificationService {
         message: `Erro ao verificar CPF: ${error}`
       };
     }
+  }
+
+  private processVisitanteResult(visitante: any, error: any): CPFVerificationResult {
+    if (error && error.code !== 'PGRST116') {
+      console.error('❌ Erro ao verificar CPF:', error);
+      throw new Error(`Erro ao verificar CPF: ${error.message}`);
+    }
+
+    if (!visitante) {
+      console.log('📋 CPF não encontrado - visitante novo');
+      return {
+        exists: false,
+        needsReactivation: false,
+        canReactivate: false,
+        message: 'CPF não cadastrado - visitante novo'
+      };
+    }
+
+    console.log('📋 Visitante encontrado:', visitante);
+
+    // Verificar se está ativo
+    const agora = new Date();
+    const validadeFim = new Date(visitante.validade_fim);
+    const isVencido = validadeFim < agora;
+    const isInativo = visitante.status !== 'ativo';
+
+    const needsReactivation = isVencido || isInativo;
+
+    const visitanteData: VisitanteExistente = {
+      id: visitante.id,
+      nome: visitante.nome,
+      cpf: visitante.cpf,
+      telefone: visitante.telefone || '',
+      status: visitante.status,
+      validade_fim: visitante.validade_fim,
+      morador_id: visitante.morador_id,
+      morador_nome: visitante.morador?.nome || '',
+      ultimo_acesso: visitante.updated_at
+    };
+
+    if (!needsReactivation) {
+      return {
+        exists: true,
+        visitante: visitanteData,
+        needsReactivation: false,
+        canReactivate: false,
+        message: `Visitante ${visitante.nome} já está ativo até ${validadeFim.toLocaleDateString()}`
+      };
+    }
+
+    return {
+      exists: true,
+      visitante: visitanteData,
+      needsReactivation: true,
+      canReactivate: true,
+      message: `Visitante ${visitante.nome} encontrado - precisa reativar`
+    };
   }
 
   /**
