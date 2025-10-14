@@ -19,6 +19,8 @@ import TesteHikvision from "./pages/TesteHikvision";
 import TesteScraping from "./pages/TesteScraping";
 import AdminApprovals from "./pages/AdminApprovals";
 import AdminResidents from "./pages/AdminResidents";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 const App = () => (
   <ThemeProvider>
@@ -30,6 +32,8 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Welcome />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/cadastro-morador" element={<CadastroMorador />} />
           <Route path="/cadastro-sucesso" element={<CadastroSucesso />} />
                         <Route path="/visitante/:linkId" element={<CadastroVisitanteSimplificado />} />

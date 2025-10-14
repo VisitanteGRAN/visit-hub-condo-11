@@ -61,7 +61,7 @@ export default function Login() {
   };
 
   const handleForgotPassword = () => {
-    toast.info('Funcionalidade em desenvolvimento');
+    navigate('/forgot-password');
   };
 
   return (

@@ -23,6 +23,8 @@ interface AuthContextType {
   register: (email: string, password: string, nome: string, role: UserRole, unidade: string, cpf?: string, telefone?: string, foto?: string) => Promise<boolean>;
   logout: () => void;
   isLoading: boolean;
+  forgotPassword: (email: string) => Promise<boolean>;
+  resetPassword: (password: string) => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -447,8 +449,79 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const forgotPassword = async (email: string): Promise<boolean> => {
+    try {
+      setIsLoading(true);
+      
+      // Verificar se o usuário existe no sistema
+      const { data: userData, error: userError } = await supabase
+        .from('usuarios')
+        .select('id, email, nome, ativo, status')
+        .eq('email', email.toLowerCase())
+        .single();
+
+      if (userError || !userData) {
+        logger.error('Usuário não encontrado para recuperação de senha', { email });
+        return false;
+      }
+
+      // Verificar se o usuário está ativo
+      if (!userData.ativo || userData.status !== 'ativo') {
+        logger.error('Tentativa de recuperação para usuário inativo', { email });
+        return false;
+      }
+
+      // Enviar email de recuperação via Supabase Auth
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+
+      if (error) {
+        logger.error('Erro ao enviar email de recuperação', { email, error: error.message });
+        return false;
+      }
+
+      logger.info('Email de recuperação enviado com sucesso', { email });
+      return true;
+    } catch (error) {
+      logger.error('Erro na função forgotPassword', { email, error });
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const resetPassword = async (password: string): Promise<boolean> => {
+    try {
+      setIsLoading(true);
+
+      // Atualizar a senha via Supabase Auth
+      const { error } = await supabase.auth.updateUser({
+        password: password
+      });
+
+      if (error) {
+        logger.error('Erro ao redefinir senha', { error: error.message });
+        return false;
+      }
+
+      logger.info('Senha redefinida com sucesso');
+      
+      // Fazer logout para forçar novo login
+      await supabase.auth.signOut();
+      setUser(null);
+      
+      return true;
+    } catch (error) {
+      logger.error('Erro na função resetPassword', { error });
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, isLoading }}>
+    <AuthContext.Provider value={{ user, login, register, logout, isLoading, forgotPassword, resetPassword }}>
       {children}
     </AuthContext.Provider>
   );
