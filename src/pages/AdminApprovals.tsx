@@ -239,11 +239,6 @@ export default function AdminApprovals() {
             <div><strong>Endereço:</strong> ${user.unidade}</div>
         </div>
         
-        <div style="margin-top: 40px; text-align: center;">
-            <div style="border-top: 1px solid #000; width: 300px; margin: 0 auto;">
-                <p style="margin-top: 5px;"><strong>Assinatura do Morador</strong></p>
-            </div>
-        </div>
     </div>
 </body>
 </html>`;
