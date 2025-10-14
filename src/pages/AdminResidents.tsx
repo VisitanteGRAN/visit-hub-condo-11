@@ -54,22 +54,51 @@ export default function AdminResidents() {
       setIsLoading(true);
       logger.info('🏠 Carregando lista de moradores...');
 
-      // Buscar todos os usuários com perfil 'morador'
-      const { data, error } = await supabaseAdmin
-        .from('usuarios')
-        .select('*')
-        .eq('perfil', 'morador')
-        .order('created_at', { ascending: false });
+      // 🛡️ DUPLA PROTEÇÃO: Tentar supabaseAdmin primeiro, depois fetch direto
+      try {
+        const { data, error } = await supabaseAdmin
+          .from('usuarios')
+          .select('*')
+          .eq('perfil', 'morador')
+          .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error('❌ Erro ao carregar moradores:', error);
-        toast.error('Erro ao carregar lista de moradores');
-        return;
+        if (error) {
+          console.warn('⚠️ Erro no supabaseAdmin, tentando fetch direto:', error.message);
+          throw new Error('Fallback para fetch direto');
+        }
+
+        console.log('✅ Moradores carregados (supabaseAdmin):', data?.length || 0);
+        setResidents(data || []);
+        setFilteredResidents(data || []);
+
+      } catch (adminError) {
+        console.log('🔄 Tentando fetch direto como fallback...');
+        
+        // 🚨 FALLBACK: Usar fetch direto com service key hardcoded
+        const supabaseUrl = "https://rnpgtwughapxxvvckepd.supabase.co";
+        const serviceKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJucGd0d3VnaGFweHh2dmNrZXBkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NTAzMzUzOSwiZXhwIjoyMDcwNjA5NTM5fQ.2t6m1iUk_TRXtbEACh-P6dKJWRqyeLBe1OrUZemFd90";
+        
+        const response = await fetch(`${supabaseUrl}/rest/v1/usuarios?select=*&perfil=eq.morador&order=created_at.desc`, {
+          headers: {
+            'apikey': serviceKey,
+            'authorization': `Bearer ${serviceKey}`,
+            'content-type': 'application/json',
+            'accept': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('❌ Erro no fetch direto:', response.status, errorText);
+          toast.error('Erro ao carregar lista de moradores');
+          return;
+        }
+
+        const data = await response.json();
+        console.log('✅ Moradores carregados (fetch direto):', data?.length || 0);
+        setResidents(data || []);
+        setFilteredResidents(data || []);
       }
-
-      console.log('✅ Moradores carregados:', data?.length || 0);
-      setResidents(data || []);
-      setFilteredResidents(data || []);
 
     } catch (error) {
       console.error('❌ Erro geral:', error);

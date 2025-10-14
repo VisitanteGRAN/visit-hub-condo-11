@@ -18,6 +18,7 @@ interface CadastroMoradorData {
   senha: string;
   confirmarSenha: string;
   cpf: string;
+  rg: string;
   telefone: string;
   rua: string;
   numeroRua: string;
@@ -34,6 +35,7 @@ export default function CadastroMorador() {
     senha: '',
     confirmarSenha: '',
     cpf: '',
+    rg: '',
     telefone: '',
     rua: '',
     numeroRua: '',
@@ -120,6 +122,11 @@ export default function CadastroMorador() {
     
     if (!validateCPF(formData.cpf)) {
       toast.error('CPF inválido');
+      return false;
+    }
+    
+    if (!formData.rg.trim()) {
+      toast.error('Por favor, informe seu RG');
       return false;
     }
     
@@ -266,38 +273,55 @@ export default function CadastroMorador() {
                 </div>
               </div>
 
-              {/* Contato */}
+              {/* RG e Telefone */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="flex items-center gap-2">
-                    <Mail className="h-4 w-4" />
-                    E-mail (Gmail recomendado) *
+                  <Label htmlFor="rg" className="flex items-center gap-2">
+                    <FileText className="h-4 w-4" />
+                    RG *
                   </Label>
                   <Input
-                    id="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => handleInputChange('email', e.target.value)}
-                    placeholder="seu.email@gmail.com"
+                    id="rg"
+                    value={formData.rg}
+                    onChange={(e) => handleInputChange('rg', e.target.value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase())}
+                    placeholder="Ex: MG12345678"
                     autoComplete="off"
+                    maxLength={15}
                     required
                   />
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="telefone" className="flex items-center gap-2">
-                    <CreditCard className="h-4 w-4" />
+                    <Phone className="h-4 w-4" />
                     Telefone *
                   </Label>
                   <Input
                     id="telefone"
                     value={formData.telefone}
                     onChange={(e) => handleTelefoneChange(e.target.value)}
-                    placeholder="(11) 99999-9999"
+                    placeholder="(31) 99999-9999"
                     autoComplete="off"
                     required
                   />
                 </div>
+              </div>
+
+              {/* E-mail */}
+              <div className="space-y-2">
+                <Label htmlFor="email" className="flex items-center gap-2">
+                  <Mail className="h-4 w-4" />
+                  E-mail (Gmail recomendado) *
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => handleInputChange('email', e.target.value)}
+                  placeholder="seu.email@gmail.com"
+                  autoComplete="off"
+                  required
+                />
               </div>
 
               {/* Endereço */}
@@ -516,10 +540,37 @@ export default function CadastroMorador() {
                     </p>
                   </div>
 
-                  <p className="leading-relaxed font-medium">
-                    Declaro ainda ter recebido nesse ato cópia do <strong>Estatuto</strong>, <strong>regimento interno</strong> e 
+                  <p className="leading-relaxed font-medium mb-6">
+                    Declaro ainda ter <strong>conhecimento das normas do Estatuto</strong>, <strong>regimento interno</strong> e 
                     <strong> regras de utilização do clube e academia</strong>.
                   </p>
+
+                  <div className="bg-gray-50 p-4 rounded-lg border mt-6">
+                    <p className="text-center mb-4">
+                      <strong>Confins, {new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}</strong>
+                    </p>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <strong>Nome:</strong> {formData.nome}
+                      </div>
+                      <div>
+                        <strong>CI:</strong> {formData.rg}
+                      </div>
+                      <div>
+                        <strong>CPF:</strong> {formData.cpf}
+                      </div>
+                      <div>
+                        <strong>E-mail:</strong> {formData.email}
+                      </div>
+                      <div>
+                        <strong>Telefone:</strong> {formData.telefone}
+                      </div>
+                      <div>
+                        <strong>Endereço:</strong> {formData.rua}, {formData.numeroRua}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </CardContent>
               

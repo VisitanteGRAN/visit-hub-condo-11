@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 // Dialog será criado manualmente
-import { User, CheckCircle, XCircle, Clock, Mail, Home, Phone, ArrowLeft, FileText, Bell, RefreshCw, Expand } from 'lucide-react';
+import { User, CheckCircle, XCircle, Clock, Mail, Home, Phone, ArrowLeft, FileText, Bell, RefreshCw, Expand, Download, Eye } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -29,6 +29,8 @@ export default function AdminApprovals() {
   const [processingIds, setProcessingIds] = useState<Set<string>>(new Set());
   const [showNotificationSettings, setShowNotificationSettings] = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState<{url: string, name: string} | null>(null);
+  const [showTermsModal, setShowTermsModal] = useState(false);
+  const [selectedUserForTerms, setSelectedUserForTerms] = useState<PendingUser | null>(null);
 
   // 🔔 POLLING COM NOTIFICAÇÕES
   const {
@@ -133,6 +135,117 @@ export default function AdminApprovals() {
       hour: '2-digit',
       minute: '2-digit'
     });
+  };
+
+  const handleViewTerms = (user: PendingUser) => {
+    setSelectedUserForTerms(user);
+    setShowTermsModal(true);
+  };
+
+  const handleDownloadTerms = (user: PendingUser) => {
+    const termsContent = generateTermsContent(user);
+    const blob = new Blob([termsContent], { type: 'text/html;charset=utf-8' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `termo_aceitacao_${user.nome.replace(/\s+/g, '_')}.html`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success('Termo baixado com sucesso!');
+  };
+
+  const generateTermsContent = (user: PendingUser) => {
+    const currentDate = new Date().toLocaleDateString('pt-BR', { 
+      day: '2-digit', 
+      month: 'long', 
+      year: 'numeric' 
+    });
+
+    return `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Termo de Aceitação - ${user.nome}</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; margin: 40px; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .proprietario { background: #f0f8ff; padding: 20px; border-radius: 8px; margin: 20px 0; }
+        .declaracao { margin: 20px 0; }
+        .clausula { background: #f9f9f9; padding: 15px; border-left: 4px solid #007bff; margin: 15px 0; }
+        .assinatura { background: #f5f5f5; padding: 20px; border-radius: 8px; margin-top: 30px; }
+        .dados-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        @media print { body { margin: 20px; } }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>TERMO DE ACEITAÇÃO</h1>
+        <h2>Associação Gran Royalle Aeroporto Confins</h2>
+    </div>
+
+    <div class="proprietario">
+        <h3>DADOS DO PROPRIETÁRIO:</h3>
+        <p><strong>Ana Clara Amaral Arantes Boczar</strong> e <strong>Luis Jaime Lourenço de Lima Gonzaga</strong><br>
+        <strong>CPF:</strong> 087.285.146-02<br>
+        <strong>E-mail:</strong> luis.jllg@gmail.com<br>
+        <strong>Cel.:</strong> (31) 98855-6190 / (31) 9993-5315<br>
+        <strong>Endereço:</strong> Rua do Esporte, 27 – apto 803, Bairro: Centro<br>
+        <strong>Cidade:</strong> Pedro Leopoldo <strong>CEP:</strong> 33.250-102</p>
+    </div>
+
+    <div class="declaracao">
+        <h3>DECLARAÇÃO</h3>
+        <p>Declaro para os devidos fins que sou o real adquirente/proprietário do imóvel representado pelo 
+        <strong>lote 15 da quadra 18</strong> e, nesta condição, ratifico minha associação à 
+        <strong>Associação do Residencial Gran Royalle Aeroporto Confins</strong>, nos termos da cláusula sexta, 
+        parágrafo primeiro, do contrato originário do referido imóvel, abaixo transcrita, bem como nos termos do 
+        art. 78 da lei 13.465/17, contrato este referente a primeira venda feita pela incorporadora deste loteamento, 
+        <strong>Gran Viver Urbanismo S/A</strong>, que se transcreve abaixo:</p>
+
+        <div class="clausula">
+            <h4>"Cláusula Sexta – Benfeitorias e Obrigações Acessórias dos Compradores"</h4>
+            <p>Os compradores declaram ter conhecimento das Leis e normas editadas pelo IBAMA, IEF e os demais órgãos 
+            responsáveis pela proteção ambiental, e ainda ter ciência de que o imóvel objeto desta promessa está 
+            sujeito às leis e normas que tratam das definições de uso e ocupação do solo urbano editadas pela 
+            Prefeitura Municipal, e assume o compromisso de respeitar todas estas normas de conservação.</p>
+            
+            <h5>Parágrafo primeiro</h5>
+            <p>Os compradores declaram também expressamente que leram, entenderam e receberam uma cópia da minuta do 
+            estatuto da <strong>Associação do Residencial Gran Royalle Aeroporto</strong>, Associação que os compradores 
+            se obrigam a filiar, obrigando-se por si, seus herdeiros ou sucessores, a respeitar em todos os seus termos, 
+            as normas inseridas no referido documento, no seu regulamento interno e em outros regulamentos que venham a 
+            ser aprovados pela referida entidade, que passam a fazer parte integrante do presente contrato para todos os 
+            fins de direito.</p>
+        </div>
+
+        <p><strong>Declaro ainda ter conhecimento das normas do Estatuto, regimento interno e regras de utilização do clube e academia.</strong></p>
+    </div>
+
+    <div class="assinatura">
+        <p style="text-align: center; margin-bottom: 20px;">
+            <strong>Confins, ${currentDate}</strong>
+        </p>
+        
+        <div class="dados-grid">
+            <div><strong>Nome:</strong> ${user.nome}</div>
+            <div><strong>CI:</strong> ${user.cpf || 'Não informado'}</div>
+            <div><strong>CPF:</strong> ${user.cpf || 'Não informado'}</div>
+            <div><strong>E-mail:</strong> ${user.email}</div>
+            <div><strong>Telefone:</strong> ${user.telefone || 'Não informado'}</div>
+            <div><strong>Endereço:</strong> ${user.unidade}</div>
+        </div>
+        
+        <div style="margin-top: 40px; text-align: center;">
+            <div style="border-top: 1px solid #000; width: 300px; margin: 0 auto;">
+                <p style="margin-top: 5px;"><strong>Assinatura do Morador</strong></p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>`;
   };
 
   if (isLoading) {
@@ -305,25 +418,51 @@ export default function AdminApprovals() {
                   )}
                 </div>
                 
-                <div className="flex gap-3">
-                  <Button
-                    onClick={() => approveUser(user.id)}
-                    disabled={processingIds.has(user.id)}
-                    className="flex-1"
-                  >
-                    <CheckCircle className="h-4 w-4 mr-2" />
-                    {processingIds.has(user.id) ? 'Aprovando...' : 'Aprovar'}
-                  </Button>
+                <div className="space-y-2">
+                  {/* Botões do Termo */}
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={() => handleViewTerms(user)}
+                      variant="outline"
+                      size="sm"
+                      className="flex-1"
+                    >
+                      <Eye className="h-4 w-4 mr-2" />
+                      Ver Termo
+                    </Button>
+                    
+                    <Button
+                      onClick={() => handleDownloadTerms(user)}
+                      variant="outline"
+                      size="sm"
+                      className="flex-1"
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Baixar Termo
+                    </Button>
+                  </div>
                   
-                  <Button
-                    onClick={() => rejectUser(user.id)}
-                    disabled={processingIds.has(user.id)}
-                    variant="destructive"
-                    className="flex-1"
-                  >
-                    <XCircle className="h-4 w-4 mr-2" />
-                    {processingIds.has(user.id) ? 'Rejeitando...' : 'Rejeitar'}
-                  </Button>
+                  {/* Botões de Aprovação */}
+                  <div className="flex gap-3">
+                    <Button
+                      onClick={() => approveUser(user.id)}
+                      disabled={processingIds.has(user.id)}
+                      className="flex-1"
+                    >
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      {processingIds.has(user.id) ? 'Aprovando...' : 'Aprovar'}
+                    </Button>
+                    
+                    <Button
+                      onClick={() => rejectUser(user.id)}
+                      disabled={processingIds.has(user.id)}
+                      variant="destructive"
+                      className="flex-1"
+                    >
+                      <XCircle className="h-4 w-4 mr-2" />
+                      {processingIds.has(user.id) ? 'Rejeitando...' : 'Rejeitar'}
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -364,6 +503,130 @@ export default function AdminApprovals() {
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Modal do Termo de Aceitação */}
+      {showTermsModal && selectedUserForTerms && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <Card className="w-full max-w-4xl max-h-[90vh] overflow-hidden">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <FileText className="h-5 w-5" />
+                  Termo de Aceitação - {selectedUserForTerms.nome}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowTermsModal(false)}
+                >
+                  <XCircle className="h-4 w-4" />
+                </Button>
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="overflow-y-auto max-h-[60vh] space-y-4 text-sm">
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <h3 className="font-semibold text-blue-900 mb-2">DADOS DO PROPRIETÁRIO:</h3>
+                <p className="text-blue-800">
+                  <strong>Ana Clara Amaral Arantes Boczar</strong> e <strong>Luis Jaime Lourenço de Lima Gonzaga</strong><br />
+                  <strong>CPF:</strong> 087.285.146-02<br />
+                  <strong>E-mail:</strong> luis.jllg@gmail.com<br />
+                  <strong>Cel.:</strong> (31) 98855-6190 / (31) 9993-5315<br />
+                  <strong>Endereço:</strong> Rua do Esporte, 27 – apto 803, Bairro: Centro<br />
+                  <strong>Cidade:</strong> Pedro Leopoldo <strong>CEP:</strong> 33.250-102
+                </p>
+              </div>
+
+              <div>
+                <h3 className="font-semibold text-gray-900 mb-3 text-lg">DECLARAÇÃO</h3>
+                
+                <p className="mb-4 leading-relaxed">
+                  Declaro para os devidos fins que sou o real adquirente/proprietário do imóvel representado pelo 
+                  <strong> lote 15 da quadra 18</strong> e, nesta condição, ratifico minha associação à 
+                  <strong> Associação do Residencial Gran Royalle Aeroporto Confins</strong>, nos termos da cláusula sexta, 
+                  parágrafo primeiro, do contrato originário do referido imóvel, abaixo transcrita, bem como nos termos do 
+                  art. 78 da lei 13.465/17, contrato este referente a primeira venda feita pela incorporadora deste loteamento, 
+                  <strong> Gran Viver Urbanismo S/A</strong>, que se transcreve abaixo:
+                </p>
+
+                <div className="bg-gray-50 p-4 rounded-lg border-l-4 border-blue-500 mb-4">
+                  <h4 className="font-semibold mb-2">"Cláusula Sexta – Benfeitorias e Obrigações Acessórias dos Compradores"</h4>
+                  <p className="leading-relaxed mb-3">
+                    Os compradores declaram ter conhecimento das Leis e normas editadas pelo IBAMA, IEF e os demais órgãos 
+                    responsáveis pela proteção ambiental, e ainda ter ciência de que o imóvel objeto desta promessa está 
+                    sujeito às leis e normas que tratam das definições de uso e ocupação do solo urbano editadas pela 
+                    Prefeitura Municipal, e assume o compromisso de respeitar todas estas normas de conservação.
+                  </p>
+                  
+                  <h5 className="font-semibold mb-2">Parágrafo primeiro</h5>
+                  <p className="leading-relaxed">
+                    Os compradores declaram também expressamente que leram, entenderam e receberam uma cópia da minuta do 
+                    estatuto da <strong>Associação do Residencial Gran Royalle Aeroporto</strong>, Associação que os compradores 
+                    se obrigam a filiar, obrigando-se por si, seus herdeiros ou sucessores, a respeitar em todos os seus termos, 
+                    as normas inseridas no referido documento, no seu regulamento interno e em outros regulamentos que venham a 
+                    ser aprovados pela referida entidade, que passam a fazer parte integrante do presente contrato para todos os 
+                    fins de direito.
+                  </p>
+                </div>
+
+                <p className="leading-relaxed font-medium mb-6">
+                  Declaro ainda ter <strong>conhecimento das normas do Estatuto</strong>, <strong>regimento interno</strong> e 
+                  <strong> regras de utilização do clube e academia</strong>.
+                </p>
+
+                <div className="bg-gray-50 p-4 rounded-lg border mt-6">
+                  <p className="text-center mb-4">
+                    <strong>Confins, {new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}</strong>
+                  </p>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <strong>Nome:</strong> {selectedUserForTerms.nome}
+                    </div>
+                    <div>
+                      <strong>CI:</strong> {selectedUserForTerms.cpf || 'Não informado'}
+                    </div>
+                    <div>
+                      <strong>CPF:</strong> {selectedUserForTerms.cpf || 'Não informado'}
+                    </div>
+                    <div>
+                      <strong>E-mail:</strong> {selectedUserForTerms.email}
+                    </div>
+                    <div>
+                      <strong>Telefone:</strong> {selectedUserForTerms.telefone || 'Não informado'}
+                    </div>
+                    <div>
+                      <strong>Endereço:</strong> {selectedUserForTerms.unidade}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+            
+            <div className="p-6 border-t bg-gray-50">
+              <div className="flex flex-col sm:flex-row gap-3 justify-end">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowTermsModal(false)}
+                  className="flex items-center gap-2"
+                >
+                  <XCircle className="h-4 w-4" />
+                  Fechar
+                </Button>
+                
+                <Button
+                  type="button"
+                  onClick={() => handleDownloadTerms(selectedUserForTerms)}
+                  className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
+                >
+                  <Download className="h-4 w-4" />
+                  Baixar Termo
+                </Button>
+              </div>
+            </div>
+          </Card>
         </div>
       )}
     </div>
