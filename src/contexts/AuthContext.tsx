@@ -471,9 +471,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return false;
       }
 
+      // Determinar URL de redirecionamento correta
+      const isProduction = window.location.hostname !== 'localhost';
+      const redirectUrl = isProduction 
+        ? 'https://granroyalle-visitantes.vercel.app/reset-password'
+        : `${window.location.origin}/reset-password`;
+      
+      logger.info('URL de redirecionamento para recuperação', { redirectUrl });
+
       // Enviar email de recuperação via Supabase Auth
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
+        redirectTo: redirectUrl,
       });
 
       if (error) {
