@@ -20,6 +20,7 @@ interface PendingUser {
   unidade: string;
   telefone?: string;
   cpf?: string;
+  rg?: string;
   foto?: string;
   created_at: string;
   status: string;
@@ -231,7 +232,7 @@ export default function AdminApprovals() {
         
         <div class="dados-grid">
             <div><strong>Nome:</strong> ${user.nome}</div>
-            <div><strong>CI:</strong> ${user.cpf || 'Não informado'}</div>
+            <div><strong>CI:</strong> ${user.rg || 'Não informado'}</div>
             <div><strong>CPF:</strong> ${user.cpf || 'Não informado'}</div>
             <div><strong>E-mail:</strong> ${user.email}</div>
             <div><strong>Telefone:</strong> ${user.telefone || 'Não informado'}</div>
@@ -585,7 +586,7 @@ export default function AdminApprovals() {
                       <strong>Nome:</strong> {selectedUserForTerms.nome}
                     </div>
                     <div>
-                      <strong>CI:</strong> {selectedUserForTerms.cpf || 'Não informado'}
+                      <strong>CI:</strong> {selectedUserForTerms.rg || 'Não informado'}
                     </div>
                     <div>
                       <strong>CPF:</strong> {selectedUserForTerms.cpf || 'Não informado'}

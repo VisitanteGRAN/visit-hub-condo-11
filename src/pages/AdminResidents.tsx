@@ -199,10 +199,10 @@ export default function AdminResidents() {
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-4">
-            <Link to="/admin">
+            <Link to="/dashboard">
               <Button variant="outline" size="sm">
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                Voltar
+                Voltar ao Dashboard
               </Button>
             </Link>
             <div>
