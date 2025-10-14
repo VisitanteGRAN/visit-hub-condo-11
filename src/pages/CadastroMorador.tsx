@@ -22,6 +22,8 @@ interface CadastroMoradorData {
   telefone: string;
   rua: string;
   numeroRua: string;
+  quadra: string;
+  lote: string;
   foto: string;
 }
 
@@ -39,6 +41,8 @@ export default function CadastroMorador() {
     telefone: '',
     rua: '',
     numeroRua: '',
+    quadra: '',
+    lote: '',
     foto: ''
   });
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
@@ -117,6 +121,16 @@ export default function CadastroMorador() {
     
     if (!formData.numeroRua.trim()) {
       toast.error('Por favor, informe o número da rua');
+      return false;
+    }
+    
+    if (!formData.quadra.trim()) {
+      toast.error('Por favor, informe a quadra');
+      return false;
+    }
+    
+    if (!formData.lote.trim()) {
+      toast.error('Por favor, informe o lote');
       return false;
     }
     
@@ -337,6 +351,9 @@ export default function CadastroMorador() {
                     onChange={(e) => handleInputChange('rua', e.target.value)}
                     placeholder="Ex: Rua das Flores"
                     autoComplete="off"
+                    autoCorrect="off"
+                    autoCapitalize="off"
+                    spellCheck="false"
                     required
                   />
                 </div>
@@ -352,6 +369,48 @@ export default function CadastroMorador() {
                     onChange={(e) => handleInputChange('numeroRua', e.target.value)}
                     placeholder="123"
                     autoComplete="off"
+                    autoCorrect="off"
+                    autoCapitalize="off"
+                    spellCheck="false"
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Quadra e Lote */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="quadra" className="flex items-center gap-2">
+                    <Building2 className="h-4 w-4" />
+                    Quadra *
+                  </Label>
+                  <Input
+                    id="quadra"
+                    value={formData.quadra}
+                    onChange={(e) => handleInputChange('quadra', e.target.value)}
+                    placeholder="Ex: 18"
+                    autoComplete="off"
+                    autoCorrect="off"
+                    autoCapitalize="off"
+                    spellCheck="false"
+                    required
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="lote" className="flex items-center gap-2">
+                    <Building2 className="h-4 w-4" />
+                    Lote *
+                  </Label>
+                  <Input
+                    id="lote"
+                    value={formData.lote}
+                    onChange={(e) => handleInputChange('lote', e.target.value)}
+                    placeholder="Ex: 15"
+                    autoComplete="off"
+                    autoCorrect="off"
+                    autoCapitalize="off"
+                    spellCheck="false"
                     required
                   />
                 </div>
@@ -512,12 +571,11 @@ export default function CadastroMorador() {
                   <h3 className="font-semibold text-gray-900 mb-3 text-lg">DECLARAÇÃO</h3>
                   
                   <p className="mb-4 leading-relaxed">
-                    Declaro para os devidos fins que sou o real adquirente/proprietário do imóvel representado pelo 
-                    <strong> lote 15 da quadra 18</strong> e, nesta condição, ratifico minha associação à 
-                    <strong> Associação do Residencial Gran Royalle Aeroporto Confins</strong>, nos termos da cláusula sexta, 
+                    Declaro para os devidos fins que sou o real adquirente/proprietário do imóvel acima citado, nesta condição, 
+                    ratifico minha associação à <strong>Associação do Residencial Gran Royalle Aeroporto Confins</strong>, nos termos da cláusula sexta, 
                     parágrafo primeiro, do contrato originário do referido imóvel, abaixo transcrita, bem como nos termos do 
                     art. 78 da lei 13.465/17, contrato este referente a primeira venda feita pela incorporadora deste loteamento, 
-                    <strong> Gran Viver Urbanismo S/A</strong>, que se transcreve abaixo:
+                    <strong>Gran Viver Urbanismo S/A</strong>, que se transcreve abaixo:
                   </p>
 
                   <div className="bg-gray-50 p-4 rounded-lg border-l-4 border-blue-500 mb-4">
@@ -541,8 +599,8 @@ export default function CadastroMorador() {
                   </div>
 
                   <p className="leading-relaxed font-medium mb-6">
-                    Declaro ainda ter <strong>conhecimento das normas do Estatuto</strong>, <strong>regimento interno</strong> e 
-                    <strong> regras de utilização do clube e academia</strong>.
+                    Declaro ainda ter <strong>conhecimento das regras estabelecidas em nosso Estatuto</strong>, <strong>regimento interno</strong> e 
+                    <strong>normas de utilização do clube e academia</strong>.
                   </p>
 
                   <div className="bg-gray-50 p-4 rounded-lg border mt-6">
@@ -567,7 +625,7 @@ export default function CadastroMorador() {
                         <strong>Telefone:</strong> {formData.telefone}
                       </div>
                       <div>
-                        <strong>Endereço:</strong> {formData.rua}, {formData.numeroRua}
+                        <strong>Endereço:</strong> {formData.rua}, {formData.numeroRua}, Quadra {formData.quadra}, Lote {formData.lote}
                       </div>
                     </div>
                   </div>

@@ -21,6 +21,8 @@ interface PendingUser {
   telefone?: string;
   cpf?: string;
   rg?: string;
+  quadra?: string;
+  lote?: string;
   foto?: string;
   created_at: string;
   status: string;
@@ -193,15 +195,14 @@ export default function AdminApprovals() {
         <strong>CPF:</strong> ${user.cpf || 'Não informado'}<br>
         <strong>E-mail:</strong> ${user.email}<br>
         <strong>Cel.:</strong> ${user.telefone || 'Não informado'}<br>
-        <strong>Endereço:</strong> ${user.unidade}, Bairro: Condomínio Gran Royalle<br>
+        <strong>Endereço:</strong> ${user.unidade}${user.quadra ? `, Quadra ${user.quadra}` : ''}${user.lote ? `, Lote ${user.lote}` : ''}, Bairro: Condomínio Gran Royalle<br>
         <strong>Cidade:</strong> Confins <strong>CEP:</strong> 33500-000</p>
     </div>
 
     <div class="declaracao">
         <h3>DECLARAÇÃO</h3>
-        <p>Declaro para os devidos fins que sou o real adquirente/proprietário do imóvel representado pelo 
-        <strong>lote 15 da quadra 18</strong> e, nesta condição, ratifico minha associação à 
-        <strong>Associação do Residencial Gran Royalle Aeroporto Confins</strong>, nos termos da cláusula sexta, 
+        <p>Declaro para os devidos fins que sou o real adquirente/proprietário do imóvel acima citado, nesta condição, 
+        ratifico minha associação à <strong>Associação do Residencial Gran Royalle Aeroporto Confins</strong>, nos termos da cláusula sexta, 
         parágrafo primeiro, do contrato originário do referido imóvel, abaixo transcrita, bem como nos termos do 
         art. 78 da lei 13.465/17, contrato este referente a primeira venda feita pela incorporadora deste loteamento, 
         <strong>Gran Viver Urbanismo S/A</strong>, que se transcreve abaixo:</p>
@@ -222,7 +223,7 @@ export default function AdminApprovals() {
             fins de direito.</p>
         </div>
 
-        <p><strong>Declaro ainda ter conhecimento das normas do Estatuto, regimento interno e regras de utilização do clube e academia.</strong></p>
+        <p><strong>Declaro ainda ter conhecimento das regras estabelecidas em nosso Estatuto, regimento interno e normas de utilização do clube e academia.</strong></p>
     </div>
 
     <div class="assinatura">
@@ -236,7 +237,7 @@ export default function AdminApprovals() {
             <div><strong>CPF:</strong> ${user.cpf || 'Não informado'}</div>
             <div><strong>E-mail:</strong> ${user.email}</div>
             <div><strong>Telefone:</strong> ${user.telefone || 'Não informado'}</div>
-            <div><strong>Endereço:</strong> ${user.unidade}, Bairro: Condomínio Gran Royalle, Cidade: Confins, CEP: 33500-000</div>
+            <div><strong>Endereço:</strong> ${user.unidade}${user.quadra ? `, Quadra ${user.quadra}` : ''}${user.lote ? `, Lote ${user.lote}` : ''}, Bairro: Condomínio Gran Royalle, Cidade: Confins, CEP: 33500-000</div>
         </div>
         
     </div>
@@ -529,7 +530,7 @@ export default function AdminApprovals() {
                   <strong>CPF:</strong> {selectedUserForTerms.cpf || 'Não informado'}<br />
                   <strong>E-mail:</strong> {selectedUserForTerms.email}<br />
                   <strong>Cel.:</strong> {selectedUserForTerms.telefone || 'Não informado'}<br />
-                  <strong>Endereço:</strong> {selectedUserForTerms.unidade}, Bairro: Condomínio Gran Royalle<br />
+                  <strong>Endereço:</strong> {selectedUserForTerms.unidade}{selectedUserForTerms.quadra ? `, Quadra ${selectedUserForTerms.quadra}` : ''}{selectedUserForTerms.lote ? `, Lote ${selectedUserForTerms.lote}` : ''}, Bairro: Condomínio Gran Royalle<br />
                   <strong>Cidade:</strong> Confins <strong>CEP:</strong> 33500-000
                 </p>
               </div>
@@ -538,12 +539,11 @@ export default function AdminApprovals() {
                 <h3 className="font-semibold text-gray-900 mb-3 text-lg">DECLARAÇÃO</h3>
                 
                 <p className="mb-4 leading-relaxed">
-                  Declaro para os devidos fins que sou o real adquirente/proprietário do imóvel representado pelo 
-                  <strong> lote 15 da quadra 18</strong> e, nesta condição, ratifico minha associação à 
-                  <strong> Associação do Residencial Gran Royalle Aeroporto Confins</strong>, nos termos da cláusula sexta, 
+                  Declaro para os devidos fins que sou o real adquirente/proprietário do imóvel acima citado, nesta condição, 
+                  ratifico minha associação à <strong>Associação do Residencial Gran Royalle Aeroporto Confins</strong>, nos termos da cláusula sexta, 
                   parágrafo primeiro, do contrato originário do referido imóvel, abaixo transcrita, bem como nos termos do 
                   art. 78 da lei 13.465/17, contrato este referente a primeira venda feita pela incorporadora deste loteamento, 
-                  <strong> Gran Viver Urbanismo S/A</strong>, que se transcreve abaixo:
+                  <strong>Gran Viver Urbanismo S/A</strong>, que se transcreve abaixo:
                 </p>
 
                 <div className="bg-gray-50 p-4 rounded-lg border-l-4 border-blue-500 mb-4">
@@ -567,8 +567,8 @@ export default function AdminApprovals() {
                 </div>
 
                 <p className="leading-relaxed font-medium mb-6">
-                  Declaro ainda ter <strong>conhecimento das normas do Estatuto</strong>, <strong>regimento interno</strong> e 
-                  <strong> regras de utilização do clube e academia</strong>.
+                  Declaro ainda ter <strong>conhecimento das regras estabelecidas em nosso Estatuto</strong>, <strong>regimento interno</strong> e 
+                  <strong>normas de utilização do clube e academia</strong>.
                 </p>
 
                 <div className="bg-gray-50 p-4 rounded-lg border mt-6">
@@ -593,7 +593,7 @@ export default function AdminApprovals() {
                       <strong>Telefone:</strong> {selectedUserForTerms.telefone || 'Não informado'}
                     </div>
                     <div>
-                      <strong>Endereço:</strong> {selectedUserForTerms.unidade}, Bairro: Condomínio Gran Royalle, Cidade: Confins, CEP: 33500-000
+                      <strong>Endereço:</strong> {selectedUserForTerms.unidade}{selectedUserForTerms.quadra ? `, Quadra ${selectedUserForTerms.quadra}` : ''}{selectedUserForTerms.lote ? `, Lote ${selectedUserForTerms.lote}` : ''}, Bairro: Condomínio Gran Royalle, Cidade: Confins, CEP: 33500-000
                     </div>
                   </div>
                 </div>
