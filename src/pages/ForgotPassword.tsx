@@ -49,36 +49,49 @@ export default function ForgotPassword() {
         
         userData = result.data;
         userError = result.error;
-        console.log('✅ supabaseAdmin funcionou:', { userData: !!userData, error: userError?.message });
+        console.log('✅ supabaseAdmin resultado:', { userData: !!userData, error: userError?.message });
+        
+        // Se há erro (como "No API key found"), ativar fallback
+        if (userError && (userError.message?.includes('No API key') || userError.message?.includes('apikey'))) {
+          console.log('❌ supabaseAdmin com erro de API key, ativando fallback...');
+          throw new Error('API key error - fallback needed');
+        }
       } catch (adminError) {
         console.log('❌ supabaseAdmin falhou, tentando fetch direto...', adminError);
         
         // Fallback: Fetch direto com service key
         try {
           const serviceKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJucGd0d3VnaGFweHh2dmNrZXBkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NTAzMzUzOSwiZXhwIjoyMDcwNjA5NTM5fQ.2t6m1iUk_TRXtbEACh-P6dKJWRqyeLBe1OrUZemFd90";
+          const url = `https://rnpgtwughapxxvvckepd.supabase.co/rest/v1/usuarios?select=id,email,nome,ativo,status&email=eq.${encodeURIComponent(email.toLowerCase())}`;
           
-          const response = await fetch(
-            `https://rnpgtwughapxxvvckepd.supabase.co/rest/v1/usuarios?select=id,email,nome,ativo,status&email=eq.${encodeURIComponent(email.toLowerCase())}`,
-            {
-              headers: {
-                'apikey': serviceKey,
-                'authorization': `Bearer ${serviceKey}`,
-                'content-type': 'application/json'
-              }
+          console.log('🔄 Executando fetch direto para:', url);
+          
+          const response = await fetch(url, {
+            headers: {
+              'apikey': serviceKey,
+              'authorization': `Bearer ${serviceKey}`,
+              'content-type': 'application/json'
             }
-          );
+          });
+
+          console.log('📡 Resposta fetch:', { status: response.status, ok: response.ok });
 
           if (response.ok) {
             const users = await response.json();
+            console.log('📋 Dados recebidos:', users);
+            
             if (users && users.length > 0) {
               userData = users[0];
               userError = null;
-              console.log('✅ Fetch direto funcionou:', userData);
+              console.log('✅ Fetch direto funcionou! Usuário encontrado:', { nome: userData.nome, email: userData.email });
             } else {
               userError = { message: 'Usuário não encontrado' };
+              console.log('❌ Fetch direto: array vazio, usuário não encontrado');
             }
           } else {
-            userError = { message: `HTTP ${response.status}` };
+            const errorText = await response.text();
+            userError = { message: `HTTP ${response.status}: ${errorText}` };
+            console.log('❌ Fetch direto falhou:', { status: response.status, error: errorText });
           }
         } catch (fetchError) {
           console.error('❌ Fetch direto também falhou:', fetchError);
