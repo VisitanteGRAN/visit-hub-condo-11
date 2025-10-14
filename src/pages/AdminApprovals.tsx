@@ -189,12 +189,12 @@ export default function AdminApprovals() {
 
     <div class="proprietario">
         <h3>DADOS DO PROPRIETÁRIO:</h3>
-        <p><strong>Ana Clara Amaral Arantes Boczar</strong> e <strong>Luis Jaime Lourenço de Lima Gonzaga</strong><br>
-        <strong>CPF:</strong> 087.285.146-02<br>
-        <strong>E-mail:</strong> luis.jllg@gmail.com<br>
-        <strong>Cel.:</strong> (31) 98855-6190 / (31) 9993-5315<br>
-        <strong>Endereço:</strong> Rua do Esporte, 27 – apto 803, Bairro: Centro<br>
-        <strong>Cidade:</strong> Pedro Leopoldo <strong>CEP:</strong> 33.250-102</p>
+        <p><strong>${user.nome}</strong><br>
+        <strong>CPF:</strong> ${user.cpf || 'Não informado'}<br>
+        <strong>E-mail:</strong> ${user.email}<br>
+        <strong>Cel.:</strong> ${user.telefone || 'Não informado'}<br>
+        <strong>Endereço:</strong> ${user.unidade}, Bairro: Condomínio Gran Royalle<br>
+        <strong>Cidade:</strong> Confins <strong>CEP:</strong> 33500-000</p>
     </div>
 
     <div class="declaracao">
@@ -236,7 +236,7 @@ export default function AdminApprovals() {
             <div><strong>CPF:</strong> ${user.cpf || 'Não informado'}</div>
             <div><strong>E-mail:</strong> ${user.email}</div>
             <div><strong>Telefone:</strong> ${user.telefone || 'Não informado'}</div>
-            <div><strong>Endereço:</strong> ${user.unidade}</div>
+            <div><strong>Endereço:</strong> ${user.unidade}, Bairro: Condomínio Gran Royalle, Cidade: Confins, CEP: 33500-000</div>
         </div>
         
     </div>
@@ -525,12 +525,12 @@ export default function AdminApprovals() {
               <div className="bg-blue-50 p-4 rounded-lg">
                 <h3 className="font-semibold text-blue-900 mb-2">DADOS DO PROPRIETÁRIO:</h3>
                 <p className="text-blue-800">
-                  <strong>Ana Clara Amaral Arantes Boczar</strong> e <strong>Luis Jaime Lourenço de Lima Gonzaga</strong><br />
-                  <strong>CPF:</strong> 087.285.146-02<br />
-                  <strong>E-mail:</strong> luis.jllg@gmail.com<br />
-                  <strong>Cel.:</strong> (31) 98855-6190 / (31) 9993-5315<br />
-                  <strong>Endereço:</strong> Rua do Esporte, 27 – apto 803, Bairro: Centro<br />
-                  <strong>Cidade:</strong> Pedro Leopoldo <strong>CEP:</strong> 33.250-102
+                  <strong>{selectedUserForTerms.nome}</strong><br />
+                  <strong>CPF:</strong> {selectedUserForTerms.cpf || 'Não informado'}<br />
+                  <strong>E-mail:</strong> {selectedUserForTerms.email}<br />
+                  <strong>Cel.:</strong> {selectedUserForTerms.telefone || 'Não informado'}<br />
+                  <strong>Endereço:</strong> {selectedUserForTerms.unidade}, Bairro: Condomínio Gran Royalle<br />
+                  <strong>Cidade:</strong> Confins <strong>CEP:</strong> 33500-000
                 </p>
               </div>
 
@@ -593,7 +593,7 @@ export default function AdminApprovals() {
                       <strong>Telefone:</strong> {selectedUserForTerms.telefone || 'Não informado'}
                     </div>
                     <div>
-                      <strong>Endereço:</strong> {selectedUserForTerms.unidade}
+                      <strong>Endereço:</strong> {selectedUserForTerms.unidade}, Bairro: Condomínio Gran Royalle, Cidade: Confins, CEP: 33500-000
                     </div>
                   </div>
                 </div>
