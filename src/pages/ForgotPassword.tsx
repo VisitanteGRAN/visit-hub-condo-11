@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Building2, Mail, ArrowLeft, CheckCircle, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { supabaseAdmin } from '@/lib/supabase-admin';
 import { logger } from '@/utils/secureLogger';
 
 export default function ForgotPassword() {
@@ -34,21 +35,69 @@ export default function ForgotPassword() {
     setIsLoading(true);
 
     try {
-      // Verificar se o usuário existe no sistema
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('id, email, nome, ativo, status')
-        .eq('email', email.toLowerCase())
-        .single();
+      let userData = null;
+      let userError = null;
+
+      // DOUBLE PROTECTION: Tentar com supabaseAdmin primeiro
+      try {
+        console.log('🔍 Tentando verificar usuário com supabaseAdmin...');
+        const result = await supabaseAdmin
+          .from('usuarios')
+          .select('id, email, nome, ativo, status')
+          .eq('email', email.toLowerCase())
+          .single();
+        
+        userData = result.data;
+        userError = result.error;
+        console.log('✅ supabaseAdmin funcionou:', { userData: !!userData, error: userError?.message });
+      } catch (adminError) {
+        console.log('❌ supabaseAdmin falhou, tentando fetch direto...', adminError);
+        
+        // Fallback: Fetch direto com service key
+        try {
+          const serviceKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJucGd0d3VnaGFweHh2dmNrZXBkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NTAzMzUzOSwiZXhwIjoyMDcwNjA5NTM5fQ.2t6m1iUk_TRXtbEACh-P6dKJWRqyeLBe1OrUZemFd90";
+          
+          const response = await fetch(
+            `https://rnpgtwughapxxvvckepd.supabase.co/rest/v1/usuarios?select=id,email,nome,ativo,status&email=eq.${encodeURIComponent(email.toLowerCase())}`,
+            {
+              headers: {
+                'apikey': serviceKey,
+                'authorization': `Bearer ${serviceKey}`,
+                'content-type': 'application/json'
+              }
+            }
+          );
+
+          if (response.ok) {
+            const users = await response.json();
+            if (users && users.length > 0) {
+              userData = users[0];
+              userError = null;
+              console.log('✅ Fetch direto funcionou:', userData);
+            } else {
+              userError = { message: 'Usuário não encontrado' };
+            }
+          } else {
+            userError = { message: `HTTP ${response.status}` };
+          }
+        } catch (fetchError) {
+          console.error('❌ Fetch direto também falhou:', fetchError);
+          userError = { message: 'Erro de conexão' };
+        }
+      }
 
       if (userError || !userData) {
+        console.log('❌ Usuário não encontrado:', { email, error: userError });
         toast.error('E-mail não encontrado no sistema');
         setIsLoading(false);
         return;
       }
 
+      console.log('✅ Usuário encontrado:', { email, ativo: userData.ativo, status: userData.status });
+
       // Verificar se o usuário está ativo
       if (!userData.ativo || userData.status !== 'ativo') {
+        console.log('❌ Usuário inativo:', { email, ativo: userData.ativo, status: userData.status });
         toast.error('Usuário inativo. Entre em contato com o administrador.');
         setIsLoading(false);
         return;
