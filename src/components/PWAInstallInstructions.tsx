@@ -60,18 +60,6 @@ export default function PWAInstallInstructions() {
                       1
                     </div>
                     <div>
-                      <p className="font-medium">Abra o site no Chrome</p>
-                      <p className="text-sm text-muted-foreground">
-                        Acesse visit-hub-condo-11.vercel.app no navegador Chrome
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
-                    <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-bold">
-                      2
-                    </div>
-                    <div>
                       <p className="font-medium">Toque nos 3 pontinhos (⋮)</p>
                       <p className="text-sm text-muted-foreground">
                         Menu no canto superior direito do navegador
@@ -81,13 +69,13 @@ export default function PWAInstallInstructions() {
 
                   <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
                     <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-bold">
-                      3
+                      2
                     </div>
                     <div className="flex items-center gap-2">
                       <div>
-                        <p className="font-medium">Toque em "Instalar app"</p>
+                        <p className="font-medium">Selecione "Adicionar à tela inicial"</p>
                         <p className="text-sm text-muted-foreground">
-                          Ou "Adicionar à tela inicial"
+                          Ou "Instalar app" se disponível
                         </p>
                       </div>
                       <Download className="h-4 w-4 text-primary" />
@@ -96,7 +84,7 @@ export default function PWAInstallInstructions() {
 
                   <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
                     <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-bold">
-                      4
+                      3
                     </div>
                     <div>
                       <p className="font-medium">Confirme a instalação</p>
@@ -124,11 +112,14 @@ export default function PWAInstallInstructions() {
                     <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-bold">
                       1
                     </div>
-                    <div>
-                      <p className="font-medium">Abra o site no Safari</p>
-                      <p className="text-sm text-muted-foreground">
-                        Acesse visit-hub-condo-11.vercel.app no Safari (não Chrome)
-                      </p>
+                    <div className="flex items-center gap-2">
+                      <div>
+                        <p className="font-medium">Toque no ícone "Compartilhar"</p>
+                        <p className="text-sm text-muted-foreground">
+                          Ícone de compartilhar na parte inferior do Safari
+                        </p>
+                      </div>
+                      <Share className="h-4 w-4 text-primary" />
                     </div>
                   </div>
 
@@ -138,24 +129,9 @@ export default function PWAInstallInstructions() {
                     </div>
                     <div className="flex items-center gap-2">
                       <div>
-                        <p className="font-medium">Toque no botão "Compartilhar"</p>
+                        <p className="font-medium">Selecione "Adicionar à Tela de Início"</p>
                         <p className="text-sm text-muted-foreground">
-                          Ícone de compartilhar na parte inferior
-                        </p>
-                      </div>
-                      <Share className="h-4 w-4 text-primary" />
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
-                    <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-bold">
-                      3
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div>
-                        <p className="font-medium">Role para baixo e toque em "Adicionar à Tela de Início"</p>
-                        <p className="text-sm text-muted-foreground">
-                          Procure pelo ícone de "+"
+                          Procure pelo ícone de "+" na lista de opções
                         </p>
                       </div>
                       <Plus className="h-4 w-4 text-primary" />
@@ -164,22 +140,10 @@ export default function PWAInstallInstructions() {
 
                   <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
                     <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-bold">
-                      4
+                      3
                     </div>
                     <div>
-                      <p className="font-medium">Digite "Gran Royalle" como nome</p>
-                      <p className="text-sm text-muted-foreground">
-                        Você pode personalizar o nome se quiser
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
-                    <div className="flex-shrink-0 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-bold">
-                      5
-                    </div>
-                    <div>
-                      <p className="font-medium">Toque em "Adicionar"</p>
+                      <p className="font-medium">Confirme tocando em "Adicionar"</p>
                       <p className="text-sm text-muted-foreground">
                         O app aparecerá na sua tela inicial
                       </p>
