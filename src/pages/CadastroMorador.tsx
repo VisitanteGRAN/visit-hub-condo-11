@@ -562,7 +562,7 @@ export default function CadastroMorador() {
                     <strong>CPF:</strong> {formData.cpf}<br />
                     <strong>E-mail:</strong> {formData.email}<br />
                     <strong>Cel.:</strong> {formData.telefone}<br />
-                    <strong>Endereço:</strong> {formData.rua}, {formData.numeroRua}, Bairro: Condomínio Gran Royalle<br />
+                    <strong>Endereço:</strong> {formData.rua}, {formData.numeroRua}, Quadra {formData.quadra}, Lote {formData.lote}, Bairro: Condomínio Gran Royalle<br />
                     <strong>Cidade:</strong> Confins <strong>CEP:</strong> 33500-000
                   </p>
                 </div>
