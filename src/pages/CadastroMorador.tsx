@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { User, Home, CreditCard, Mail, Lock, Building2, Camera } from 'lucide-react';
+import { User, Home, CreditCard, Mail, Lock, Building2, Camera, FileText, X, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import logoCondominio from '@/assets/logo-condominio.png';
@@ -40,6 +40,8 @@ export default function CadastroMorador() {
     foto: ''
   });
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [showTermsModal, setShowTermsModal] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   const handleInputChange = (field: keyof CadastroMoradorData, value: string) => {
     setFormData(prev => ({
@@ -89,55 +91,71 @@ export default function CadastroMorador() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  const validateForm = () => {
     // Validações
     if (!formData.nome.trim()) {
       toast.error('Por favor, informe seu nome completo');
-      return;
+      return false;
     }
     
     if (!formData.email.trim()) {
       toast.error('Por favor, informe seu e-mail');
-      return;
+      return false;
     }
     
     if (!formData.telefone.trim()) {
       toast.error('Por favor, informe seu telefone');
-      return;
+      return false;
     }
     
     if (!formData.rua.trim()) {
       toast.error('Por favor, informe o nome da rua');
-      return;
+      return false;
     }
     
     if (!formData.numeroRua.trim()) {
       toast.error('Por favor, informe o número da rua');
-      return;
+      return false;
     }
     
     if (!validateCPF(formData.cpf)) {
       toast.error('CPF inválido');
-      return;
+      return false;
     }
     
     if (formData.senha.length < 8) {
       toast.error('A senha deve ter pelo menos 8 caracteres');
-      return;
+      return false;
     }
     
     if (formData.senha !== formData.confirmarSenha) {
       toast.error('As senhas não coincidem');
-      return;
+      return false;
     }
     
     if (!formData.foto.trim()) {
       toast.error('Por favor, tire uma foto para seu cadastro');
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Validar formulário primeiro
+    if (!validateForm()) {
       return;
     }
 
+    // Mostrar modal de termos
+    setShowTermsModal(true);
+  };
+
+  const handleAcceptTerms = async () => {
+    setTermsAccepted(true);
+    setShowTermsModal(false);
     setIsSubmitting(true);
     
     try {
@@ -175,6 +193,11 @@ export default function CadastroMorador() {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleRejectTerms = () => {
+    setShowTermsModal(false);
+    toast.info('É necessário aceitar os termos para prosseguir com o cadastro.');
   };
 
   return (
@@ -437,6 +460,108 @@ export default function CadastroMorador() {
             </Alert>
           </CardContent>
         </Card>
+
+        {/* Modal de Termos de Aceitação */}
+        {showTermsModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <Card className="w-full max-w-4xl max-h-[90vh] overflow-hidden">
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center gap-2 text-xl">
+                  <FileText className="h-5 w-5" />
+                  Termo de Aceitação - Associação Gran Royalle
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="overflow-y-auto max-h-[60vh] space-y-4 text-sm">
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <h3 className="font-semibold text-blue-900 mb-2">DADOS DO PROPRIETÁRIO:</h3>
+                  <p className="text-blue-800">
+                    <strong>Ana Clara Amaral Arantes Boczar</strong> e <strong>Luis Jaime Lourenço de Lima Gonzaga</strong><br />
+                    <strong>CPF:</strong> 087.285.146-02<br />
+                    <strong>E-mail:</strong> luis.jllg@gmail.com<br />
+                    <strong>Cel.:</strong> (31) 98855-6190 / (31) 9993-5315<br />
+                    <strong>Endereço:</strong> Rua do Esporte, 27 – apto 803, Bairro: Centro<br />
+                    <strong>Cidade:</strong> Pedro Leopoldo <strong>CEP:</strong> 33.250-102
+                  </p>
+                </div>
+
+                <div>
+                  <h3 className="font-semibold text-gray-900 mb-3 text-lg">DECLARAÇÃO</h3>
+                  
+                  <p className="mb-4 leading-relaxed">
+                    Declaro para os devidos fins que sou o real adquirente/proprietário do imóvel representado pelo 
+                    <strong> lote 15 da quadra 18</strong> e, nesta condição, ratifico minha associação à 
+                    <strong> Associação do Residencial Gran Royalle Aeroporto Confins</strong>, nos termos da cláusula sexta, 
+                    parágrafo primeiro, do contrato originário do referido imóvel, abaixo transcrita, bem como nos termos do 
+                    art. 78 da lei 13.465/17, contrato este referente a primeira venda feita pela incorporadora deste loteamento, 
+                    <strong> Gran Viver Urbanismo S/A</strong>, que se transcreve abaixo:
+                  </p>
+
+                  <div className="bg-gray-50 p-4 rounded-lg border-l-4 border-blue-500 mb-4">
+                    <h4 className="font-semibold mb-2">"Cláusula Sexta – Benfeitorias e Obrigações Acessórias dos Compradores"</h4>
+                    <p className="leading-relaxed mb-3">
+                      Os compradores declaram ter conhecimento das Leis e normas editadas pelo IBAMA, IEF e os demais órgãos 
+                      responsáveis pela proteção ambiental, e ainda ter ciência de que o imóvel objeto desta promessa está 
+                      sujeito às leis e normas que tratam das definições de uso e ocupação do solo urbano editadas pela 
+                      Prefeitura Municipal, e assume o compromisso de respeitar todas estas normas de conservação.
+                    </p>
+                    
+                    <h5 className="font-semibold mb-2">Parágrafo primeiro</h5>
+                    <p className="leading-relaxed">
+                      Os compradores declaram também expressamente que leram, entenderam e receberam uma cópia da minuta do 
+                      estatuto da <strong>Associação do Residencial Gran Royalle Aeroporto</strong>, Associação que os compradores 
+                      se obrigam a filiar, obrigando-se por si, seus herdeiros ou sucessores, a respeitar em todos os seus termos, 
+                      as normas inseridas no referido documento, no seu regulamento interno e em outros regulamentos que venham a 
+                      ser aprovados pela referida entidade, que passam a fazer parte integrante do presente contrato para todos os 
+                      fins de direito.
+                    </p>
+                  </div>
+
+                  <p className="leading-relaxed font-medium">
+                    Declaro ainda ter recebido nesse ato cópia do <strong>Estatuto</strong>, <strong>regimento interno</strong> e 
+                    <strong> regras de utilização do clube e academia</strong>.
+                  </p>
+                </div>
+              </CardContent>
+              
+              <div className="p-6 border-t bg-gray-50">
+                <div className="flex flex-col sm:flex-row gap-3 justify-end">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleRejectTerms}
+                    className="flex items-center gap-2"
+                  >
+                    <X className="h-4 w-4" />
+                    Não Aceito
+                  </Button>
+                  
+                  <Button
+                    type="button"
+                    onClick={handleAcceptTerms}
+                    disabled={isSubmitting}
+                    className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        Processando...
+                      </>
+                    ) : (
+                      <>
+                        <Check className="h-4 w-4" />
+                        Aceito os Termos
+                      </>
+                    )}
+                  </Button>
+                </div>
+                
+                <p className="text-xs text-gray-600 mt-3 text-center">
+                  Ao aceitar, você concorda com todos os termos e condições da Associação Gran Royalle
+                </p>
+              </div>
+            </Card>
+          </div>
+        )}
       </div>
     </div>
   );
