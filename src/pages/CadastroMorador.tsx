@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { User, Home, CreditCard, Mail, Lock, Building2, Camera, FileText, X, Check } from 'lucide-react';
+import { User, Home, CreditCard, Mail, Lock, Building2, Camera, FileText, X, Check, Phone } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import logoCondominio from '@/assets/logo-condominio.png';
