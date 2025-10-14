@@ -172,6 +172,17 @@ export default function AdminApprovals() {
         </div>
         
         <div className="flex items-center gap-3">
+          <Link to="/admin/residents">
+            <Button
+              variant="default"
+              size="sm"
+              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
+            >
+              <User className="h-4 w-4" />
+              Ver Todos os Moradores
+            </Button>
+          </Link>
+          
           <Button
             variant="outline"
             size="sm"
