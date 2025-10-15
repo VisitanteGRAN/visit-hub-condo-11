@@ -77,6 +77,7 @@ export default function AdminResidents() {
         }
 
         console.log('✅ Moradores carregados (supabaseAdmin):', data?.length || 0);
+        console.log('📊 Exemplo de dados do primeiro morador:', data?.[0]);
         setResidents(data || []);
         setFilteredResidents(data || []);
 
@@ -105,6 +106,7 @@ export default function AdminResidents() {
 
         const data = await response.json();
         console.log('✅ Moradores carregados (fetch direto):', data?.length || 0);
+        console.log('📊 Exemplo de dados do primeiro morador (fetch):', data?.[0]);
         setResidents(data || []);
         setFilteredResidents(data || []);
       }

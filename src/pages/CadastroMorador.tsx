@@ -588,14 +588,14 @@ export default function CadastroMorador() {
         {/* Modal de Termos de Aceitação */}
         {showTermsModal && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <Card className="w-full max-w-4xl max-h-[90vh] overflow-hidden">
-              <CardHeader className="pb-4">
+            <Card className="w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+              <CardHeader className="pb-4 flex-shrink-0">
                 <CardTitle className="flex items-center gap-2 text-xl">
                   <FileText className="h-5 w-5" />
                   Termo de Aceitação - Associação Gran Royalle
                 </CardTitle>
               </CardHeader>
-              <CardContent className="overflow-y-auto max-h-[60vh] space-y-4 text-sm">
+              <CardContent className="overflow-y-auto flex-1 space-y-4 text-sm">
                 <div className="bg-blue-50 p-4 rounded-lg">
                   <h3 className="font-semibold text-blue-900 mb-2">DADOS DO PROPRIETÁRIO:</h3>
                   <p className="text-blue-800">
@@ -673,7 +673,7 @@ export default function CadastroMorador() {
                 </div>
               </CardContent>
               
-              <div className="p-6 border-t bg-gray-50">
+              <div className="p-6 border-t bg-gray-50 flex-shrink-0">
                 {/* Campo de Assinatura Digital */}
                 <div className="mb-6">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
