@@ -410,7 +410,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           if (signatureData.lote) profileData.lote = signatureData.lote;
           if (signatureData.rg) profileData.rg = signatureData.rg;
           if (signatureData.rua) profileData.rua = signatureData.rua;
-          // if (signatureData.numeroRua) profileData.numeroRua = signatureData.numeroRua; // ⚠️ Temporário: coluna numeroRua não encontrada
+          if (signatureData.numeroRua) profileData.numeroRua = signatureData.numeroRua; // ✅ Coluna numeroRua criada no banco
           
           // ✅ ASSINATURA DIGITAL: Colunas criadas no banco, salvamento ativo
           if (signatureData.digitalSignature) profileData.digital_signature = signatureData.digitalSignature;
