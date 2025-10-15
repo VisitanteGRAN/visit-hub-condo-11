@@ -39,6 +39,11 @@ interface Resident {
   status: 'ativo' | 'pendente' | 'inativo';
   ativo: boolean;
   perfil: string;
+  rg?: string;
+  rua?: string;
+  numeroRua?: string;
+  quadra?: string;
+  lote?: string;
 }
 
 export default function AdminResidents() {
@@ -191,6 +196,112 @@ export default function AdminResidents() {
     document.body.removeChild(link);
     
     toast.success('Lista exportada com sucesso!');
+  };
+
+  const generateTermsContent = (resident: Resident) => {
+    // 🏠 Construir endereço de forma inteligente baseado nos dados disponíveis
+    let endereco = '';
+    
+    if (resident.rua && resident.numeroRua) {
+      // Novo formato com rua e número
+      endereco = `${resident.rua}, ${resident.numeroRua}`;
+      
+      // Adicionar quadra e lote se disponíveis (moradores novos)
+      if (resident.quadra && resident.lote) {
+        endereco += `, Quadra ${resident.quadra}, Lote ${resident.lote}`;
+      }
+      
+      endereco += ', Bairro: Condomínio Gran Royalle';
+    } else {
+      // Formato antigo - só unidade
+      endereco = `${resident.unidade}, Bairro: Condomínio Gran Royalle`;
+    }
+
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <title>Termo de Aceitação - ${resident.nome}</title>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; margin: 40px; color: #333; }
+          .header { text-align: center; margin-bottom: 30px; }
+          .owner-data { background-color: #f0f8ff; padding: 20px; border-radius: 8px; margin-bottom: 30px; }
+          .owner-data h3 { color: #1e40af; margin-bottom: 15px; }
+          .owner-data p { color: #1e40af; margin: 0; }
+          .content { text-align: justify; margin-bottom: 20px; }
+          .content p { margin-bottom: 15px; }
+          .bold { font-weight: bold; }
+          .signature-section { margin-top: 50px; }
+          .signature-line { border-bottom: 1px solid #000; width: 300px; margin: 50px auto 10px; }
+          .signature-text { text-align: center; font-size: 12px; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <h1>TERMO DE ACEITAÇÃO</h1>
+          <h2>Associação do Residencial Gran Royalle Aeroporto Confins</h2>
+        </div>
+
+        <div class="owner-data">
+          <h3>DADOS DO PROPRIETÁRIO:</h3>
+          <p><strong>${resident.nome}</strong><br>
+          <strong>CPF:</strong> ${resident.cpf || 'Não informado'}<br>
+          <strong>E-mail:</strong> ${resident.email}<br>
+          <strong>Cel.:</strong> ${resident.telefone || 'Não informado'}<br>
+          <strong>Endereço:</strong> ${endereco}<br>
+          <strong>Cidade:</strong> Confins <strong>CEP:</strong> 33500-000</p>
+        </div>
+
+        <div class="content">
+          <p>Declaro para os devidos fins que sou o real adquirente/proprietário do imóvel acima citado, nesta condição, 
+          ratifico minha associação à <strong>Associação do Residencial Gran Royalle Aeroporto Confins</strong>, nos termos da cláusula sexta, 
+          parágrafo primeiro, do contrato originário do referido imóvel, abaixo transcrita, bem como nos termos do 
+          art. 78 da lei 13.465/17, contrato este referente a primeira venda feita pela incorporadora deste loteamento, 
+          <strong>Gran Viver Urbanismo S/A</strong>, que se transcreve abaixo:</p>
+
+          <p><em>"O adquirente desde já fica ciente de que o loteamento será administrado pela Associação do Residencial Gran Royalle Aeroporto Confins, 
+          da qual será membro nato, devendo contribuir com as despesas de manutenção e conservação das áreas comuns, 
+          bem como observar o regulamento interno a ser oportunamente aprovado."</em></p>
+
+          <p><strong>Declaro ainda ter conhecimento das regras estabelecidas em nosso Estatuto, regimento interno e normas de utilização do clube e academia.</strong></p>
+        </div>
+
+        <div class="signature-section">
+          <p>Confins, ${new Date().toLocaleDateString('pt-BR')}</p>
+          <div class="signature-line"></div>
+          <div class="signature-text">Assinatura do Proprietário</div>
+        </div>
+      </body>
+      </html>
+    `;
+  };
+
+  const handleDownloadTerms = (resident: Resident) => {
+    try {
+      const htmlContent = generateTermsContent(resident);
+      const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      
+      // Nome do arquivo baseado no nome do morador
+      const fileName = `termo_aceitacao_${resident.nome.replace(/\s+/g, '_').toLowerCase()}_${new Date().toISOString().split('T')[0]}.html`;
+      
+      link.href = url;
+      link.download = fileName;
+      link.style.display = 'none';
+      
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      URL.revokeObjectURL(url);
+      
+      toast.success(`Termo de ${resident.nome} baixado com sucesso!`);
+    } catch (error) {
+      console.error('Erro ao gerar termo:', error);
+      toast.error('Erro ao gerar termo de aceitação');
+    }
   };
 
   return (
@@ -390,6 +501,19 @@ export default function AdminResidents() {
                           </div>
                         </div>
                       </div>
+                    </div>
+
+                    {/* Ações */}
+                    <div className="flex flex-col gap-2 ml-4">
+                      <Button
+                        onClick={() => handleDownloadTerms(resident)}
+                        variant="outline"
+                        size="sm"
+                        className="whitespace-nowrap"
+                      >
+                        <Download className="h-4 w-4 mr-2" />
+                        Baixar Termo
+                      </Button>
                     </div>
                   </div>
                 </CardContent>
