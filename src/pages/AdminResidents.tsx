@@ -19,7 +19,9 @@ import {
   Clock,
   Expand,
   Download,
-  RefreshCw
+  RefreshCw,
+  Eye,
+  FileText
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -53,6 +55,8 @@ export default function AdminResidents() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [selectedPhoto, setSelectedPhoto] = useState<{url: string, name: string} | null>(null);
+  const [showTermsModal, setShowTermsModal] = useState(false);
+  const [selectedResidentForTerms, setSelectedResidentForTerms] = useState<Resident | null>(null);
 
   const loadResidents = async () => {
     try {
@@ -277,6 +281,11 @@ export default function AdminResidents() {
     `;
   };
 
+  const handleViewTerms = (resident: Resident) => {
+    setSelectedResidentForTerms(resident);
+    setShowTermsModal(true);
+  };
+
   const handleDownloadTerms = (resident: Resident) => {
     try {
       const htmlContent = generateTermsContent(resident);
@@ -490,6 +499,17 @@ export default function AdminResidents() {
                             </div>
                           )}
                           
+                          {(resident.quadra || resident.lote) && (
+                            <div className="flex items-center gap-2">
+                              <Home className="h-4 w-4" />
+                              <span>
+                                {resident.quadra && `Quadra: ${resident.quadra}`}
+                                {resident.quadra && resident.lote && ' • '}
+                                {resident.lote && `Lote: ${resident.lote}`}
+                              </span>
+                            </div>
+                          )}
+                          
                           <div className="flex items-center gap-2">
                             <Calendar className="h-4 w-4" />
                             <span>Cadastro: {formatDate(resident.created_at)}</span>
@@ -505,6 +525,15 @@ export default function AdminResidents() {
 
                     {/* Ações */}
                     <div className="flex flex-col gap-2 ml-4">
+                      <Button
+                        onClick={() => handleViewTerms(resident)}
+                        variant="outline"
+                        size="sm"
+                        className="whitespace-nowrap"
+                      >
+                        <Eye className="h-4 w-4 mr-2" />
+                        Ver Termo
+                      </Button>
                       <Button
                         onClick={() => handleDownloadTerms(resident)}
                         variant="outline"
@@ -546,6 +575,91 @@ export default function AdminResidents() {
                 {selectedPhoto.name}
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Modal de Visualização do Termo */}
+        {showTermsModal && selectedResidentForTerms && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <Card className="w-full max-w-4xl max-h-[90vh] overflow-hidden">
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center gap-2 text-xl">
+                  <FileText className="h-5 w-5" />
+                  Termo de Aceitação - {selectedResidentForTerms.nome}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="overflow-y-auto max-h-[60vh] space-y-4 text-sm">
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <h3 className="font-semibold text-blue-900 mb-2">DADOS DO PROPRIETÁRIO:</h3>
+                  <p className="text-blue-800">
+                    <strong>{selectedResidentForTerms.nome}</strong><br />
+                    <strong>CPF:</strong> {selectedResidentForTerms.cpf || 'Não informado'}<br />
+                    <strong>E-mail:</strong> {selectedResidentForTerms.email}<br />
+                    <strong>Cel.:</strong> {selectedResidentForTerms.telefone || 'Não informado'}<br />
+                    <strong>Endereço:</strong> {(() => {
+                      if (selectedResidentForTerms.rua && selectedResidentForTerms.numeroRua) {
+                        let endereco = `${selectedResidentForTerms.rua}, ${selectedResidentForTerms.numeroRua}`;
+                        if (selectedResidentForTerms.quadra && selectedResidentForTerms.lote) {
+                          endereco += `, Quadra ${selectedResidentForTerms.quadra}, Lote ${selectedResidentForTerms.lote}`;
+                        }
+                        return endereco + ', Bairro: Condomínio Gran Royalle';
+                      } else {
+                        return `${selectedResidentForTerms.unidade}, Bairro: Condomínio Gran Royalle`;
+                      }
+                    })()}<br />
+                    <strong>Cidade:</strong> Confins <strong>CEP:</strong> 33500-000
+                  </p>
+                </div>
+
+                <div>
+                  <p className="leading-relaxed mb-4">
+                    Declaro para os devidos fins que sou o real adquirente/proprietário do imóvel acima citado, nesta condição, 
+                    ratifico minha associação à <strong>Associação do Residencial Gran Royalle Aeroporto Confins</strong>, nos termos da cláusula sexta, 
+                    parágrafo primeiro, do contrato originário do referido imóvel, abaixo transcrita, bem como nos termos do 
+                    art. 78 da lei 13.465/17, contrato este referente a primeira venda feita pela incorporadora deste loteamento, 
+                    <strong>Gran Viver Urbanismo S/A</strong>, que se transcreve abaixo:
+                  </p>
+
+                  <p className="leading-relaxed mb-4 italic bg-gray-50 p-3 rounded">
+                    "O adquirente desde já fica ciente de que o loteamento será administrado pela Associação do Residencial Gran Royalle Aeroporto Confins, 
+                    da qual será membro nato, devendo contribuir com as despesas de manutenção e conservação das áreas comuns, 
+                    bem como observar o regulamento interno a ser oportunamente aprovado."
+                  </p>
+
+                  <p className="leading-relaxed font-medium mb-6">
+                    <strong>Declaro ainda ter conhecimento das regras estabelecidas em nosso Estatuto, regimento interno e normas de utilização do clube e academia.</strong>
+                  </p>
+                </div>
+
+                <div className="border-t pt-4">
+                  <p className="text-right text-gray-600 mb-8">
+                    Confins, {new Date().toLocaleDateString('pt-BR')}
+                  </p>
+                  <div className="text-center">
+                    <div className="border-b border-gray-400 w-64 mx-auto mb-2"></div>
+                    <p className="text-sm text-gray-600">Assinatura do Proprietário</p>
+                  </div>
+                </div>
+              </CardContent>
+              <div className="flex justify-end gap-2 p-6 border-t">
+                <Button
+                  onClick={() => setShowTermsModal(false)}
+                  variant="outline"
+                >
+                  Fechar
+                </Button>
+                <Button
+                  onClick={() => {
+                    handleDownloadTerms(selectedResidentForTerms);
+                    setShowTermsModal(false);
+                  }}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Baixar Termo
+                </Button>
+              </div>
+            </Card>
           </div>
         )}
       </div>

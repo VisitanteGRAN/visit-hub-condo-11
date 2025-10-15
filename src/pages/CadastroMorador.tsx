@@ -48,6 +48,8 @@ export default function CadastroMorador() {
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
+  const [digitalSignature, setDigitalSignature] = useState('');
+  const [signatureError, setSignatureError] = useState('');
 
   const handleInputChange = (field: keyof CadastroMoradorData, value: string) => {
     setFormData(prev => ({
@@ -175,12 +177,45 @@ export default function CadastroMorador() {
   };
 
   const handleAcceptTerms = async () => {
+    // Validar assinatura digital
+    if (!digitalSignature.trim()) {
+      setSignatureError('Por favor, digite seu nome completo para assinar digitalmente');
+      return;
+    }
+
+    // Verificar se a assinatura corresponde ao nome (aproximadamente)
+    const normalizedSignature = digitalSignature.toLowerCase().trim();
+    const normalizedName = formData.nome.toLowerCase().trim();
+    
+    // Verificação básica: pelo menos 70% das palavras do nome devem estar na assinatura
+    const nameWords = normalizedName.split(' ').filter(word => word.length > 2);
+    const signatureWords = normalizedSignature.split(' ').filter(word => word.length > 2);
+    
+    let matchCount = 0;
+    nameWords.forEach(nameWord => {
+      if (signatureWords.some(sigWord => sigWord.includes(nameWord) || nameWord.includes(sigWord))) {
+        matchCount++;
+      }
+    });
+    
+    const matchPercentage = matchCount / nameWords.length;
+    
+    if (matchPercentage < 0.7) {
+      setSignatureError('A assinatura deve corresponder ao seu nome completo cadastrado');
+      return;
+    }
+
+    setSignatureError('');
     setTermsAccepted(true);
     setShowTermsModal(false);
     setIsSubmitting(true);
     
     try {
-      logger.info('🏠 Registrando novo morador', { formData: '[SANITIZED]' });
+      logger.info('🏠 Registrando novo morador', { 
+        formData: '[SANITIZED]',
+        digitalSignature: digitalSignature,
+        signatureTimestamp: new Date().toISOString()
+      });
       
       const enderecoCompleto = `${formData.rua}, ${formData.numeroRua}`;
       
@@ -198,7 +233,13 @@ export default function CadastroMorador() {
         enderecoCompleto,
         formData.cpf, // 📱 INCLUIR CPF
         formData.telefone, // 📞 INCLUIR TELEFONE
-        formData.foto // 📸 INCLUIR FOTO
+        formData.foto, // 📸 INCLUIR FOTO
+        {
+          digitalSignature,
+          signatureTimestamp: new Date().toISOString(),
+          ipAddress: 'client-side', // Será capturado no backend se necessário
+          userAgent: navigator.userAgent
+        }
       );
       
       if (success) {
@@ -633,6 +674,35 @@ export default function CadastroMorador() {
               </CardContent>
               
               <div className="p-6 border-t bg-gray-50">
+                {/* Campo de Assinatura Digital */}
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Assinatura Digital *
+                  </label>
+                  <p className="text-xs text-gray-600 mb-3">
+                    Para confirmar sua aceitação dos termos, digite seu nome completo exatamente como cadastrado acima:
+                  </p>
+                  <input
+                    type="text"
+                    value={digitalSignature}
+                    onChange={(e) => {
+                      setDigitalSignature(e.target.value);
+                      setSignatureError('');
+                    }}
+                    placeholder="Digite seu nome completo aqui"
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                      signatureError ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                    style={{ fontFamily: 'cursive' }}
+                  />
+                  {signatureError && (
+                    <p className="text-red-500 text-sm mt-1">{signatureError}</p>
+                  )}
+                  <p className="text-xs text-gray-500 mt-2">
+                    📅 Data e hora da assinatura: {new Date().toLocaleString('pt-BR')}
+                  </p>
+                </div>
+                
                 <div className="flex flex-col sm:flex-row gap-3 justify-end">
                   <Button
                     type="button"
