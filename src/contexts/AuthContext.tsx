@@ -347,7 +347,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const register = async (email: string, password: string, nome: string, role: UserRole, unidade: string, cpf?: string, telefone?: string, foto?: string): Promise<boolean> => {
+  const register = async (email: string, password: string, nome: string, role: UserRole, unidade: string, cpf?: string, telefone?: string, foto?: string, signatureData?: any): Promise<boolean> => {
     setIsLoading(true);
     try {
       console.log('👤 Tentando registrar novo usuário:', email, role);
@@ -402,6 +402,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           console.log('📸 Foto incluída no profileData:', foto.substring(0, 50) + '...');
         } else {
           console.log('📸 Nenhuma foto fornecida para o usuário');
+        }
+
+        // 🏠 INCLUIR DADOS ADICIONAIS SE FORNECIDOS (quadra, lote, rg, rua, numeroRua)
+        if (signatureData) {
+          if (signatureData.quadra) profileData.quadra = signatureData.quadra;
+          if (signatureData.lote) profileData.lote = signatureData.lote;
+          if (signatureData.rg) profileData.rg = signatureData.rg;
+          if (signatureData.rua) profileData.rua = signatureData.rua;
+          if (signatureData.numeroRua) profileData.numeroRua = signatureData.numeroRua;
+          if (signatureData.digitalSignature) profileData.digital_signature = signatureData.digitalSignature;
+          if (signatureData.signatureTimestamp) profileData.signature_timestamp = signatureData.signatureTimestamp;
+          console.log('🏠 Dados adicionais incluídos:', {
+            quadra: signatureData.quadra,
+            lote: signatureData.lote,
+            rg: signatureData.rg,
+            digitalSignature: signatureData.digitalSignature ? 'SIM' : 'NÃO'
+          });
         }
 
         // Usar cliente RAW para inserir perfil

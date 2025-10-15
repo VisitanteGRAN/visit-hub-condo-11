@@ -235,6 +235,13 @@ export default function CadastroMorador() {
         formData.telefone, // 📞 INCLUIR TELEFONE
         formData.foto, // 📸 INCLUIR FOTO
         {
+          // 🏠 DADOS DO ENDEREÇO
+          quadra: formData.quadra,
+          lote: formData.lote,
+          rg: formData.rg,
+          rua: formData.rua,
+          numeroRua: formData.numeroRua,
+          // ✍️ DADOS DA ASSINATURA DIGITAL
           digitalSignature,
           signatureTimestamp: new Date().toISOString(),
           ipAddress: 'client-side', // Será capturado no backend se necessário

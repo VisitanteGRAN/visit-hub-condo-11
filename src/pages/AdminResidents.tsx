@@ -46,6 +46,8 @@ interface Resident {
   numeroRua?: string;
   quadra?: string;
   lote?: string;
+  digital_signature?: string;
+  signature_timestamp?: string;
 }
 
 export default function AdminResidents() {
@@ -278,8 +280,18 @@ export default function AdminResidents() {
 
         <div class="signature-section">
           <p>Confins, ${new Date().toLocaleDateString('pt-BR')}</p>
-          <div class="signature-line"></div>
-          <div class="signature-text">Assinatura do Proprietário</div>
+          ${resident.digital_signature ? `
+            <div style="margin: 30px 0;">
+              <p><strong>Assinatura Digital:</strong></p>
+              <p style="font-family: cursive; font-size: 18px; color: #1e40af; margin: 10px 0;">${resident.digital_signature}</p>
+              <p style="font-size: 12px; color: #666;">
+                Assinado digitalmente em: ${resident.signature_timestamp ? new Date(resident.signature_timestamp).toLocaleString('pt-BR') : 'Data não disponível'}
+              </p>
+            </div>
+          ` : `
+            <div class="signature-line"></div>
+            <div class="signature-text">Assinatura do Proprietário</div>
+          `}
         </div>
       </body>
       </html>
