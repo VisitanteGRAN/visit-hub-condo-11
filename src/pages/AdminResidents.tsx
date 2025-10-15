@@ -80,6 +80,20 @@ export default function AdminResidents() {
 
         console.log('✅ Moradores carregados (supabaseAdmin):', data?.length || 0);
         console.log('📊 Exemplo de dados do primeiro morador:', data?.[0]);
+        
+        // 🔍 DEBUG: Verificar campos específicos do primeiro morador
+        if (data?.[0]) {
+          console.log('🏠 DEBUG - Campos específicos do primeiro morador:', {
+            nome: data[0].nome,
+            quadra: data[0].quadra,
+            lote: data[0].lote,
+            rg: data[0].rg,
+            rua: data[0].rua,
+            numeroRua: data[0].numeroRua,
+            digital_signature: data[0].digital_signature,
+            signature_timestamp: data[0].signature_timestamp
+          });
+        }
         setResidents(data || []);
         setFilteredResidents(data || []);
 
@@ -109,6 +123,20 @@ export default function AdminResidents() {
         const data = await response.json();
         console.log('✅ Moradores carregados (fetch direto):', data?.length || 0);
         console.log('📊 Exemplo de dados do primeiro morador (fetch):', data?.[0]);
+        
+        // 🔍 DEBUG: Verificar campos específicos do primeiro morador (fetch)
+        if (data?.[0]) {
+          console.log('🏠 DEBUG - Campos específicos do primeiro morador (fetch):', {
+            nome: data[0].nome,
+            quadra: data[0].quadra,
+            lote: data[0].lote,
+            rg: data[0].rg,
+            rua: data[0].rua,
+            numeroRua: data[0].numeroRua,
+            digital_signature: data[0].digital_signature,
+            signature_timestamp: data[0].signature_timestamp
+          });
+        }
         setResidents(data || []);
         setFilteredResidents(data || []);
       }
@@ -207,6 +235,18 @@ export default function AdminResidents() {
   };
 
   const generateTermsContent = (resident: Resident) => {
+    // 🔍 DEBUG: Verificar dados do morador no generateTermsContent
+    console.log('🔍 DEBUG - generateTermsContent - Dados do morador:', {
+      nome: resident.nome,
+      quadra: resident.quadra,
+      lote: resident.lote,
+      rg: resident.rg,
+      rua: resident.rua,
+      numeroRua: resident.numeroRua,
+      digital_signature: resident.digital_signature,
+      signature_timestamp: resident.signature_timestamp
+    });
+    
     // 🏠 Construir endereço de forma inteligente baseado nos dados disponíveis
     let endereco = '';
     
