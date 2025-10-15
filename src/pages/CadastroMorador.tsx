@@ -599,7 +599,7 @@ export default function CadastroMorador() {
               <CardHeader className="pb-4 flex-shrink-0">
                 <CardTitle className="flex items-center gap-2 text-xl">
                   <FileText className="h-5 w-5" />
-                  Termo de Aceitação - Associação Gran Royalle
+                  Termo de Associação - Sistema de Liberação de Visitantes
                 </CardTitle>
               </CardHeader>
               <CardContent className="overflow-y-auto flex-1 space-y-4 text-sm">

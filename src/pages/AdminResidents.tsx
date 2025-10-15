@@ -290,7 +290,7 @@ export default function AdminResidents() {
       </head>
       <body>
         <div class="header">
-          <h1>TERMO DE ACEITAÇÃO</h1>
+          <h1>TERMO DE ASSOCIAÇÃO ASSINADO QUANDO DO CADASTRO, PARA USO DO SISTEMA DE LIBERAÇÃO DE VISITANTES</h1>
           <h2>Associação do Residencial Gran Royalle Aeroporto Confins</h2>
         </div>
 
