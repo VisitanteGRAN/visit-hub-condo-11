@@ -412,23 +412,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           if (signatureData.rua) profileData.rua = signatureData.rua;
           if (signatureData.numeroRua) profileData.numeroRua = signatureData.numeroRua;
           
-          // ⚠️ TEMPORÁRIO: Comentar assinatura digital até adicionar colunas no banco
-          // if (signatureData.digitalSignature) profileData.digital_signature = signatureData.digitalSignature;
-          // if (signatureData.signatureTimestamp) profileData.signature_timestamp = signatureData.signatureTimestamp;
+          // ✅ ASSINATURA DIGITAL: Colunas criadas no banco, salvamento ativo
+          if (signatureData.digitalSignature) profileData.digital_signature = signatureData.digitalSignature;
+          if (signatureData.signatureTimestamp) profileData.signature_timestamp = signatureData.signatureTimestamp;
           
           console.log('🏠 Dados adicionais incluídos:', {
             quadra: signatureData.quadra,
             lote: signatureData.lote,
             rg: signatureData.rg,
-            digitalSignature: signatureData.digitalSignature ? 'SIM (não salvo ainda)' : 'NÃO'
+            digitalSignature: signatureData.digitalSignature ? 'SIM ✅' : 'NÃO'
           });
           
-          // 📝 LOG DA ASSINATURA PARA REFERÊNCIA
+          // ✅ LOG DA ASSINATURA SALVA NO BANCO
           if (signatureData.digitalSignature) {
-            console.log('✍️ ASSINATURA DIGITAL REGISTRADA:', {
+            console.log('✍️ ASSINATURA DIGITAL SALVA NO BANCO:', {
               signature: signatureData.digitalSignature,
               timestamp: signatureData.signatureTimestamp,
-              userId: 'será definido após criação'
+              status: 'SALVO ✅'
             });
           }
         }
