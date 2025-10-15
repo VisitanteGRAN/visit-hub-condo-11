@@ -211,8 +211,11 @@ export default function AdminResidents() {
       endereco = `${resident.rua}, ${resident.numeroRua}`;
       
       // Adicionar quadra e lote se disponíveis (moradores novos)
-      if (resident.quadra && resident.lote) {
-        endereco += `, Quadra ${resident.quadra}, Lote ${resident.lote}`;
+      if (resident.quadra) {
+        endereco += `, Quadra ${resident.quadra}`;
+      }
+      if (resident.lote) {
+        endereco += `, Lote ${resident.lote}`;
       }
       
       endereco += ', Bairro: Condomínio Gran Royalle';
@@ -599,8 +602,11 @@ export default function AdminResidents() {
                     <strong>Endereço:</strong> {(() => {
                       if (selectedResidentForTerms.rua && selectedResidentForTerms.numeroRua) {
                         let endereco = `${selectedResidentForTerms.rua}, ${selectedResidentForTerms.numeroRua}`;
-                        if (selectedResidentForTerms.quadra && selectedResidentForTerms.lote) {
-                          endereco += `, Quadra ${selectedResidentForTerms.quadra}, Lote ${selectedResidentForTerms.lote}`;
+                        if (selectedResidentForTerms.quadra) {
+                          endereco += `, Quadra ${selectedResidentForTerms.quadra}`;
+                        }
+                        if (selectedResidentForTerms.lote) {
+                          endereco += `, Lote ${selectedResidentForTerms.lote}`;
                         }
                         return endereco + ', Bairro: Condomínio Gran Royalle';
                       } else {

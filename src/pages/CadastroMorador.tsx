@@ -603,7 +603,7 @@ export default function CadastroMorador() {
                     <strong>CPF:</strong> {formData.cpf}<br />
                     <strong>E-mail:</strong> {formData.email}<br />
                     <strong>Cel.:</strong> {formData.telefone}<br />
-                    <strong>Endereço:</strong> {formData.rua}, {formData.numeroRua}, Quadra {formData.quadra}, Lote {formData.lote}, Bairro: Condomínio Gran Royalle<br />
+                    <strong>Endereço:</strong> {formData.rua}, {formData.numeroRua}{formData.quadra ? `, Quadra ${formData.quadra}` : ''}{formData.lote ? `, Lote ${formData.lote}` : ''}, Bairro: Condomínio Gran Royalle<br />
                     <strong>Cidade:</strong> Confins <strong>CEP:</strong> 33500-000
                   </p>
                 </div>
@@ -666,7 +666,7 @@ export default function CadastroMorador() {
                         <strong>Telefone:</strong> {formData.telefone}
                       </div>
                       <div>
-                        <strong>Endereço:</strong> {formData.rua}, {formData.numeroRua}, Quadra {formData.quadra}, Lote {formData.lote}
+                        <strong>Endereço:</strong> {formData.rua}, {formData.numeroRua}{formData.quadra ? `, Quadra ${formData.quadra}` : ''}{formData.lote ? `, Lote ${formData.lote}` : ''}
                       </div>
                     </div>
                   </div>
