@@ -127,7 +127,7 @@ export class HikCentralService {
     };
   }): Promise<{ success: boolean; userId?: string; message: string }> {
     try {
-      logger.info(console.log('👤 Criando usuário no HikCentral:', { userData: '[SANITIZED]' });
+      logger.info('👤 Criando usuário no HikCentral:', { userData: '[SANITIZED]' });
       
       if (!this.sessionId) {
         await this.authenticate();

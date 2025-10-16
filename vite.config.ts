@@ -5,17 +5,16 @@ import path from "path";
 // https://vitejs.dev/config/
 export default defineConfig({
   server: {
-    port: 5173,
+    port: 8080,
     host: true,
     hmr: {
-      // Configuração específica para HMR (Hot Module Replacement)
       protocol: 'ws',
-      port: 5174, // Porta diferente para WebSocket
+      port: 8081,
       host: 'localhost',
-      clientPort: 5174 // Porta que o cliente vai usar para conectar
+      clientPort: 8081
     },
     watch: {
-      usePolling: true, // Ajuda em ambientes onde o file watching não funciona bem
+      usePolling: true,
     }
   },
   plugins: [

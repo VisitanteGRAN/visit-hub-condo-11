@@ -117,7 +117,7 @@ export class HikCentralISAPIService {
     };
   }): Promise<{ success: boolean; userId?: string; message: string }> {
     try {
-      logger.info(console.log('👤 Criando usuário via ISAPI:', { userData: '[SANITIZED]' });
+      logger.info('👤 Criando usuário via ISAPI:', { userData: '[SANITIZED]' });
       
       const userConfig = {
         userName: userData.name,
