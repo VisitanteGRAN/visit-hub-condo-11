@@ -112,8 +112,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const unidade = isAdmin ? 'ADMIN' : supabaseUser.user_metadata?.unidade || 'Unidade não informada';
           
           // Usar cliente RAW para criar perfil
+          let newProfile = null;
           try {
-            const newProfile = await rawSupabaseInsert('usuarios', {
+            newProfile = await rawSupabaseInsert('usuarios', {
               id: supabaseUser.id,
               email: supabaseUser.email || '',
               senha_hash: '',
@@ -131,13 +132,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             throw createError;
           }
           
-          if (newProfile) {
+          if (newProfile && newProfile.length > 0) {
+            const profile = newProfile[0];
             const user: User = {
-              id: newProfile.id,
-              name: newProfile.nome,
-              email: newProfile.email,
-              role: newProfile.perfil as UserRole,
-              apartamento: newProfile.unidade
+              id: profile.id,
+              name: profile.nome,
+              email: profile.email,
+              role: profile.perfil as UserRole,
+              apartamento: profile.unidade
             };
             setUser(user);
             console.log('✅ Perfil básico criado:', user);
@@ -482,14 +484,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setIsLoading(true);
       
-      // Verificar se o usuário existe no sistema
-      const { data: userData, error: userError } = await supabase
-        .from('usuarios')
-        .select('id, email, nome, ativo, status')
-        .eq('email', email.toLowerCase())
-        .single();
+      // Verificar se o usuário existe no sistema usando RAW query
+      let userData = null;
+      try {
+        userData = await rawSupabaseQuery('usuarios', {
+          select: 'id,email,nome,ativo,status',
+          eq: { email: email.toLowerCase() },
+          single: true
+        });
+      } catch (userError: any) {
+        logger.error('Usuário não encontrado para recuperação de senha', { email });
+        return false;
+      }
 
-      if (userError || !userData) {
+      if (!userData) {
         logger.error('Usuário não encontrado para recuperação de senha', { email });
         return false;
       }

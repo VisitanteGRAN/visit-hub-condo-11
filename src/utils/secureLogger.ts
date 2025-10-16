@@ -1,5 +1,3 @@
-import { logger } from '@/utils/secureLogger';
-
 // 🔐 SECURE LOGGER - Remove dados sensíveis dos logs
 // Substitui console.log por versão segura
 

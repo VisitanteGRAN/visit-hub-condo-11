@@ -251,9 +251,9 @@ class InputSanitizer {
   public sanitizeObject<T extends Record<string, any>>(
     obj: T, 
     rules: Record<keyof T, SanitizationOptions & ValidationRule>
-  ): { sanitized: Partial<T>; errors: Record<keyof T, string> } {
+  ): { sanitized: Partial<T>; errors: Partial<Record<keyof T, string>> } {
     const sanitized: Partial<T> = {};
-    const errors: Record<keyof T, string> = {};
+    const errors: Partial<Record<keyof T, string>> = {};
 
     Object.entries(obj).forEach(([key, value]) => {
       const rule = rules[key as keyof T];
