@@ -27,6 +27,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { supabaseAdmin } from '@/lib/supabase-admin';
 import { CameraCapture } from '@/components/ui/camera-capture';
 import { logger } from '@/utils/secureLogger';
+import { normalizeName } from '@/utils/normalizeText';
 import { queueService } from '@/services/queueService';
 
 interface VisitanteData {
@@ -400,6 +401,14 @@ export default function CadastroVisitanteSimplificado() {
       // 🔄 ENVIAR PARA FILA DE PROCESSAMENTO DO WINDOWS
       console.log('📤 Enviando para fila de processamento Windows...');
       
+      // ✅ NORMALIZAR NOME DO MORADOR ANTES DE ENVIAR
+      const moradorNomeOriginal = linkData.morador;
+      const moradorNomeNormalizado = normalizeName(moradorNomeOriginal);
+      
+      console.log('🏠 Normalizando nome do morador para script:');
+      console.log(`   Original: "${moradorNomeOriginal}"`);
+      console.log(`   Normalizado: "${moradorNomeNormalizado}"`);
+      
       const queueResult = await queueService.sendToQueue({
         nome: nomeCompleto,
         telefone: formData.telefone,
@@ -407,7 +416,7 @@ export default function CadastroVisitanteSimplificado() {
         rg: formData.documento,
         placa: formData.placaVeiculo || '',
         genero: formData.genero,
-        morador_nome: linkData.morador,
+        morador_nome: moradorNomeNormalizado, // ✅ NOME NORMALIZADO (SEM ACENTOS)
         action: 'create',
         validade_dias: linkData.validDays || 1,
         photo_base64: formData.foto || null

@@ -1,6 +1,7 @@
 import { hikCentralService } from './hikvisionService';
 import { hikCentralScrapingService } from './hikCentralScrapingService';
 import { logger } from '@/utils/secureLogger';
+import { normalizeName } from '@/utils/normalizeText';
 
 export interface VisitorData {
   nome: string;
@@ -54,6 +55,13 @@ export class HikVisionWebSDKService {
       const { queueService } = await import('./queueService');
       
       // Preparar dados para fila
+      const moradorNomeOriginal = (visitor as any).moradorNome || '';
+      const moradorNomeNormalizado = moradorNomeOriginal ? normalizeName(moradorNomeOriginal) : '';
+      
+      console.log('🏠 Normalizando nome do morador:');
+      console.log(`   Original: "${moradorNomeOriginal}"`);
+      console.log(`   Normalizado: "${moradorNomeNormalizado}"`);
+      
       const queueData = {
         nome: visitor.nome,
         telefone: visitor.telefone || '',
@@ -61,7 +69,7 @@ export class HikVisionWebSDKService {
         rg: visitor.documento || '',
         placa: (visitor as any).placa_veiculo || '',
         genero: (visitor as any).genero || 'Masculino',
-        morador_nome: (visitor as any).moradorNome || '', // ⭐ NOME DO MORADOR
+        morador_nome: moradorNomeNormalizado, // ✅ NOME DO MORADOR NORMALIZADO (SEM ACENTOS)
         action: (visitor as any).action || 'create', // ⭐ NOVO: 'create' ou 'reactivate'
         validade_dias: visitor.validadeDias || 1, // ⭐ DURAÇÃO EM DIAS
         photo_base64: visitor.foto // ⭐ FOTO EM BASE64
