@@ -68,10 +68,38 @@ export default function CadastroVisitanteSimplificado() {
   // ⭐ NOVOS ESTADOS PARA VERIFICAÇÃO CPF
   const [currentStep, setCurrentStep] = useState<'verification' | 'form' | 'reactivation'>('verification');
   const [visitanteToReactivate, setVisitanteToReactivate] = useState<VisitanteExistente | null>(null);
+  
+  // ✅ ESTADO PARA VALIDAÇÃO DE SEGURANÇA DO NOME
+  const [nomeError, setNomeError] = useState<string>('');
 
   useEffect(() => {
     validateLink();
   }, [linkId]);
+
+  // ✅ FUNÇÃO DE VALIDAÇÃO DE SEGURANÇA DO NOME
+  const validateVisitorName = (primeiroNome: string): boolean => {
+    if (!linkData?.nomeVisitanteEsperado || !primeiroNome) {
+      return true; // Se não há nome esperado, não validar
+    }
+
+    const nomeEsperado = linkData.nomeVisitanteEsperado.toLowerCase().trim();
+    const nomeDigitado = primeiroNome.toLowerCase().trim();
+    
+    // Verificar se o primeiro nome corresponde ao esperado
+    if (nomeEsperado === nomeDigitado) {
+      setNomeError('');
+      return true;
+    }
+    
+    // Verificar se o nome esperado contém o nome digitado (para casos como "João" vs "João Paulo")
+    if (nomeEsperado.includes(nomeDigitado) || nomeDigitado.includes(nomeEsperado)) {
+      setNomeError('');
+      return true;
+    }
+    
+    setNomeError(`⚠️ Este link foi criado para "${linkData.nomeVisitanteEsperado}". Verifique se você está usando o link correto.`);
+    return false;
+  };
 
   const validateLink = async () => {
     try {
@@ -126,7 +154,8 @@ export default function CadastroVisitanteSimplificado() {
         validDays: (linkData as any).validade_dias,
         expiresAt: (linkData as any).expires_at,
         moradorId: (linkData as any).morador_id,
-        linkId: (linkData as any).id
+        linkId: (linkData as any).id,
+        nomeVisitanteEsperado: (linkData as any).nome_visitante // ✅ Nome esperado do visitante
       });
       
     } catch (error) {
@@ -280,6 +309,11 @@ export default function CadastroVisitanteSimplificado() {
     // ✅ CAMPOS OBRIGATÓRIOS COM VALIDAÇÃO
     if (!formData.nome.trim()) errors.push('Nome é obrigatório');
     if (!formData.sobrenome.trim()) errors.push('Sobrenome é obrigatório');
+    
+    // ✅ VALIDAÇÃO DE SEGURANÇA DO NOME
+    if (formData.nome.trim() && !validateVisitorName(formData.nome.trim())) {
+      errors.push(`Este link foi criado para "${linkData?.nomeVisitanteEsperado}"`);
+    }
     
     // Validação CPF
     if (!formData.cpf.trim()) {
@@ -558,13 +592,33 @@ export default function CadastroVisitanteSimplificado() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="nome">Nome *</Label>
+                  {linkData?.nomeVisitanteEsperado && (
+                    <p className="text-xs text-muted-foreground">
+                      💡 Este convite foi criado para: <strong>{linkData.nomeVisitanteEsperado}</strong>
+                    </p>
+                  )}
                   <Input
                     id="nome"
                     value={formData.nome}
-                    onChange={(e) => handleInputChange('nome', e.target.value)}
+                    onChange={(e) => {
+                      handleInputChange('nome', e.target.value);
+                      // Validar em tempo real
+                      if (e.target.value.trim()) {
+                        validateVisitorName(e.target.value.trim());
+                      } else {
+                        setNomeError('');
+                      }
+                    }}
                     placeholder="Primeiro nome"
+                    className={nomeError ? 'border-red-500' : ''}
                     required
                   />
+                  {nomeError && (
+                    <p className="text-sm text-red-600 flex items-center gap-1">
+                      <XCircle className="h-4 w-4" />
+                      {nomeError}
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
