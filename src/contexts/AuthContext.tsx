@@ -6,6 +6,7 @@ import { AuditLogger } from '@/lib/audit-logger';
 import { logger } from '@/utils/secureLogger';
 // Imports de teste removidos para melhorar performance
 import { rawSupabaseQuery, rawSupabaseInsert } from '@/lib/supabase-raw';
+import { normalizeName } from '@/utils/normalizeText';
 
 export type UserRole = 'admin' | 'morador';
 
@@ -386,6 +387,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           email: email,
           senha_hash: '', // Não precisamos da senha hash aqui, pois está no Auth
           nome: nome,
+          nome_normalized: normalizeName(nome), // ✅ Nome normalizado para compatibilidade com HikCentral
           perfil: role,
           unidade: unidade,
           ativo: false, // ❌ INATIVO ATÉ APROVAÇÃO DO ADMIN
