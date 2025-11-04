@@ -57,7 +57,8 @@ export class CPFVerificationService {
 
       // MÉTODO 1: Tentar com supabaseAdmin
       try {
-        const { data: visitante, error } = await supabaseAdmin
+        // Tentar buscar por CPF limpo primeiro, depois por CPF formatado
+        let { data: visitante, error } = await supabaseAdmin
           .from('visitantes')
           .select(`
             *,
@@ -65,11 +66,32 @@ export class CPFVerificationService {
           `)
           .eq('cpf', cpfLimpo)
           .order('created_at', { ascending: false })
-          .limit(1)
-          .single();
+          .limit(1);
+
+        // Se não encontrou com CPF limpo, tentar com CPF formatado
+        if (!visitante || visitante.length === 0) {
+          const cpfFormatado = cpfLimpo.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+          console.log('🔍 Tentando buscar com CPF formatado:', cpfFormatado);
+          
+          const result = await supabaseAdmin
+            .from('visitantes')
+            .select(`
+              *,
+              morador:usuarios(nome)
+            `)
+            .eq('cpf', cpfFormatado)
+            .order('created_at', { ascending: false })
+            .limit(1);
+          
+          visitante = result.data;
+          error = result.error;
+        }
+
+        // Pegar o primeiro resultado se houver
+        const visitanteResult = visitante && visitante.length > 0 ? visitante[0] : null;
 
         if (!error || error.code === 'PGRST116') {
-          return this.processVisitanteResult(visitante, error);
+          return this.processVisitanteResult(visitanteResult, error);
         }
         
         console.warn('⚠️ Supabase client falhou, tentando fetch direto...');
@@ -79,7 +101,7 @@ export class CPFVerificationService {
         console.warn('⚠️ Erro no supabaseAdmin, usando fetch direto:', supabaseError);
         
         // MÉTODO 2: Fetch direto como backup
-        const response = await fetch(`${supabaseUrl}/rest/v1/visitantes?select=*,morador:usuarios(nome)&cpf=eq.${cpfLimpo}&order=created_at.desc&limit=1`, {
+        let response = await fetch(`${supabaseUrl}/rest/v1/visitantes?select=*,morador:usuarios(nome)&cpf=eq.${cpfLimpo}&order=created_at.desc&limit=1`, {
           method: 'GET',
           headers: {
             'apikey': serviceKey,
@@ -93,8 +115,29 @@ export class CPFVerificationService {
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
 
-        const data = await response.json();
-        const visitante = data && data.length > 0 ? data[0] : null;
+        let data = await response.json();
+        let visitante = data && data.length > 0 ? data[0] : null;
+
+        // Se não encontrou com CPF limpo, tentar com CPF formatado
+        if (!visitante) {
+          const cpfFormatado = cpfLimpo.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+          console.log('🔍 Fetch direto: Tentando buscar com CPF formatado:', cpfFormatado);
+          
+          response = await fetch(`${supabaseUrl}/rest/v1/visitantes?select=*,morador:usuarios(nome)&cpf=eq.${cpfFormatado}&order=created_at.desc&limit=1`, {
+            method: 'GET',
+            headers: {
+              'apikey': serviceKey,
+              'authorization': `Bearer ${serviceKey}`,
+              'content-type': 'application/json',
+              'accept': 'application/json'
+            }
+          });
+
+          if (response.ok) {
+            data = await response.json();
+            visitante = data && data.length > 0 ? data[0] : null;
+          }
+        }
         
         return this.processVisitanteResult(visitante, null);
       }
