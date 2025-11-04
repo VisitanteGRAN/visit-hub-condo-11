@@ -44,6 +44,21 @@ print("WINDOWS POLLING SERVICE - VISIT HUB")
 print("==================================================")
 print("[OK] Arquitetura SEGURA - Windows NAO exposto!")
 print("[INFO] MODO DUAL WORKERS ATIVADO - 2 CADASTROS SIMULTÂNEOS!")
+
+# ✅ VERIFICAR DEPENDÊNCIAS DO SCRIPT MELHORADO
+try:
+    import psutil
+    print("[OK] psutil disponível - Limpeza de processos ativada")
+except ImportError:
+    print("[WARN] psutil não encontrado - Instale com: pip install psutil")
+    print("[INFO] Script funcionará sem limpeza automática de processos")
+
+try:
+    import requests
+    print("[OK] requests disponível - API normalizada ativada")
+except ImportError:
+    print("[WARN] requests não encontrado - Instale com: pip install requests")
+
 print("[INFO] Verificando fila de cadastros...")
 print("==================================================")
 
@@ -231,7 +246,7 @@ class WindowsPollingService:
             if action_type == 'create' and item.get('photo_base64'):
                 photo_path = self.save_photo(item['photo_base64'], visitor_id)
             
-            # Preparar dados para script
+            # Preparar dados para script - COMPATÍVEL COM MELHORIAS
             visitor_data_from_queue = item.get('visitor_data', {})
             visitor_data = {
                 'nome': visitor_data_from_queue.get('nome', ''),
@@ -240,7 +255,9 @@ class WindowsPollingService:
                 'rg': visitor_data_from_queue.get('rg', ''),
                 'placa': visitor_data_from_queue.get('placa', ''),
                 'genero': visitor_data_from_queue.get('genero', 'Masculino'),
-                'morador_nome': visitor_data_from_queue.get('morador_nome', 'lucca lacerda'),  # Nome do morador (CRITICO para reativacao)
+                'morador_nome': visitor_data_from_queue.get('morador_nome', 'lucca lacerda'),  # Nome do morador (CRITICO)
+                'validade_dias': visitor_data_from_queue.get('validade_dias', 1),  # ✅ NOVO: Duração do visitante
+                'action': action_type,  # ✅ NOVO: Tipo de ação para o script
                 'photo_path': photo_path
             }
             
@@ -280,7 +297,7 @@ class WindowsPollingService:
                 cmd,
                 capture_output=True,
                 text=True,
-                timeout=300,  # 5 minutos timeout
+                timeout=600,  # ✅ 10 minutos timeout (aumentado para acomodar melhorias anti-crash)
                 cwd=SCRIPT_DIR  # FORÇAR WORKING DIRECTORY
             )
             
