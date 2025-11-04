@@ -55,74 +55,46 @@ export class QueueService {
       
       console.log('📦 Dados que serão inseridos no Supabase:', insertData);
 
-      // 🛡️ DUPLA PROTEÇÃO: Tentar supabaseAdmin primeiro, depois fetch direto
-      try {
-        const { data, error } = await supabaseAdmin
-          .from('visitor_registration_queue')
-          .insert(insertData as any)
-          .select('id')
-          .single();
+      // 🚨 USAR FETCH DIRETO DESDE O INÍCIO PARA EVITAR ERRO 401
+      console.log('🔄 Usando fetch direto para garantir funcionamento...');
+      
+      const response = await fetch(`${supabaseUrl}/rest/v1/visitor_registration_queue`, {
+        method: 'POST',
+        headers: {
+          'apikey': serviceKey,
+          'authorization': `Bearer ${serviceKey}`,
+          'content-type': 'application/json',
+          'accept': 'application/json',
+          'prefer': 'return=representation'
+        },
+        body: JSON.stringify(insertData)
+      });
 
-        if (error) {
-          console.warn('⚠️ Erro no supabaseAdmin, tentando fetch direto:', error.message);
-          throw new Error('Fallback para fetch direto');
-        }
-
-        const queueId = (data as any)?.id;
-        if (!queueId) {
-          console.warn('⚠️ ID não retornado, tentando fetch direto');
-          throw new Error('Fallback para fetch direto');
-        }
-
-        console.log('✅ Visitante enviado para fila com ID (supabaseAdmin):', queueId);
-        
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ Erro no fetch direto:', response.status, errorText);
         return {
-          success: true,
-          id: queueId
-        };
-
-      } catch (adminError) {
-        console.log('🔄 Tentando fetch direto como fallback...');
-        
-        // 🚨 FALLBACK: Usar fetch direto com service key hardcoded
-        const response = await fetch(`${supabaseUrl}/rest/v1/visitor_registration_queue`, {
-          method: 'POST',
-          headers: {
-            'apikey': serviceKey,
-            'authorization': `Bearer ${serviceKey}`,
-            'content-type': 'application/json',
-            'accept': 'application/json',
-            'prefer': 'return=representation'
-          },
-          body: JSON.stringify(insertData)
-        });
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error('❌ Erro no fetch direto:', response.status, errorText);
-          return {
-            success: false,
-            error: `HTTP ${response.status}: ${errorText}`
-          };
-        }
-
-        const data = await response.json();
-        const queueId = Array.isArray(data) ? data[0]?.id : data?.id;
-        
-        if (!queueId) {
-          return {
-            success: false,
-            error: 'ID não retornado após inserção (fetch direto)'
-          };
-        }
-
-        console.log('✅ Visitante enviado para fila com ID (fetch direto):', queueId);
-        
-        return {
-          success: true,
-          id: queueId
+          success: false,
+          error: `HTTP ${response.status}: ${errorText}`
         };
       }
+
+      const data = await response.json();
+      const queueId = Array.isArray(data) ? data[0]?.id : data?.id;
+      
+      if (!queueId) {
+        return {
+          success: false,
+          error: 'ID não retornado após inserção (fetch direto)'
+        };
+      }
+
+      console.log('✅ Visitante enviado para fila com ID (fetch direto):', queueId);
+      
+      return {
+        success: true,
+        id: queueId
+      };
 
     } catch (error) {
       console.error('❌ Erro geral ao enviar para fila:', error);
