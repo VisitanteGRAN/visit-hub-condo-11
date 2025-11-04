@@ -19,166 +19,219 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
 
 class HikCentralFormTest:
-    def __init__(self, visitor_data, visitor_id, headless=True):
+    def __init__(self, visitor_data, visitor_id, headless=False):
         self.driver = None
         self.visitor_data = visitor_data
         self.visitor_id = visitor_id
         self.headless = headless
+        self.temp_profile = None
+        self.window_position = self.get_window_position()
+        
+    def get_window_position(self):
+        """Calcular posição única da janela para evitar sobreposição"""
+        # Usar ID do visitante para calcular posição única
+        hash_value = hash(self.visitor_id) % 1000
+        x_offset = (hash_value % 4) * 320  # Grid 4x3: 0, 320, 640, 960
+        y_offset = ((hash_value // 4) % 3) * 250  # 0, 250, 500
+        
+        return {
+            'x': 50 + x_offset,
+            'y': 50 + y_offset,
+            'width': 1300,
+            'height': 900
+        }
+        
+    def cleanup_chrome_processes(self):
+        """Limpeza suave de processos Chrome órfãos"""
+        try:
+            import psutil
+            print("[CLEANUP] Verificando processos Chrome órfãos...")
+            
+            chrome_processes = []
+            for proc in psutil.process_iter(['pid', 'name']):
+                try:
+                    if proc.info['name'] and 'chrome' in proc.info['name'].lower():
+                        chrome_processes.append(proc)
+                except (psutil.NoSuchProcess, psutil.AccessDenied):
+                    continue
+            
+            print(f"[INFO] Encontrados {len(chrome_processes)} processos Chrome")
+            
+            # Se há muitos processos (>15), aguardar estabilizar
+            if len(chrome_processes) > 15:
+                print("[CLEANUP] Muitos processos Chrome, aguardando estabilizar...")
+                time.sleep(3)
+                
+        except Exception as e:
+            print(f"[WARN] Erro na limpeza: {e}")
         
     def setup_driver(self):
-        """Configurar driver do Chrome"""
-        print("[SETUP] Configurando Chrome...")
+        """Configurar driver do Chrome com melhorias anti-crash"""
+        print("[SETUP] Configurando Chrome melhorado...")
 
-        # LIMPEZA SUAVE - SEM MATAR PROCESSOS EXISTENTES
-        try:
-            print("[INFO] Configuração suave - preservando Chrome existente")
-            # Apenas aguardar um momento para estabilizar
-            time.sleep(1)
-        except Exception as e:
-            print(f"[WARN] Erro na preparação: {e}")
+        # Limpeza suave
+        self.cleanup_chrome_processes()
 
         options = Options()
-        # Configurações CORPORATIVAS - Para ambientes com antivírus/políticas
+        
+        # ✅ CONFIGURAÇÕES ANTI-CRASH
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-dev-shm-usage")
         options.add_argument("--disable-gpu")
-        options.add_argument("--window-size=1920,1080")
-        options.add_argument("--disable-extensions")
-        options.add_argument("--disable-plugins")
-        options.add_argument("--disable-web-security")
-        options.add_argument("--disable-features=VizDisplayCompositor")
-        
-        # CONFIGURAÇÕES ESPECÍFICAS PARA ANTIVÍRUS/CORPORATE
-        options.add_argument("--disable-blink-features=AutomationControlled")
+        options.add_argument("--disable-software-rasterizer")
         options.add_argument("--disable-background-timer-throttling")
         options.add_argument("--disable-backgrounding-occluded-windows")
         options.add_argument("--disable-renderer-backgrounding")
         options.add_argument("--disable-features=TranslateUI")
+        options.add_argument("--disable-ipc-flooding-protection")
+        
+        # ✅ CONFIGURAÇÕES DE MEMÓRIA
+        options.add_argument("--memory-pressure-off")
+        options.add_argument("--max_old_space_size=4096")
+        
+        # ✅ CONFIGURAÇÕES DE REDE
         options.add_argument("--aggressive-cache-discard")
+        options.add_argument("--disable-background-networking")
         options.add_argument("--disable-default-apps")
         options.add_argument("--disable-sync")
-        options.add_argument("--disable-logging")
-        options.add_argument("--silent")
-        options.add_argument("--disable-component-update")
         
-        # Evitar detecção por antivírus
-        options.add_experimental_option("excludeSwitches", ["enable-automation"])
-        options.add_experimental_option('useAutomationExtension', False)
-        
-        # CONFIGURAR USER-DATA-DIR ÚNICO para evitar conflitos
+        # ✅ PERFIL ÚNICO PARA EVITAR CONFLITOS
         import tempfile
         import uuid
-        temp_profile = os.path.join(tempfile.gettempdir(), f"chrome_profile_{uuid.uuid4().hex[:8]}")
+        import random
+        
+        # Criar perfil temporário único baseado no visitor_id
+        profile_suffix = f"{self.visitor_id[:8]}_{uuid.uuid4().hex[:6]}_{random.randint(1000, 9999)}"
+        temp_profile = os.path.join(tempfile.gettempdir(), f"chrome_profile_{profile_suffix}")
         options.add_argument(f"--user-data-dir={temp_profile}")
-        print(f"[INFO] Configuração Chrome com diretório único: {temp_profile}")
-        
-        # Salvar caminho para limpeza posterior
         self.temp_profile = temp_profile
-
-        if self.headless:
-            options.add_argument("--headless")
-            print("[INFO] Modo headless ativado - execução invisível para produção")
-        else:
-            print("[INFO] Modo visual ativado - Chrome será visível para demonstração")
+        print(f"[INFO] Perfil único criado: {temp_profile}")
         
-        print(f"[DEBUG] Configuração headless: {self.headless}")
-
-        try:
-            # TENTAR CONFIGURAÇÃO BÁSICA PRIMEIRO
-            print("[TRY] Tentando configuração básica do Chrome...")
-            
-            # Aguardar um pouco antes de iniciar (evitar conflitos)
-            time.sleep(2)
-            
-            self.driver = webdriver.Chrome(options=options)
-            self.driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
-            
-            # Configurar timeouts adequados
-            self.driver.implicitly_wait(10)
-            self.driver.set_page_load_timeout(30)
-            
-            print("[OK] Chrome configurado com sucesso (básico)")
-            return True
-        except Exception as e:
-            print(f"[WARN] Configuração básica falhou: {e}")
-            
-            # FALLBACK: TENTAR COM WEBDRIVER MANAGER
+        # ✅ POSIÇÃO DA JANELA ÚNICA (SEM HEADLESS)
+        if not self.headless:
+            pos = self.window_position
+            options.add_argument(f"--window-position={pos['x']},{pos['y']}")
+            options.add_argument(f"--window-size={pos['width']},{pos['height']}")
+            print(f"[SETUP] Janela posicionada em: {pos['x']},{pos['y']} ({pos['width']}x{pos['height']})")
+        
+        # ✅ CONFIGURAÇÕES DE LOGGING REDUZIDAS
+        options.add_argument("--log-level=3")
+        options.add_argument("--silent")
+        options.add_experimental_option('excludeSwitches', ['enable-logging'])
+        options.add_experimental_option('useAutomationExtension', False)
+        
+        # ✅ USER AGENT CORPORATIVO
+        options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Corporate/1.0")
+        
+        # ✅ MÚLTIPLAS TENTATIVAS DE INICIALIZAÇÃO
+        for attempt in range(3):
             try:
-                print("[FALLBACK] Tentando com WebDriver Manager...")
-                from selenium.webdriver.chrome.service import Service
-                from webdriver_manager.chrome import ChromeDriverManager
+                print(f"[SETUP] Tentativa {attempt + 1}/3 de inicializar Chrome...")
                 
-                service = Service(ChromeDriverManager().install())
-                self.driver = webdriver.Chrome(service=service, options=options)
+                # Aguardar um pouco entre tentativas
+                if attempt > 0:
+                    wait_time = attempt * 2 + random.uniform(1, 3)
+                    print(f"[SETUP] Aguardando {wait_time:.1f}s antes da próxima tentativa...")
+                    time.sleep(wait_time)
+                
+                self.driver = webdriver.Chrome(options=options)
                 self.driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
-                print("[OK] Chrome configurado com sucesso (WebDriver Manager)")
-                return True
-            except Exception as e2:
-                print(f"[ERRO] Ambas as configurações falharam: {e2}")
                 
-                # ÚLTIMO RECURSO: CHROME SEM ARGUMENTOS EXTRAS
-                try:
-                    print("[LAST] Tentando Chrome minimalista...")
-                    minimal_options = Options()
-                    minimal_options.add_argument("--no-sandbox")
-                    minimal_options.add_argument("--disable-dev-shm-usage")
-                    
-                    self.driver = webdriver.Chrome(options=minimal_options)
-                    print("[OK] Chrome configurado (minimalista)")
-                    return True
-                except Exception as e3:
-                    print(f"[ERRO] Chrome minimalista também falhou: {e3}")
+                print(f"[OK] Chrome iniciado com sucesso na tentativa {attempt + 1}")
+                break
+                
+            except Exception as e:
+                print(f"[WARN] Tentativa {attempt + 1} falhou: {e}")
+                if attempt == 2:  # Última tentativa
+                    print(f"[ERROR] Todas as tentativas falharam")
                     return False
+                
+                # Limpeza entre tentativas
+                self.cleanup_chrome_processes()
+                time.sleep(2)
+        
+        # ✅ CONFIGURAÇÕES ADICIONAIS
+        self.driver.implicitly_wait(10)
+        self.driver.set_page_load_timeout(60)  # Timeout maior para páginas lentas
+        self.driver.set_script_timeout(30)
+        
+        print("[OK] Chrome configurado com sucesso")
+        return True
 
     def login(self):
-        """Fazer login no HikCentral"""
+        """Fazer login no HikCentral com retry"""
         url = os.getenv('HIKCENTRAL_URL')
         username = os.getenv('HIKCENTRAL_USERNAME')
         password = os.getenv('HIKCENTRAL_PASSWORD')
         
         print(f"[LOGIN] Fazendo login em {url}...")
         
-        try:
-            self.driver.get(url)
-            print("[WAIT] Aguardando página carregar completamente...")
-            time.sleep(10)  # Aumentado para ambientes lentos
-            
-            # Login usando IDs com wait explícito
-            print("[LOGIN] Procurando campo username...")
-            username_field = WebDriverWait(self.driver, 15).until(
-                EC.presence_of_element_located((By.ID, "username"))
-            )
-            password_field = self.driver.find_element(By.ID, "password")
-            print("[OK] Campos de login encontrados!")
-            
-            # Preencher usuário
-            username_field.clear()
-            for char in username:
-                username_field.send_keys(char)
-                time.sleep(0.1)
-            time.sleep(1)
-            
-            # Preencher senha
-            password_field.clear()
-            for char in password:
-                password_field.send_keys(char)
-                time.sleep(0.1)
-            time.sleep(1)
-            
-            # Clicar login
-            login_btn = self.driver.find_element(By.CSS_SELECTOR, ".login-btn")
-            login_btn.click()
-            print("[OK] Login realizado!")
-            
-            # Aguardar carregamento
-            print("[WAIT] Aguardando carregamento da página principal...")
-            time.sleep(8)  # Aumentado para ambiente corporativo
-            
-            return True
-            
-        except Exception as e:
-            print(f"[ERRO] Erro no login: {e}")
-            return False
+        # ✅ MÚLTIPLAS TENTATIVAS DE LOGIN
+        for attempt in range(3):
+            try:
+                print(f"[LOGIN] Tentativa {attempt + 1}/3...")
+                
+                # Navegar para URL
+                self.driver.get(url)
+                print("[WAIT] Aguardando página carregar...")
+                time.sleep(10)  # Tempo para página carregar
+                
+                # Login usando IDs com wait explícito
+                print("[LOGIN] Procurando campos de login...")
+                username_field = WebDriverWait(self.driver, 30).until(
+                    EC.presence_of_element_located((By.ID, "username"))
+                )
+                password_field = self.driver.find_element(By.ID, "password")
+                print("[OK] Campos de login encontrados!")
+                
+                # Preencher usuário
+                username_field.clear()
+                for char in username:
+                    username_field.send_keys(char)
+                    time.sleep(0.1)
+                time.sleep(1)
+                
+                # Preencher senha
+                password_field.clear()
+                for char in password:
+                    password_field.send_keys(char)
+                    time.sleep(0.1)
+                time.sleep(1)
+                
+                # Clicar login
+                login_btn = self.driver.find_element(By.CSS_SELECTOR, ".login-btn")
+                login_btn.click()
+                print("[OK] Login realizado!")
+                
+                # Aguardar carregamento da página principal
+                print("[WAIT] Aguardando carregamento da página principal...")
+                time.sleep(8)
+                
+                # Verificar se login foi bem-sucedido (procurar elemento da página principal)
+                try:
+                    WebDriverWait(self.driver, 10).until(
+                        lambda driver: "login" not in driver.current_url.lower()
+                    )
+                    print("[OK] Login bem-sucedido!")
+                    return True
+                except:
+                    print(f"[WARN] Login pode não ter funcionado na tentativa {attempt + 1}")
+                    if attempt < 2:  # Se não é a última tentativa
+                        continue
+                    else:
+                        print("[WARN] Continuando mesmo com possível falha no login...")
+                        return True
+                
+            except Exception as e:
+                print(f"[WARN] Tentativa {attempt + 1} de login falhou: {e}")
+                if attempt == 2:  # Última tentativa
+                    print(f"[ERROR] Todas as tentativas de login falharam")
+                    return False
+                
+                # Aguardar antes da próxima tentativa
+                time.sleep(5)
+        
+        return False
     
     def navigate_to_form(self):
         """Navegar para formulário - EXATAMENTE COMO FUNCIONAVA"""
@@ -1381,21 +1434,49 @@ class HikCentralFormTest:
             print(f"[ERRO] Erro durante teste: {e}")
             return False
         finally:
+            # ✅ LIMPEZA AUTOMÁTICA MELHORADA
+            print("[CLEANUP] Iniciando limpeza automática...")
+            
+            # Fechar driver
             if self.driver:
-                self.driver.quit()
+                try:
+                    self.driver.quit()
+                    print("[CLEANUP] Driver fechado")
+                except Exception as e:
+                    print(f"[WARN] Erro ao fechar driver: {e}")
+            
+            # Aguardar processos finalizarem
+            time.sleep(2)
             
             # Limpar diretório temporário do Chrome
-            if hasattr(self, 'temp_profile'):
+            if self.temp_profile and os.path.exists(self.temp_profile):
                 try:
                     import shutil
-                    if os.path.exists(self.temp_profile):
-                        shutil.rmtree(self.temp_profile, ignore_errors=True)
-                        print(f"[CLEANUP] Diretório temporário removido: {self.temp_profile}")
+                    shutil.rmtree(self.temp_profile, ignore_errors=True)
+                    print(f"[CLEANUP] Perfil temporário removido: {self.temp_profile}")
                 except Exception as e:
-                    print(f"[WARN] Erro ao limpar diretório temporário: {e}")
+                    print(f"[WARN] Erro ao limpar perfil temporário: {e}")
+            
+            # Limpeza final de processos órfãos
+            try:
+                import psutil
+                chrome_count = 0
+                for proc in psutil.process_iter(['pid', 'name']):
+                    try:
+                        if proc.info['name'] and 'chrome' in proc.info['name'].lower():
+                            chrome_count += 1
+                    except (psutil.NoSuchProcess, psutil.AccessDenied):
+                        continue
+                
+                print(f"[CLEANUP] Processos Chrome restantes: {chrome_count}")
+                
+            except Exception as e:
+                print(f"[WARN] Erro na verificação final: {e}")
+            
+            print("[CLEANUP] Limpeza concluída")
 
     def preencher_campo_visitado(self):
-        """Preencher campo 'Visitado' com nome do morador"""
+        """Preencher campo 'Visitado' com nome do morador usando API normalizada"""
         print("\n[TEST] Preenchendo campo VISITADO...")
         
         # Obter nome do morador dos dados do visitante
@@ -1405,7 +1486,19 @@ class HikCentralFormTest:
             print("[SKIP] Nenhum nome de morador fornecido")
             return
         
-        print(f"[INFO] Preenchendo visitado com: {morador_nome}")
+        print(f"[INFO] Nome original do morador: {morador_nome}")
+        
+        # ✅ BUSCAR NOME NORMALIZADO VIA API
+        nome_normalizado = self.get_normalized_name(morador_nome)
+        if nome_normalizado:
+            print(f"[INFO] Nome normalizado obtido: {nome_normalizado}")
+            nome_busca = nome_normalizado
+        else:
+            print("[WARN] Não foi possível obter nome normalizado, usando original")
+            nomes = morador_nome.split(' ')
+            nome_busca = ' '.join(nomes[:3])  # Primeiros 3 nomes
+        
+        print(f"[INFO] Nome para busca: {nome_busca}")
         
         try:
             # 1. ENCONTRAR E CLICAR NO CAMPO "VISITADO"
@@ -1445,15 +1538,11 @@ class HikCentralFormTest:
                 else:
                     raise e
             
-            # 3. LIMPAR CAMPO E DIGITAR NOME DO MORADOR
+            # 3. LIMPAR CAMPO E DIGITAR NOME NORMALIZADO
             visitado_field.clear()
             time.sleep(0.5)
             
-            # Digitar apenas os 3 primeiros nomes do morador
-            nomes = morador_nome.split(' ')
-            nome_busca = ' '.join(nomes[:3])  # Primeiros 3 nomes
-            
-            print(f"[INFO] Digitando nome para busca: {nome_busca}")
+            print(f"[INFO] Digitando nome normalizado: {nome_busca}")
             
             # Digitar caractere por caractere
             for char in nome_busca:
@@ -1486,10 +1575,11 @@ class HikCentralFormTest:
             print("[INFO] Procurando morador nos resultados...")
             try:
                 # Procurar pelo card do morador na lista de resultados
+                primeiro_nome = nome_busca.split(' ')[0]
                 morador_selectors = [
-                    f"//ul[@class='person-search-panel']//div[@class='ptl-title name-title' and contains(text(), '{nome_busca.upper()}')]",
                     f"//ul[@class='person-search-panel']//div[@class='ptl-title name-title' and contains(text(), '{nome_busca}')]",
-                    f"//ul[contains(@class, 'person-search')]//div[contains(@class, 'name-title') and contains(text(), '{nomes[0]}')]"
+                    f"//ul[@class='person-search-panel']//div[@class='ptl-title name-title' and contains(text(), '{primeiro_nome}')]",
+                    f"//ul[contains(@class, 'person-search')]//div[contains(@class, 'name-title') and contains(text(), '{primeiro_nome}')]"
                 ]
                 
                 morador_card = None
@@ -1526,6 +1616,35 @@ class HikCentralFormTest:
                 
         except Exception as e:
             print(f"[ERROR] Erro geral ao preencher visitado: {e}")
+    
+    def get_normalized_name(self, nome):
+        """Obter nome normalizado via API"""
+        try:
+            import requests
+            
+            # URL da API (ajustar conforme necessário)
+            api_url = "https://granroyalle-visitantes.vercel.app/api/morador-by-name"
+            
+            print(f"[API] Buscando nome normalizado para: {nome}")
+            
+            response = requests.get(api_url, params={'nome': nome}, timeout=10)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if data.get('success') and data.get('morador'):
+                    nome_normalizado = data['morador'].get('nome_normalized', '')
+                    print(f"[API] Nome normalizado recebido: {nome_normalizado}")
+                    return nome_normalizado
+                else:
+                    print(f"[API] Morador não encontrado na base de dados")
+                    return None
+            else:
+                print(f"[API] Erro na requisição: {response.status_code}")
+                return None
+                
+        except Exception as e:
+            print(f"[API] Erro ao buscar nome normalizado: {e}")
+            return None
 
     def configurar_duracao_visitante(self):
         """Configurar duração do visitante baseada nos dias especificados"""
@@ -1754,9 +1873,10 @@ def main():
         print(f"[ERRO] Erro ao carregar .env: {e}")
         return False
     
-    # FORÇAR MODO HEADLESS PARA PRODUÇÃO
-    print("[FORCE] FORÇANDO MODO HEADLESS PARA PRODUÇÃO")
-    tester = HikCentralFormTest(visitor_data, visitor_id, True)
+    # ✅ MODO VISUAL POR PADRÃO (SEM HEADLESS)
+    print("[SETUP] MODO VISUAL ATIVADO - Chrome será visível")
+    headless_mode = args.headless if hasattr(args, 'headless') else False
+    tester = HikCentralFormTest(visitor_data, visitor_id, headless_mode)
     
     try:
         return tester.run_test()
