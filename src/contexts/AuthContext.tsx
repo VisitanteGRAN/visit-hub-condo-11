@@ -514,8 +514,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const currentUrl = window.location.origin;
       const isProduction = currentUrl.includes('vercel.app') || currentUrl.includes('granroyalle');
       const redirectUrl = isProduction 
-        ? 'https://granroyalle-visitantes.vercel.app/auth/callback'
-        : `${currentUrl}/auth/callback`;
+        ? 'https://granroyalle-visitantes.vercel.app/reset-password'
+        : `${currentUrl}/reset-password`;
       
       logger.info('URL de redirecionamento para recuperação', { redirectUrl });
 

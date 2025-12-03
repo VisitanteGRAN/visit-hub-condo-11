@@ -17,16 +17,35 @@ export default function AuthCallback() {
 
   const handleAuthCallback = async () => {
     try {
-      // Verificar se é um callback de reset de senha
+      // Verificar todos os parâmetros possíveis
       const type = searchParams.get('type');
       const tokenHash = searchParams.get('token_hash');
       const accessToken = searchParams.get('access_token');
       const refreshToken = searchParams.get('refresh_token');
+      const errorParam = searchParams.get('error');
+      const errorDescription = searchParams.get('error_description');
 
-      console.log('🔄 Processando callback de autenticação:', { type, hasToken: !!tokenHash });
+      console.log('🔄 Processando callback de autenticação:', { 
+        type, 
+        hasTokenHash: !!tokenHash, 
+        hasAccessToken: !!accessToken,
+        hasRefreshToken: !!refreshToken,
+        error: errorParam,
+        allParams: Object.fromEntries(searchParams.entries())
+      });
 
+      // Verificar se há erro nos parâmetros
+      if (errorParam) {
+        console.error('❌ Erro no callback:', errorParam, errorDescription);
+        setStatus('error');
+        setMessage(errorDescription || 'Erro na autenticação.');
+        setTimeout(() => navigate('/login'), 3000);
+        return;
+      }
+
+      // Caso 1: Reset de senha via token hash (PKCE flow)
       if (type === 'recovery' && tokenHash) {
-        // Reset de senha via token hash
+        console.log('🔑 Processando reset via token hash...');
         const { error } = await supabase.auth.verifyOtp({
           token_hash: tokenHash,
           type: 'recovery'
@@ -44,13 +63,13 @@ export default function AuthCallback() {
         setMessage('Link de recuperação válido! Redirecionando...');
         logger.info('Token de recuperação verificado com sucesso');
         
-        // Redirecionar para página de reset de senha
         setTimeout(() => navigate('/reset-password'), 2000);
         return;
       }
 
+      // Caso 2: Reset de senha via access/refresh tokens (Implicit flow)
       if (accessToken && refreshToken) {
-        // Login via magic link ou OAuth
+        console.log('🔑 Processando reset via tokens de acesso...');
         const { error } = await supabase.auth.setSession({
           access_token: accessToken,
           refresh_token: refreshToken
@@ -64,20 +83,39 @@ export default function AuthCallback() {
           return;
         }
 
-        setStatus('success');
-        setMessage('Autenticação realizada com sucesso!');
-        logger.info('Sessão definida via callback');
-        
-        // Redirecionar para dashboard
-        setTimeout(() => navigate('/dashboard'), 2000);
-        return;
+        // Verificar se é um reset de senha ou login normal
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          setStatus('success');
+          setMessage('Autenticação realizada com sucesso! Redirecionando...');
+          logger.info('Sessão definida via callback');
+          
+          // Para reset de senha, redirecionar para página de reset
+          // Para login normal, redirecionar para dashboard
+          setTimeout(() => navigate('/reset-password'), 2000);
+          return;
+        }
       }
 
-      // Se chegou aqui, não há parâmetros válidos
-      console.warn('⚠️ Callback sem parâmetros válidos');
+      // Caso 3: Apenas access token (alguns fluxos OAuth)
+      if (accessToken && !refreshToken) {
+        console.log('🔑 Processando com apenas access token...');
+        // Tentar obter a sessão atual
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          setStatus('success');
+          setMessage('Autenticação realizada com sucesso! Redirecionando...');
+          setTimeout(() => navigate('/reset-password'), 2000);
+          return;
+        }
+      }
+
+      // Se chegou aqui, não há parâmetros válidos ou reconhecidos
+      console.warn('⚠️ Callback sem parâmetros válidos ou reconhecidos');
+      console.log('📋 Parâmetros recebidos:', Object.fromEntries(searchParams.entries()));
       setStatus('error');
-      setMessage('Link de autenticação inválido.');
-      setTimeout(() => navigate('/login'), 3000);
+      setMessage('Link de autenticação inválido ou expirado.');
+      setTimeout(() => navigate('/forgot-password'), 3000);
 
     } catch (error) {
       console.error('❌ Erro no callback de autenticação:', error);

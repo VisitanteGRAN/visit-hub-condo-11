@@ -120,8 +120,8 @@ export default function ForgotPassword() {
       const currentUrl = window.location.origin;
       const isProduction = currentUrl.includes('vercel.app') || currentUrl.includes('granroyalle');
       const redirectUrl = isProduction 
-        ? 'https://granroyalle-visitantes.vercel.app/auth/callback'
-        : `${currentUrl}/auth/callback`;
+        ? 'https://granroyalle-visitantes.vercel.app/reset-password'
+        : `${currentUrl}/reset-password`;
       
       console.log('🔗 URL de redirecionamento:', redirectUrl);
 
