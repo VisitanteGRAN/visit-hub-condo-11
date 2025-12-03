@@ -511,10 +511,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       // Determinar URL de redirecionamento correta
-      const isProduction = window.location.hostname !== 'localhost';
+      const currentUrl = window.location.origin;
+      const isProduction = currentUrl.includes('vercel.app') || currentUrl.includes('granroyalle');
       const redirectUrl = isProduction 
-        ? 'https://granroyalle-visitantes.vercel.app/reset-password'
-        : `${window.location.origin}/reset-password`;
+        ? 'https://granroyalle-visitantes.vercel.app/auth/callback'
+        : `${currentUrl}/auth/callback`;
       
       logger.info('URL de redirecionamento para recuperação', { redirectUrl });
 

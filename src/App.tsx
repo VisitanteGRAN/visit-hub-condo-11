@@ -21,6 +21,7 @@ import AdminApprovals from "./pages/AdminApprovals";
 import AdminResidents from "./pages/AdminResidents";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import AuthCallback from "./pages/AuthCallback";
 
 const App = () => (
   <ThemeProvider>
@@ -34,6 +35,7 @@ const App = () => (
           <Route path="/login" element={<Login />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/cadastro-morador" element={<CadastroMorador />} />
           <Route path="/cadastro-sucesso" element={<CadastroSucesso />} />
                         <Route path="/visitante/:linkId" element={<CadastroVisitanteSimplificado />} />
